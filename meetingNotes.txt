@@ -5,7 +5,7 @@ February 2 2018:
 	- set operations can be used on both general FSM's and regular expressions
 	- sentence segmentation 
 
-Tools for user: highest precedence, maybe D()
+Tools for user: highest precedence decomposition, maybe D()
 Ex: 
 	x = a
 	x2 = x* //basically a*
