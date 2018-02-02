@@ -1,3 +1,7 @@
 February 2 2018:
 
 - Need to finish proposal
+	- build a language that focuses on general DFA/NFA and offers the functionality to build regular expressions
+	- set operations can be used on both general FSM's and regular expressions
+	- sentence segmentation 
+
