@@ -5,3 +5,23 @@ February 2 2018:
 	- set operations can be used on both general FSM's and regular expressions
 	- sentence segmentation 
 
+Tools for user: highest precedence, maybe D()
+Ex: 
+	x = a
+	x2 = x* //basically a*
+	D(x2) = [* , a]
+
+Ex:
+	alphabet = {a,b,c,d}
+	RegX x1 = ( (a b) | c)*
+	D(x1) = [*, (a b) | c]
+
+	D((a b) | c) = [| , (a b), c]
+	.
+	.
+	.
+
+
+
+
+
