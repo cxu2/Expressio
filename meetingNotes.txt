@@ -21,7 +21,10 @@ Ex:
 	.
 	.
 
+Example of Implementation of HPD (highest precedence order):
 
-
+breakdown RegExp -> (RegExp, Optional, RegExp, Operator)
+	| breakdown (r)** -> (r,None, **)
+	| breakdwon (r1 ^ r2) -> (r1,some(r2),^)
 
 
