@@ -1,5 +1,4 @@
 February 2 2018:
-
 - Need to finish proposal
 	- build a language that focuses on general DFA/NFA and offers the functionality to build regular expressions
 	- set operations can be used on both general FSM's and regular expressions
@@ -28,3 +27,20 @@ breakdown RegExp -> (RegExp, Optional, RegExp, Operator)
 	| breakdwon (r1 ^ r2) -> (r1,some(r2),^)
 
 
+February 7, 2018:
+Finished our proposal late around 8pm.
+May have to whittle down proposal and choose between DFA/NFA and RegEx.
+
+
+February 9, 2018:
+First meeting with TA to discuss language. 
+Scanner/parser due February 20. 
+Ian's been playing with Thompson's Construction with Haskell 
+Possible ideas ->
+	-implement generics to take advantage of polymorphism
+
+Meeting with Jordan:
+	-Jordan thinks it's very doable to do NFA and RegEx
+	-Setting up Slack with Jordan. 
+	-Jordan believes we should meet together to work on the scanner/parser.
+	-Jordan also thinks generics/polymorphism will take a lot of work. 
