@@ -65,3 +65,15 @@ February 11, 2018:
 	2. scanner/parser for regex
 	3. scanner/parser for functions 
 
+	regex syntax:
+	      regexp //keyword
+	      = //assignment token
+	      regexp <name> = Lit 'c' //sample declaration
+	      matches //keyword
+	      //Regexp operators - tokens -> binop
+	      	       ^
+		       |
+		       **
+		       Lit
+		       (.)
+		       {.}
