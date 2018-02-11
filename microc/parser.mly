@@ -12,6 +12,29 @@ open Ast
 %token <string> ID FLIT
 %token EOF
 
+/* FIXME we will need to think about the correct precedence of these
+within the context of the entire language before adding */
+/*
+For reference, this is the correct precedence between RegExp operators in Haskell:
+infixl 6 + (Numeric.Additive.Class)
+infixl 7 * (Numeric.Algebra.Class)
+infixr 8 `closure`
+*/
+/*
+%token REGEXP
+%token REMATCH
+%token REEMPTY
+%token REEPS
+%token RELIT
+%token REOR
+%token REAND
+%token RESTAR
+
+%left REOR
+%left REAND
+%right RESTAR
+*/
+
 %start program
 %type <Ast.program> program
 
@@ -86,7 +109,7 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	     { Fliteral($1)           }
+  | FLIT             { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
