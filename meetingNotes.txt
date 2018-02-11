@@ -1,46 +1,67 @@
 February 2 2018:
-- Need to finish proposal
-	- build a language that focuses on general DFA/NFA and offers the functionality to build regular expressions
-	- set operations can be used on both general FSM's and regular expressions
-	- sentence segmentation 
+	- Need to finish proposal
+		- build a language that focuses on general DFA/NFA and offers the functionality to build regular expressions
+		- set operations can be used on both general FSM's and regular expressions
+		- sentence segmentation 
 
-Tools for user: highest precedence decomposition, maybe D()
-Ex: 
-	x = a
-	x2 = x* //basically a*
-	D(x2) = [* , a]
+	Tools for user: highest precedence decomposition, maybe D()
+	Ex: 
+		x = a
+		x2 = x* //basically a*
+		D(x2) = [* , a]
 
-Ex:
-	alphabet = {a,b,c,d}
-	RegX x1 = ( (a b) | c)*
-	D(x1) = [*, (a b) | c]
+	Ex:
+		alphabet = {a,b,c,d}
+		RegX x1 = ( (a b) | c)*
+		D(x1) = [*, (a b) | c]
 
-	D((a b) | c) = [| , (a b), c]
-	.
-	.
-	.
+		D((a b) | c) = [| , (a b), c]
+		.
+		.
+		.
 
-Example of Implementation of HPD (highest precedence order):
+	Example of Implementation of HPD (highest precedence order):
 
-breakdown RegExp -> (RegExp, Optional, RegExp, Operator)
-	| breakdown (r)** -> (r,None, **)
-	| breakdwon (r1 ^ r2) -> (r1,some(r2),^)
+	breakdown RegExp -> (RegExp, Optional, RegExp, Operator)
+		| breakdown (r)** -> (r,None, **)
+		| breakdwon (r1 ^ r2) -> (r1,some(r2),^)
 
 
 February 7, 2018:
-Finished our proposal late around 8pm.
-May have to whittle down proposal and choose between DFA/NFA and RegEx.
+	Finished our proposal late around 8pm.
+	May have to whittle down proposal and choose between DFA/NFA and RegEx.
 
 
 February 9, 2018:
-First meeting with TA to discuss language. 
-Scanner/parser due February 20. 
-Ian's been playing with Thompson's Construction with Haskell 
-Possible ideas ->
-	-implement generics to take advantage of polymorphism
+	First meeting with TA to discuss language. 
+	Scanner/parser due February 20. 
+	Ian's been playing with Thompson's Construction with Haskell 
+	Possible ideas ->
+		-implement generics to take advantage of polymorphism
 
-Meeting with Jordan:
-	-Jordan thinks it's very doable to do NFA and RegEx
-	-Setting up Slack with Jordan. 
-	-Jordan believes we should meet together to work on the scanner/parser.
-	-Jordan also thinks generics/polymorphism will take a lot of work. 
+	Meeting with Jordan:
+		-Jordan thinks it's very doable to do NFA and RegEx
+		-Setting up Slack with Jordan. 
+		-Jordan believes we should meet together to work on the scanner/parser.
+		-Jordan also thinks generics/polymorphism will take a lot of work. 
+
+February 11, 2018:
+	-No more parametricity(...for now)
+
+	CHANGES because no more polymorphism:
+
+	Before:
+	dfa<type of states> < t of Alphabet>
+	After:
+	dfa
+
+	Before:
+	regexp <type> <name>
+	After:
+	regexp <name> 
+
+	THINGS TO DO: 
+	1. dfa implementation in c
+	2. scanner/parser for regex
+	3. scanner/parser for functions 
+
