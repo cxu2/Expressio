@@ -12,7 +12,8 @@ let alphanumeric = (alpha | digit)
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf }  (* Whitespace *)
-| "/*"      { comment lexbuf }           (* Comments *)
+| "(~"      { comment lexbuf }           (* Block Comments *)
+| "~~"      { line_comment lexbuf }      (* Line Comment *)
 | "{.}"     { REEMPTY }                  (* RegExp literal for empty language *)
 | "(.)"     { REEPS }                    (* RegExp literal for empty string *)
 | '|'       { REOR }                     (* RegExp operator for "or" (union) *)
@@ -48,11 +49,11 @@ rule token = parse
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }
-| "while"  { WHILE }
+(*| "while"  { WHILE }*)
 | "return" { RETURN }
 | "int"    { INT }
 | "bool"   { BOOL }
-| "float"  { FLOAT }
+(*| "float"  { FLOAT }*)
 | "unit"   { UNIT }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
@@ -63,5 +64,9 @@ rule token = parse
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
 and comment = parse
-  "*/" { token lexbuf }
+  "~)\n" { token lexbuf }
 | _    { comment lexbuf }
+
+and line_comment = parse
+  '\n'   { token lexbuf }
+| _    { line_comment lexbuf }

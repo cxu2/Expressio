@@ -6,22 +6,14 @@ open Ast
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELSE FOR WHILE INT BOOL FLOAT UNIT
+%token RETURN IF ELSE FOR INT BOOL UNIT
+/* %token WHILE FLOAT */
+%token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
-%token REGEXP
-%token REMATCH
-%token REEMPTY
-%token REEPS
-%token RELIT
-%token REOR
-%token REAND
-%token RESTAR
 %token EOF
 
-/* FIXME we will need to think about the correct precedence of these
-within the context of the entire language before adding */
 /*
 For reference, this is the correct precedence between RegExp operators in Haskell:
 infixl 6 + (Numeric.Additive.Class)
@@ -31,6 +23,9 @@ infixr 8 `closure`
 
 %start program
 %type <Ast.program> program
+
+/* FIXME we will need to think about the correct precedence of these
+within the context of the entire language before adding */
 
 %nonassoc NOELSE
 %nonassoc ELSE
@@ -43,6 +38,7 @@ infixr 8 `closure`
 %left TIMES DIVIDE
 %right NOT NEG
 
+%nonassoc REMATCH
 %left REOR
 %left REAND
 %right RESTAR
@@ -76,7 +72,7 @@ formal_list:
 typ:
     INT   { Int   }
   | BOOL  { Bool  }
-  | FLOAT { Float }
+  /* | FLOAT { Float } */
   | UNIT  { Unit  }
 
 vdecl_list:
@@ -98,7 +94,7 @@ stmt:
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
   | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
                                             { For($3, $5, $7, $9)   }
-  | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
+  /* | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         } */
 
 expr_opt:
     /* nothing */ { Noexpr }
