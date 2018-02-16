@@ -59,7 +59,7 @@ struct dfa_t construct(struct dfa_state * states, int nstates, char * alphabet, 
   return self;
 }
 
-// free memory
+// free memory associated with DFA
 // assume final and alphabet were malloc'd
 void destruct(struct dfa_t d){
   if(d.states) {
@@ -74,6 +74,9 @@ void destruct(struct dfa_t d){
   return;
 }
 
+
+// Input: list of int ids, number of ids, alphabet and size of alphabet
+//Output: array of dfa_states with associated ids; has transitions initialized to NULL
 struct dfa_state * makeStates(int *ids, int len, char * alpha, int nsym){
   struct dfa_state * sts = malloc(len*sizeof(struct dfa_state));
   for(int i = 0; i < len; i++){
