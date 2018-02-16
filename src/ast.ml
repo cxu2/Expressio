@@ -1,18 +1,19 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or
+          And | Or | Union | Concat | Match
 
-type uop = Neg | Not
+type uop = Neg | Not | Star
 
-type typ = Int | Bool | Float | Void
+type typ = Int | Bool | Float | Unit | Regexp
 
 type bind = typ * string
 
 type expr =
     Literal of int
-  | Fliteral of string
+  (* | Fliteral of string *)
   | BoolLit of bool
+  | RegexLit of string (* not sure *)
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
@@ -27,6 +28,7 @@ type stmt =
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
   | While of expr * stmt
+
 
 type func_decl = {
     typ : typ;
@@ -53,14 +55,18 @@ let string_of_op = function
   | Geq -> ">="
   | And -> "&&"
   | Or -> "||"
+  | Union -> "|"
+  | Concat -> "^"
+  | Match -> "matches"
 
 let string_of_uop = function
     Neg -> "-"
   | Not -> "!"
+  | Star -> "**"
 
 let rec string_of_expr = function
     Literal(l) -> string_of_int l
-  | Fliteral(l) -> l
+  (* | Fliteral(l) -> l *)
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | Id(s) -> s
@@ -89,7 +95,7 @@ let string_of_typ = function
     Int -> "int"
   | Bool -> "bool"
   | Float -> "float"
-  | Void -> "void"
+  | Unit -> "unit"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 

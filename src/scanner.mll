@@ -52,7 +52,7 @@ rule token = parse
 | "return" { RETURN }
 | "int"    { INT }
 | "bool"   { BOOL }
-| "float"  { FLOAT }
+(* | "float"  { FLOAT } *)
 | "void"   { VOID }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
