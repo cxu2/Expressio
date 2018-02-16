@@ -10,6 +10,7 @@ and sx =
   | SId of string
   | SBinop of sexpr * bop * sexpr
   | SUnop of uop * sexpr
+  (* TODO add post version of unary op here for Kleene star to be a* instead of *a *)
   | SAssign of string * sexpr
   | SCall of string * sexpr list
   | SNoexpr
