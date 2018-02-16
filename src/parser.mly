@@ -10,6 +10,14 @@ open Ast
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
+%token REGEXP
+%token REMATCH
+%token REEMPTY
+%token REEPS
+%token RELIT
+%token REOR
+%token REAND
+%token RESTAR
 %token EOF
 
 /* FIXME we will need to think about the correct precedence of these
@@ -19,20 +27,6 @@ For reference, this is the correct precedence between RegExp operators in Haskel
 infixl 6 + (Numeric.Additive.Class)
 infixl 7 * (Numeric.Algebra.Class)
 infixr 8 `closure`
-*/
-/*
-%token REGEXP
-%token REMATCH
-%token REEMPTY
-%token REEPS
-%token RELIT
-%token REOR
-%token REAND
-%token RESTAR
-
-%left REOR
-%left REAND
-%right RESTAR
 */
 
 %start program
@@ -49,6 +43,9 @@ infixr 8 `closure`
 %left TIMES DIVIDE
 %right NOT NEG
 
+%left REOR
+%left REAND
+%right RESTAR
 
 %%
 
