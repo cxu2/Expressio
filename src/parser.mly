@@ -74,10 +74,11 @@ formal_list:
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
 typ:
-    INT   { TInt   }
-  | BOOL  { TBool  }
-  | FLOAT { TFloat }
-  | UNIT  { TUnit  }
+    INT    { TInt    }
+  | BOOL   { TBool   }
+  | FLOAT  { TFloat  }
+  | UNIT   { TUnit   }
+  | REGEXP { TRegexp }
 
 vdecl_list:
     /* nothing */    { [] }
