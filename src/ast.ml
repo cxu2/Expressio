@@ -15,7 +15,7 @@ type expr =
     Literal of int
   (* | Fliteral of string *)
   | BoolLit of bool
-  | RegexLit of string
+  | RegexLit of char RegExp.regexp 
   | Id of string
   | Binop of expr * bop * expr
   | Unop of uop * expr
