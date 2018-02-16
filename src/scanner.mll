@@ -5,7 +5,7 @@
 let digit        = ['0' - '9']
 let digits       = digit+
 let alphaLower   = ['a' - 'z']
-let alphaUpper   = ['Z' - 'Z']
+let alphaUpper   = ['A' - 'Z']
 let alpha        = (alphaLower | alphaUpper)
 let alphas       = alpha+
 let alphanumeric = (alpha | digit)
