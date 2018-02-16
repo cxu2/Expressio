@@ -52,8 +52,8 @@ rule token = parse
 | "return" { RETURN }
 | "int"    { INT }
 | "bool"   { BOOL }
-(* | "float"  { FLOAT } *)
-| "void"   { VOID }
+| "float"  { FLOAT }
+| "unit"   { UNIT }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
 | digits as lxm { LITERAL(int_of_string lxm) }

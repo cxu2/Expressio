@@ -38,7 +38,7 @@ let translate (globals, functions) =
       A.Int   -> i32_t
     | A.Bool  -> i1_t
     | A.Float -> float_t
-    | A.Void  -> void_t
+    | A.Unit  -> void_t
   in
 
   (* Declare each global variable; remember its value in a map *)
@@ -161,7 +161,7 @@ let translate (globals, functions) =
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let actuals = List.rev (List.map (expr builder) (List.rev act)) in
 	 let result = (match fdecl.styp with 
-                        A.Void -> ""
+                        A.Unit -> ""
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list actuals) result builder
     in
@@ -188,7 +188,7 @@ let translate (globals, functions) =
       | SExpr e -> let _ = expr builder e in builder 
       | SReturn e -> let _ = match fdecl.styp with
                               (* Special "return nothing" instr *)
-                              A.Void -> L.build_ret_void builder 
+                              A.Unit -> L.build_ret_void builder 
                               (* Build return statement *)
                             | _ -> L.build_ret (expr builder e) builder 
                      in builder
@@ -257,7 +257,7 @@ let translate (globals, functions) =
 
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.styp with
-        A.Void -> L.build_ret_void
+        A.Unit -> L.build_ret_void
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in
 
