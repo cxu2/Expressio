@@ -111,8 +111,8 @@ let check (globals, functions) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            Neg when t = Int || t = Float -> t
-          | Not when t = Bool -> Bool
+            UNeg when t = Int || t = Float -> t
+          | UNot when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
                                  " in " ^ string_of_expr ex))
@@ -124,12 +124,12 @@ let check (globals, functions) =
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
-            Add | Sub | Mult | Div when same && t1 = Int   -> Int
-          | Add | Sub | Mult | Div when same && t1 = Float -> Float
-          | Equal | Neq            when same               -> Bool
-          | Less | Leq | Greater | Geq
+            BAdd | BSub | BMult | BDiv when same && t1 = Int   -> Int
+          | BAdd | BSub | BMult | BDiv when same && t1 = Float -> Float
+          | BEqual | BNeq            when same               -> Bool
+          | BLess | BLeq | BGreater | BGeq
                      when same && (t1 = Int || t1 = Float) -> Bool
-          | And | Or when same && t1 = Bool -> Bool
+          | BAnd | BOr when same && t1 = Bool -> Bool
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^

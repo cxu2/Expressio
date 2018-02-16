@@ -109,23 +109,26 @@ expr:
   /* | FLIT             { Fliteral($1)           } */
   | BLIT             { BoolLit($1)            }
   | ID               { Id($1)                 }
-  | expr PLUS   expr { Binop($1, Add,   $3)   }
-  | expr MINUS  expr { Binop($1, Sub,   $3)   }
-  | expr TIMES  expr { Binop($1, Mult,  $3)   }
-  | expr DIVIDE expr { Binop($1, Div,   $3)   }
-  | expr EQ     expr { Binop($1, Equal, $3)   }
-  | expr NEQ    expr { Binop($1, Neq,   $3)   }
-  | expr LT     expr { Binop($1, Less,  $3)   }
-  | expr LEQ    expr { Binop($1, Leq,   $3)   }
-  | expr GT     expr { Binop($1, Greater, $3) }
-  | expr GEQ    expr { Binop($1, Geq,   $3)   }
-  | expr AND    expr { Binop($1, And,   $3)   }
-  | expr OR     expr { Binop($1, Or,    $3)   }
-  | MINUS expr %prec NEG { Unop(Neg, $2)      }
-  | NOT expr         { Unop(Not, $2)          }
-  | ID ASSIGN expr   { Assign($1, $3)         }
-  | ID LPAREN args_opt RPAREN { Call($1, $3)  }
-  | LPAREN expr RPAREN { $2                   }
+  | expr PLUS   expr { Binop($1, BAdd,     $3) }
+  | expr MINUS  expr { Binop($1, BSub,     $3) }
+  | expr TIMES  expr { Binop($1, BMult,    $3) }
+  | expr DIVIDE expr { Binop($1, BDiv,     $3) }
+  | expr EQ     expr { Binop($1, BEqual,   $3) }
+  | expr NEQ    expr { Binop($1, BNeq,     $3) }
+  | expr LT     expr { Binop($1, BLess,    $3) }
+  | expr LEQ    expr { Binop($1, BLeq,     $3) }
+  | expr GT     expr { Binop($1, BGreater, $3) }
+  | expr GEQ    expr { Binop($1, BGeq,     $3) }
+  | expr AND    expr { Binop($1, BAnd,     $3) }
+  | expr OR     expr { Binop($1, BOr,      $3) }
+  | expr REOR   expr { Binop($1, BUnion,   $3) }
+  | expr REAND  expr { Binop($1, BConcat,  $3) }
+  | MINUS expr %prec NEG { Unop(UNeg, $2)      }
+  | NOT expr         { Unop(UNot, $2)          }
+  | RESTAR expr      { Unop(UStar, $2)         }
+  | ID ASSIGN expr   { Assign($1, $3)          }
+  | ID LPAREN args_opt RPAREN { Call($1, $3)   }
+  | LPAREN expr RPAREN { $2                    }
 
 args_opt:
     /* nothing */ { [] }

@@ -1,9 +1,11 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or | Union | Concat | Match
+open RegExp
 
-type uop = Neg | Not | Star
+type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
+          BAnd | BOr | BUnion | BConcat | BMatch
+
+type uop = UNeg | UNot | UStar
 
 type typ = Int | Bool | Float | Unit | Regexp
 
@@ -13,9 +15,9 @@ type expr =
     Literal of int
   (* | Fliteral of string *)
   | BoolLit of bool
-  | RegexLit of string (* not sure *)
+  | RegexLit of string
   | Id of string
-  | Binop of expr * op * expr
+  | Binop of expr * bop * expr
   | Unop of uop * expr
   | Assign of string * expr
   | Call of string * expr list
@@ -43,26 +45,26 @@ type program = bind list * func_decl list
 (* Pretty-printing functions *)
 
 let string_of_op = function
-    Add -> "+"
-  | Sub -> "-"
-  | Mult -> "*"
-  | Div -> "/"
-  | Equal -> "=="
-  | Neq -> "!="
-  | Less -> "<"
-  | Leq -> "<="
-  | Greater -> ">"
-  | Geq -> ">="
-  | And -> "&&"
-  | Or -> "||"
-  | Union -> "|"
-  | Concat -> "^"
-  | Match -> "matches"
+    BAdd -> "+"
+  | BSub -> "-"
+  | BMult -> "*"
+  | BDiv -> "/"
+  | BEqual -> "=="
+  | BNeq -> "!="
+  | BLess -> "<"
+  | BLeq -> "<="
+  | BGreater -> ">"
+  | BGeq -> ">="
+  | BAnd -> "&&"
+  | BOr -> "||"
+  | BUnion -> "|"
+  | BConcat -> "^"
+  | BMatch -> "matches"
 
 let string_of_uop = function
-    Neg -> "-"
-  | Not -> "!"
-  | Star -> "**"
+    UNeg -> "-"
+  | UNot -> "!"
+  | UStar -> "**"
 
 let rec string_of_expr = function
     Literal(l) -> string_of_int l
@@ -92,10 +94,10 @@ let rec string_of_stmt = function
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
 
 let string_of_typ = function
-    Int -> "int"
-  | Bool -> "bool"
+    Int   -> "int"
+  | Bool  -> "bool"
   | Float -> "float"
-  | Unit -> "unit"
+  | Unit  -> "unit"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
