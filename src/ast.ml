@@ -3,11 +3,11 @@
 open RegExp
 
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
-          BAnd | BOr | BUnion | BConcat | BMatch
+           BAnd | BOr | BUnion | BConcat | BMatch
 
 type uop = UNeg | UNot | UStar
 
-type typ = Int | Bool | Float | Unit | Regexp
+type typ = TInt | TBool | TFloat | TUnit | TRegexp
 
 type bind = typ * string
 
@@ -94,10 +94,10 @@ let rec string_of_stmt = function
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
 
 let string_of_typ = function
-    Int   -> "int"
-  | Bool  -> "bool"
-  | Float -> "float"
-  | Unit  -> "unit"
+    TInt   -> "int"
+  | TBool  -> "bool"
+  | TFloat -> "float"
+  | TUnit  -> "unit"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 

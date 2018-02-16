@@ -20,7 +20,7 @@ let check (globals, functions) =
       and dup_err = "duplicate " ^ kind ^ " " ^ snd binding
       in match binding with
         (* No void bindings *)
-        (Unit, _) -> raise (Failure void_err)
+        (TUnit, _) -> raise (Failure void_err)
       | (_, n1) -> match checked with
                     (* No duplicate bindings *)
                       ((_, n2) :: _) when n1 = n2 -> raise (Failure dup_err)
@@ -39,13 +39,13 @@ let check (globals, functions) =
   (* Collect function declarations for built-in functions: no bodies *)
   let built_in_decls = 
     let add_bind map (name, ty) = StringMap.add name {
-      typ = Unit; fname = name; 
+      typ = TUnit; fname = name; 
       formals = [(ty, "x")];
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int);
-			                         ("printb", Bool);
-			                         ("printf", Float);
-			                         ("printbig", Int) ]
+    in List.fold_left add_bind StringMap.empty [ ("print", TInt);
+			                         ("printb", TBool);
+			                         ("printf", TFloat);
+			                         ("printbig", TInt) ]
   in
 
   (* Add function name to symbol table *)
@@ -97,10 +97,10 @@ let check (globals, functions) =
 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
-        Literal  l -> (Int, SLiteral l)
+        Literal  l -> (TInt, SLiteral l)
       (* | Fliteral l -> (Float, SFliteral l) *)
-      | BoolLit l  -> (Bool, SBoolLit l)
-      | Noexpr     -> (Unit, SNoexpr)
+      | BoolLit l  -> (TBool, SBoolLit l)
+      | Noexpr     -> (TUnit, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
@@ -111,8 +111,8 @@ let check (globals, functions) =
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
-            UNeg when t = Int || t = Float -> t
-          | UNot when t = Bool -> Bool
+            UNeg when t = TInt || t = TFloat -> t
+          | UNot when t = TBool -> TBool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
                                  " in " ^ string_of_expr ex))
@@ -124,12 +124,12 @@ let check (globals, functions) =
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
-            BAdd | BSub | BMult | BDiv when same && t1 = Int   -> Int
-          | BAdd | BSub | BMult | BDiv when same && t1 = Float -> Float
-          | BEqual | BNeq            when same               -> Bool
+            BAdd | BSub | BMult | BDiv when same && t1 = TInt   -> TInt
+          | BAdd | BSub | BMult | BDiv when same && t1 = TFloat -> TFloat
+          | BEqual | BNeq            when same               -> TBool
           | BLess | BLeq | BGreater | BGeq
-                     when same && (t1 = Int || t1 = Float) -> Bool
-          | BAnd | BOr when same && t1 = Bool -> Bool
+                     when same && (t1 = TInt || t1 = TFloat) -> TBool
+          | BAnd | BOr when same && t1 = TBool -> TBool
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -154,7 +154,7 @@ let check (globals, functions) =
     let check_bool_expr e = 
       let (t', e') = expr e
       and err = "expected Boolean expression in " ^ string_of_expr e
-      in if t' != Bool then raise (Failure err) else (t', e') 
+      in if t' != TBool then raise (Failure err) else (t', e') 
     in
 
     (* Return a semantically-checked statement i.e. containing sexprs *)

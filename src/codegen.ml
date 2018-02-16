@@ -35,10 +35,10 @@ let translate (globals, functions) =
 
   (* Convert MicroC types to LLVM types *)
   let ltype_of_typ = function
-      A.Int   -> i32_t
-    | A.Bool  -> i1_t
-    | A.Float -> float_t
-    | A.Unit  -> void_t
+      A.TInt   -> i32_t
+    | A.TBool  -> i1_t
+    | A.TFloat -> float_t
+    | A.TUnit  -> void_t
   in
 
   (* Declare each global variable; remember its value in a map *)
@@ -113,7 +113,7 @@ let translate (globals, functions) =
 	  let (t, _) = e1
 	  and e1' = expr builder e1
 	  and e2' = expr builder e2 in
-	  if t = A.Float then (match op with 
+	  if t = A.TFloat then (match op with 
 	    A.BAdd     -> L.build_fadd
 	  | A.BSub     -> L.build_fsub
 	  | A.BMult    -> L.build_fmul
@@ -144,9 +144,9 @@ let translate (globals, functions) =
       | SUnop(op, e) ->
 	  let (t, _) = e and e' = expr builder e in
 	  (match op with
-	    A.UNeg when t = A.Float -> L.build_fneg 
-	  | A.UNeg                  -> L.build_neg
-          | A.UNot                  -> L.build_not) e' "tmp" builder
+	      A.UNeg when t = A.TFloat -> L.build_fneg 
+	    | A.UNeg                   -> L.build_neg
+      | A.UNot                   -> L.build_not) e' "tmp" builder
       | SAssign (s, e) -> let e' = expr builder e in
                           let _  = L.build_store e' (lookup s) builder in e'
       | SCall ("print", [e]) | SCall ("printb", [e]) ->
@@ -161,7 +161,7 @@ let translate (globals, functions) =
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let actuals = List.rev (List.map (expr builder) (List.rev act)) in
 	 let result = (match fdecl.styp with 
-                        A.Unit -> ""
+                        A.TUnit -> ""
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list actuals) result builder
     in
@@ -188,7 +188,7 @@ let translate (globals, functions) =
       | SExpr e -> let _ = expr builder e in builder 
       | SReturn e -> let _ = match fdecl.styp with
                               (* Special "return nothing" instr *)
-                              A.Unit -> L.build_ret_void builder 
+                              A.TUnit -> L.build_ret_void builder 
                               (* Build return statement *)
                             | _ -> L.build_ret (expr builder e) builder 
                      in builder
@@ -257,7 +257,7 @@ let translate (globals, functions) =
 
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.styp with
-        A.Unit -> L.build_ret_void
+        A.TUnit -> L.build_ret_void
       | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in
 
