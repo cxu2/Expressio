@@ -97,6 +97,8 @@ stmt:
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
+  /* | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
+                                            { For($3, $5, $7, $9)   } */
   | FOR expr_opt SEMI expr SEMI expr_opt stmt
                                             { For($2, $4, $6, $7)   }
   /* | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         } */
