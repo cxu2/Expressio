@@ -96,4 +96,11 @@ module RegExp = struct
     | a    -> match word with
                 []        -> constant a = One
               | (x :: xs) -> matches (derivative a x) xs
+  let rec fmap f (r : 'a regexp) = match r with
+        Zero        -> Zero
+      | One         -> One
+      | Lit  s      -> Lit  (f s)
+      | Plus (a, b) -> Plus (fmap f a, fmap f b)
+      | Mult (a, b) -> Mult (fmap f a, fmap f b)
+      | Star a      -> Star (fmap f a)
 end
