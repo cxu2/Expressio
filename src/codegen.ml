@@ -15,7 +15,9 @@ http://llvm.moe/ocaml/
 (* We'll refer to Llvm and Ast constructs with module names *)
 module L = Llvm
 module A = Ast
-open Sast 
+open Sast
+
+exception TODO of string
 
 module StringMap = Map.Make(String)
 
@@ -28,17 +30,18 @@ let translate (globals, functions) =
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
   and float_t    = L.double_type context
-  and void_t     = L.void_type   context 
-  (* Create an LLVM module -- this is a "container" into which we'll 
+  and void_t     = L.void_type   context
+  (* Create an LLVM module -- this is a "container" into which we'll
      generate actual code *)
   and the_module = L.create_module context "MicroC" in
 
   (* Convert MicroC types to LLVM types *)
   let ltype_of_typ = function
-      A.TInt   -> i32_t
-    | A.TBool  -> i1_t
-    | A.TFloat -> float_t
-    | A.TUnit  -> void_t
+      A.TInt    -> i32_t
+    | A.TBool   -> i1_t
+    | A.TFloat  -> float_t
+    | A.TUnit   -> void_t
+    | A.TRegexp -> raise (TODO "LLVM RegExp")
   in
 
   (* Declare each global variable; remember its value in a map *)
@@ -54,17 +57,16 @@ let translate (globals, functions) =
   let printbig_t = L.function_type i32_t [| i32_t |] in
   let printbig_func = L.declare_function "printbig" printbig_t the_module in
 
-  (* Define each function (arguments and return type) so we can 
+  (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
   let function_decls =
     let function_decl m fdecl =
       let name = fdecl.sfname
-      and formal_types = 
-	Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.sformals)
+      and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.sformals)
       in let ftype = L.function_type (ltype_of_typ fdecl.styp) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
-  
+
   (* Fill in the body of the given function *)
   let build_function_body fdecl =
     let (the_function, _) = StringMap.find fdecl.sfname function_decls in
@@ -77,23 +79,21 @@ let translate (globals, functions) =
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
     let local_vars =
-      let add_formal m (t, n) p = 
+      let add_formal m (t, n) p =
         let () = L.set_value_name n p in
 	let local = L.build_alloca (ltype_of_typ t) n builder in
         let _  = L.build_store p local builder in
-	StringMap.add n local m 
+	StringMap.add n local m
       in
 
       (* Allocate space for any locally declared variables and add the
        * resulting registers to our map *)
       let add_local m (t, n) =
 	let local_var = L.build_alloca (ltype_of_typ t) n builder
-	in StringMap.add n local_var m 
-      in
-
-      let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
+	in StringMap.add n local_var m
+      in let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
           (Array.to_list (L.params the_function)) in
-      List.fold_left add_local formals fdecl.slocals 
+      List.fold_left add_local formals fdecl.slocals
     in
 
     (* Return the value for a variable or formal argument. First check
@@ -104,29 +104,28 @@ let translate (globals, functions) =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder (_, e) = match e with
-	SLiteral i -> L.const_int i32_t i
-      | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
-      | SFliteral l -> L.const_float_of_string float_t l
-      | SNoexpr -> L.const_int i32_t 0
-      | SId s -> L.build_load (lookup s) s builder
-      | SBinop (e1, op, e2) ->
-	  let (t, _) = e1
-	  and e1' = expr builder e1
-	  and e2' = expr builder e2 in
-	  if t = A.TFloat then (match op with 
+	      SLiteral i          -> L.const_int i32_t i
+      | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
+      | SFliteral l         -> L.const_float_of_string float_t l
+      | SNoexpr             -> L.const_int i32_t 0
+      | SId s               -> L.build_load (lookup s) s builder
+      | SBinop (e1, op, e2) -> let (t, _) = e1
+                               and e1' = expr builder e1
+                               and e2' = expr builder e2 in
+	  if t = A.TFloat then (match op with
 	    A.BAdd     -> L.build_fadd
 	  | A.BSub     -> L.build_fsub
 	  | A.BMult    -> L.build_fmul
-	  | A.BDiv     -> L.build_fdiv 
+	  | A.BDiv     -> L.build_fdiv
 	  | A.BEqual   -> L.build_fcmp L.Fcmp.Oeq
 	  | A.BNeq     -> L.build_fcmp L.Fcmp.One
 	  | A.BLess    -> L.build_fcmp L.Fcmp.Olt
 	  | A.BLeq     -> L.build_fcmp L.Fcmp.Ole
 	  | A.BGreater -> L.build_fcmp L.Fcmp.Ogt
 	  | A.BGeq     -> L.build_fcmp L.Fcmp.Oge
-	  | A.BAnd | A.BOr ->
-	      raise (Failure "internal error: semant should have rejected and/or on float")
-	  ) e1' e2' "tmp" builder 
+	  | A.BAnd
+    | A.BOr      -> raise (Failure "internal error: semant should have rejected and/or on float")
+	  ) e1' e2' "tmp" builder
 	  else (match op with
 	  | A.BAdd     -> L.build_add
 	  | A.BSub     -> L.build_sub
@@ -141,31 +140,25 @@ let translate (globals, functions) =
 	  | A.BGreater -> L.build_icmp L.Icmp.Sgt
 	  | A.BGeq     -> L.build_icmp L.Icmp.Sge
 	  ) e1' e2' "tmp" builder
-      | SUnop(op, e) ->
-	  let (t, _) = e and e' = expr builder e in
-	  (match op with
-	      A.UNeg when t = A.TFloat -> L.build_fneg 
-	    | A.UNeg                   -> L.build_neg
-      | A.UNot                   -> L.build_not) e' "tmp" builder
+      | SUnop(op, e) -> let (t, _) = e and e' = expr builder e
+                        in (match op with
+	                          A.UNeg when t = A.TFloat -> L.build_fneg
+	                        | A.UNeg                   -> L.build_neg
+                          | A.UNot                   -> L.build_not) e' "tmp" builder
       | SAssign (s, e) -> let e' = expr builder e in
                           let _  = L.build_store e' (lookup s) builder in e'
-      | SCall ("print", [e]) | SCall ("printb", [e]) ->
-	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
-	    "printf" builder
-      | SCall ("printbig", [e]) ->
-	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
-      | SCall ("printf", [e]) -> 
-	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
-	    "printf" builder
-      | SCall (f, act) ->
-         let (fdef, fdecl) = StringMap.find f function_decls in
-	 let actuals = List.rev (List.map (expr builder) (List.rev act)) in
-	 let result = (match fdecl.styp with 
-                        A.TUnit -> ""
-                      | _ -> f ^ "_result") in
-         L.build_call fdef (Array.of_list actuals) result builder
+      | SCall ("print",    [e])
+      | SCall ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
+      | SCall ("printbig", [e]) -> L.build_call printbig_func [| (expr builder e) |]                    "printbig" builder
+      | SCall ("printf",   [e]) -> L.build_call printf_func   [| float_format_str ; (expr builder e) |] "printf"   builder
+      | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
+                                   in let actuals = List.rev (List.map (expr builder) (List.rev act))
+                                   in let result = (match fdecl.styp with
+                                                      A.TUnit -> ""
+                                                    | _       -> f ^ "_result")
+                                   in L.build_call fdef (Array.of_list actuals) result builder
     in
-    
+
     (* Each basic block in a program ends with a "terminator" instruction i.e.
     one that ends the basic block. By definition, these instructions must
     indicate which basic block comes next -- they typically yield "void" value
@@ -177,7 +170,7 @@ let translate (globals, functions) =
       match L.block_terminator (L.insertion_block builder) with
 	Some _ -> ()
       | None -> ignore (f builder) in
-	
+
     (* Build the code for the given statement; return the builder for
        the statement's successor (i.e., the next instruction will be built
        after the one generated by this call) *)
@@ -185,12 +178,12 @@ let translate (globals, functions) =
     let rec stmt builder = function
 	SBlock sl -> List.fold_left stmt builder sl
         (* Generate code for this expression, return resulting builder *)
-      | SExpr e -> let _ = expr builder e in builder 
+      | SExpr e -> let _ = expr builder e in builder
       | SReturn e -> let _ = match fdecl.styp with
                               (* Special "return nothing" instr *)
-                              A.TUnit -> L.build_ret_void builder 
+                              A.TUnit -> L.build_ret_void builder
                               (* Build return statement *)
-                            | _ -> L.build_ret (expr builder e) builder 
+                            | _ -> L.build_ret (expr builder e) builder
                      in builder
       (* The order that we create and add the basic blocks for an If statement
       doesnt 'really' matter (seemingly). What hooks them up in the right order
@@ -201,14 +194,14 @@ let translate (globals, functions) =
          let bool_val = expr builder predicate in
          (* Add "merge" basic block to our function's list of blocks *)
 	 let merge_bb = L.append_block context "merge" the_function in
-         (* Partial function used to generate branch to merge block *) 
+         (* Partial function used to generate branch to merge block *)
          let branch_instr = L.build_br merge_bb in
 
          (* Same for "then" basic block *)
 	 let then_bb = L.append_block context "then" the_function in
          (* Position builder in "then" block and build the statement *)
          let then_builder = stmt (L.builder_at_end context then_bb) then_stmt in
-         (* Add a branch to the "then" block (to the merge block) 
+         (* Add a branch to the "then" block (to the merge block)
            if a terminator doesn't already exist for the "then" block *)
 	 let () = add_terminal then_builder branch_instr in
 
@@ -258,8 +251,6 @@ let translate (globals, functions) =
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.styp with
         A.TUnit -> L.build_ret_void
-      | t -> L.build_ret (L.const_int (ltype_of_typ t) 0))
-  in
-
-  List.iter build_function_body functions;
+      | t       -> L.build_ret (L.const_int (ltype_of_typ t) 0))
+  in List.iter build_function_body functions;
   the_module
