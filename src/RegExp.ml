@@ -35,7 +35,7 @@ module RegExp = struct
                                         then Plus (b1, b2)
                                         else if a < b1
                                              then Plus (a,  (Plus (b1, b2)))
-                                             else Plus (b1, if a > b2 then Plus (b2, a) else Plus (a, b2))
+                                             else Plus (b1, plus a b2)
     | (a,             b)             -> if a = b            (* Idempotent plus *)
                                         then a
                                         else if a < b
