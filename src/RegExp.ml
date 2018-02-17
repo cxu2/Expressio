@@ -78,6 +78,19 @@ module RegExp = struct
   (* can be written point-free as:
    let derivative' = List.fold_left derivative
   *)
+  (*
+  -- Given a Regular Expression, r, decide if it produces the empty language, i.e.
+  -- L(r) ≟ ∅
+  *)
+  let isZero (r : 'a regexp) : bool =
+    let rec isZero' = function
+        Zero        -> true
+      | One         -> false
+      | Lit  _      -> false
+      | Plus (a, b) -> (isZero' a) && (isZero' b)
+      | Mult (a, b) -> (isZero' a) || (isZero' b)
+      | Star _      -> false
+    in isZero' (normalize r)
   let rec matches (r : 'a regexp) (word : 'a list) = match r with
       Zero -> false
     | a    -> match word with
