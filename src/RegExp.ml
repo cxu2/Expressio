@@ -16,22 +16,32 @@ module RegExp = struct
   --                        (M+N)L = ML + NL
   *)
   let rec mult (r1 : 'a regexp) (r2 : 'a regexp) : 'a regexp = match (r1, r2) with
-      (_, Zero) -> Zero                                        (* -- Annihilation for mult is ∅ *)
-    | (Zero, _) -> Zero                                        (* -- Annihilation for mult is ∅ *)
-    | (One, b)  -> b                                           (* -- Identity for mult is ε *)
-    | (a, One)  -> a                                           (* -- Identity for mult is ε *)
-    | (a, b)    -> match a with
-                      Mult (a1, a2) -> Mult (a1, (mult a2 b))
-                    | _             -> Mult (a, b)
+      (_,             Zero) -> Zero                    (* Annihilation for mult is ∅ *)
+    | (Zero,          _)    -> Zero                    (* Annihilation for mult is ∅ *)
+    | (a,             One)  -> a                       (* Identity for mult is ε *)
+    | (One,           b)    -> b                       (* Identity for mult is ε *)
+    | (Mult (a1, a2), b)    -> Mult (a1, (mult a2 b))  (* Associativity will be to the right in normal form *)
+    | (a,             b)    -> Mult (a, b)
   (*
   -- Union is commutative L+M = M+L
   --          associative (L+M)+N = L+(M+N)
   --          idempotent  L + L = L
   *)
   let rec plus (r1 : 'a regexp) (r2 : 'a regexp) : 'a regexp = match (r1, r2) with
-      (a, Zero) -> a     (* Identity for plus is ∅ *)
-    | (Zero, b) -> b     (* Identity for plus is ∅ *)
-    | (_, _) -> raise (TODO "finish implementation")
+      (a,             Zero)          -> a                   (* Identity for plus is ∅ *)
+    | (Zero,          b)             -> b                   (* Identity for plus is ∅ *)
+    | (Plus (a1, a2), b)             -> plus a1 (plus a2 b) (* Associativity will be to the right in normal form *)
+    | (a,             Plus (b1, b2)) -> if a = b1           (* Idempotent plus *)
+                                        then Plus (b1, b2)
+                                        else if a < b1
+                                             then Plus (a,  (Plus (b1, b2)))
+                                             else Plus (b1, if a > b2 then Plus (b2, a) else Plus (a, b2))
+    | (a,             b)             -> if a = b            (* Idempotent plus *)
+                                        then a
+                                        else if a < b
+                                             then Plus (a, b)
+                                             else Plus (b, a)
+    (*raise (TODO "finish implementation") *)
   let rec star (r : 'a regexp) : 'a regexp = match r with
       Zero   -> One     (* -- ∅⋆ ≈ ε *)
     | One    -> One     (* -- ε⋆ ≈ ε *)
