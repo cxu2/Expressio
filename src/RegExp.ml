@@ -1,5 +1,3 @@
-exception TODO of string
-
 module RegExp = struct
   type 'a regexp =
     | Zero                               (* The empty language             -- L(Zero)  = ∅              *)
@@ -57,10 +55,10 @@ module RegExp = struct
   let rec nullable = function
       Zero        -> false
     | One         -> true
-    | Lit  a      -> false
+    | Lit  _      -> false
     | Plus (a, b) -> (nullable a) || (nullable b)
     | Mult (a, b) -> (nullable a) && (nullable b)
-    | Star a      -> true
+    | Star _      -> true
   let constant (r : 'a regexp) : 'a regexp = if nullable r then One else Zero
   (* Check if the the regular expression, r, produces a finite language.
      This is accomplished by finding the normal form of r
@@ -80,7 +78,7 @@ module RegExp = struct
   let rec derivative (r : 'a regexp) (s : 'a) : 'a regexp = match r with
       Zero        -> Zero
     | One         -> Zero
-    | Lit c       -> if c = s then One else Zero
+    | Lit  c      -> if c = s then One else Zero
     | Plus (a, b) -> plus (derivative a s) (derivative b s)
     | Mult (a, b) -> plus (mult (derivative a s) b) (mult (constant a) (derivative b s))
     | Star a      -> mult (derivative a s) (star a)
