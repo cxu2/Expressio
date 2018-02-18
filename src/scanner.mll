@@ -12,7 +12,7 @@ let alphanumeric = (alpha | digit)
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf }  (* Whitespace *)
-| "(~"      { comment lexbuf }           (* Block Comments *)
+| "<~"      { comment lexbuf }           (* Block Comments *)
 | "~~"      { line_comment lexbuf }      (* Line Comment *)
 | "{.}"     { REEMPTY }                  (* RegExp literal for empty language *)
 | "(.)"     { REEPS }                    (* RegExp literal for empty string *)
@@ -64,7 +64,7 @@ rule token = parse
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
 and comment = parse
-  "~)\n" { token lexbuf }
+  "~>\n" { token lexbuf }
 | _    { comment lexbuf }
 
 and line_comment = parse
