@@ -1,9 +1,9 @@
 int main() {
-(~ I am a block comment
+<~ I am a block comment
 I need a closing tag
   int i;
   for i = 0; i < 5; i = i + 1 {
-    print(i);~~Ingoreme$$%
+    print(i);
   }
   print(42);
   return 0;
