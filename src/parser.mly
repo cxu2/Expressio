@@ -76,7 +76,7 @@ formal_list:
 typ:
     INT    { TInt    }
   | BOOL   { TBool   }
-  | FLOAT  { TFloat  }
+  /* | FLOAT  { TFloat  } */
   | UNIT   { TUnit   }
   | REGEXP { TRegexp }
 
@@ -94,15 +94,15 @@ stmt_list:
 stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
-  | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
-  | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
-  | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
+  | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
+  | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
+  | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
   /* | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
                                             { For($3, $5, $7, $9)   } */
   | FOR expr_opt SEMI expr SEMI expr_opt stmt
-                                            { For($2, $4, $6, $7)   }
+                                            { For ($2, $4, $6, $7)  }
   /* | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         } */
-  | FOR SEMI expr SEMI stmt                 { While($3, $5)         }
+  | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
 
 expr_opt:
     /* nothing */ { Noexpr }
