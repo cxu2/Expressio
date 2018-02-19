@@ -38,7 +38,6 @@ let translate (globals, functions) =
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
-    (* | A.TFloat  -> float_t *)
     | A.TUnit   -> void_t
     | A.TRegexp -> raise (TODO "LLVM RegExp")
 
@@ -131,7 +130,8 @@ let translate (globals, functions) =
               	                          (* A.UNeg when t = A.TFloat -> L.build_fneg *)
               	                          A.UNeg                   -> L.build_neg
                                         | A.UNot                   -> L.build_not
-                                        | A.UStar                  -> raise (TODO "implement UStar")
+                                        | A.UStar                  -> raise (TODO "implement")
+                                        | A.ULit                   -> raise (TODO "implement")
                                    ) e' "tmp" builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'

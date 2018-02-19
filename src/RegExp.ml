@@ -6,20 +6,27 @@ module RegExp = struct
     | Plus of ('a regexp) * ('a regexp)  (* Multiplication, Concatenation  -- L(α · β) = L(α) · L(β)    *)
     | Mult of ('a regexp) * ('a regexp)  (* Plus, union, or                -- L(α | β) = L(α) ∪ L(β)    *)
     | Star of ('a regexp)                (* Kleene star, repetition        -- L(α⋆)    = L(α)⋆          *)
+
+  let rec star (r : 'a regexp) : 'a regexp = match r with
+      Zero   -> One     (* -- ∅⋆ ≈ ε *)
+    | One    -> One     (* -- ε⋆ ≈ ε *)
+    | Star a -> star a  (* -- recursively apply idempotence L⋆⋆ ≈ L⋆ *)
+    | a      -> Star a
   (*
   -- Concatentation is associative          (LM)N = L(MN)
-  -- ε is identity for concatenation
+  -- ε is identity for concatenation         εL = Lε = L
   -- ∅ is annihilation for concatenation    ∅L = L∅ = ∅
   -- distributes over +     L(M+N) = LM + LN
   --                        (M+N)L = ML + NL
   *)
   let rec mult (r1 : 'a regexp) (r2 : 'a regexp) : 'a regexp = match (r1, r2) with
-      (_,             Zero) -> Zero                    (* Annihilation for mult is ∅ *)
-    | (Zero,          _)    -> Zero                    (* Annihilation for mult is ∅ *)
-    | (a,             One)  -> a                       (* Identity for mult is ε *)
-    | (One,           b)    -> b                       (* Identity for mult is ε *)
-    | (Mult (a1, a2), b)    -> Mult (a1, (mult a2 b))  (* Associativity will be to the right in normal form *)
-    | (a,             b)    -> Mult (a, b)
+      (_,             Zero)         -> Zero                    (* Annihilation for mult is ∅ *)
+    | (Zero,          _)            -> Zero                    (* Annihilation for mult is ∅ *)
+    | (a,             One)          -> a                       (* Identity for mult is ε *)
+    | (One,           b)            -> b                       (* Identity for mult is ε *)
+    | (Mult (a1, a2), b)            -> Mult (a1, (mult a2 b))  (* Associativity will be to the right in normal form *)
+    | (Star a,   Star b) when a = b -> star a
+    | (a,             b)            -> Mult (a, b)
   (*
   -- Union is commutative L+M = M+L
   --          associative (L+M)+N = L+(M+N)
@@ -39,12 +46,6 @@ module RegExp = struct
                                         else if a < b
                                              then Plus (a, b)
                                              else Plus (b, a)
-    (*raise (TODO "finish implementation") *)
-  let rec star (r : 'a regexp) : 'a regexp = match r with
-      Zero   -> One     (* -- ∅⋆ ≈ ε *)
-    | One    -> One     (* -- ε⋆ ≈ ε *)
-    | Star a -> star a  (* -- recursively apply idempotence L⋆⋆ ≈ L⋆ *)
-    | a      -> Star a
   let rec normalize = function
       Zero        -> Zero
     | One         -> One
@@ -122,4 +123,13 @@ module RegExp = struct
     | Plus (a, b) -> Plus (reversal a, reversal b)
     | Mult (a, b) -> Mult (reversal b, reversal a)
     | Star a      -> Star (reversal a)
+
+  let rec string_of_re = function
+      Zero         -> "∅"
+    | One          -> "ε"
+    | Lit  c       -> "(lit " ^ (String.make 1 c) ^ ")"
+    | Plus (a, b)  -> "(" ^ string_of_re a ^ "+" ^ string_of_re b ^ ")"
+    | Mult (a, b)  -> "(" ^ string_of_re a ^ "." ^ string_of_re b ^ ")"
+    | Star (Lit c) -> (String.make 1 c) ^ "⋆"
+    | Star a       -> "(" ^ string_of_re a ^ ")⋆"
 end

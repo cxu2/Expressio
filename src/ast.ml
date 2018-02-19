@@ -7,23 +7,23 @@ exception TODO of string
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
            BAnd | BOr | BUnion | BConcat | BMatch
 
-type uop = UNeg | UNot | UStar
+type uop = UNeg | UNot | ULit | UStar
 
-(* type typ = TInt | TBool | TFloat | TUnit | TRegexp *)
+(* type nop = NZero | NOne *)
+
 type typ = TInt | TBool | TUnit | TRegexp
 
 type bind = typ * string
 
 type expr =
-    Literal  of int
-  (* | Fliteral of string *)
-  | BoolLit  of bool
-  | RegexLit of char RegExp.regexp
-  | Id       of string
-  | Binop    of expr * bop * expr
-  | Unop     of uop * expr
-  | Assign   of string * expr
-  | Call     of string * expr list
+    Literal of int
+  | BoolLit of bool
+  | Regex   of char RegExp.regexp
+  | Id      of string
+  | Binop   of expr * bop * expr
+  | Unop    of uop * expr
+  | Assign  of string * expr
+  | Call    of string * expr list
   | Noexpr
 
 type stmt =
@@ -44,9 +44,25 @@ type func_decl = {
     body : stmt list;
   }
 
+
+(* type func_decl = {
+  fname : string;
+  typ : typ
+} *)
+
 type program = bind list * func_decl list
 
 (* Pretty-printing functions *)
+(*
+let rec string_of_re = function
+    RegExp.Zero                -> "∅"
+  | RegExp.One                 -> "ε"
+  | RegExp.Lit  c              -> "(lit " ^ (String.make 1 c) ^ ")"
+  | RegExp.Plus (a, b)         -> "(" ^ string_of_re a ^ "+" ^ string_of_re b ^ ")"
+  | RegExp.Mult (a, b)         -> "(" ^ string_of_re a ^ "." ^ string_of_re b ^ ")"
+  | RegExp.Star (RegExp.Lit c) -> (String.make 1 c) ^ "⋆"
+  | RegExp.Star a              -> "(" ^ string_of_re a ^ ")⋆"
+  *)
 
 let string_of_op = function
     BAdd     -> "+"
@@ -68,12 +84,18 @@ let string_of_op = function
 let string_of_uop = function
     UNeg  -> "-"
   | UNot  -> "!"
+  | ULit  -> "lit"
   | UStar -> "**"
+
+(*
+let string_of_nop = function
+    NZero -> "{.}" (* TODO "{}"? *)
+  | NOne  -> "(.)" (* TODO "{{}}"? *)
+  *)
 
 let rec string_of_expr = function
     Literal l         -> string_of_int l
-  (* | Fliteral (l) -> l *)
-  | RegexLit _        -> raise (TODO "implement")
+  | Regex r           -> RegExp.string_of_re r
   | BoolLit true      -> "true"
   | BoolLit false     -> "false"
   | Id s              -> s
@@ -84,19 +106,18 @@ let rec string_of_expr = function
   | Noexpr            -> ""
 
 let rec string_of_stmt = function
-    Block stmts          -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
-  | Expr expr            -> string_of_expr expr ^ ";\n";
-  | Return expr          -> "return " ^ string_of_expr expr ^ ";\n";
-  | If (e, s, Block([])) -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s
-  | If (e, s1, s2)       -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-  | For (e1, e2, e3, s)  -> "for " ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^ string_of_expr e3 ^ " " ^ string_of_stmt s
-  | While (e, s)         -> "for ;" ^ string_of_expr e ^ "; " ^ string_of_stmt s
-  | Infloop (s)          -> "for " ^ string_of_stmt s 
+    Block stmts         -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
+  | Expr expr           -> string_of_expr expr ^ ";\n";
+  | Return expr         -> "return " ^ string_of_expr expr ^ ";\n";
+  | If (e, s, Block []) -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s
+  | If (e, s1, s2)      -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
+  | For (e1, e2, e3, s) -> "for " ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^ string_of_expr e3 ^ " " ^ string_of_stmt s
+  | While (e, s)        -> "for ;" ^ string_of_expr e ^ "; " ^ string_of_stmt s
+  | Infloop (s)         -> "for " ^ string_of_stmt s
 
 let string_of_typ = function
     TInt    -> "int"
   | TBool   -> "bool"
-  (* | TFloat  -> "float" *)
   | TUnit   -> "unit"
   | TRegexp -> "regexp"
 
