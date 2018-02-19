@@ -15,7 +15,7 @@ rule token = parse
 | "<~"      { comment lexbuf }           (* Block Comments *)
 | "~~"      { line_comment lexbuf }      (* Line Comment *)
 | "{.}"     { REEMPTY }                  (* RegExp literal for empty language *)
-| "(.)"     { REEPS }                    (* RegExp literal for empty string *)
+| "{{.}}"   { REEPS }                    (* RegExp literal for empty string *)
 | '|'       { REOR }                     (* RegExp operator for "or" (union) *)
 | '^'       { REAND }                    (* RegExp operator for "and" (concatenation) *)
 | "**"      { RESTAR }                   (* RegExp operator for Kleene star (closure) *)
