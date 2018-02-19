@@ -26,6 +26,8 @@ rule token = parse
 | "dfa"     { DFA }
 | "nfa"     { NFA }
 *)
+| ':'      { COLON }                     (* Symbol for function definition arg types *)
+(*| "->"     { ARROW }                      Symbol for function definition return type *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
@@ -58,7 +60,7 @@ rule token = parse
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
 | digits as lxm { LITERAL(int_of_string lxm) }
-| digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
+(* | digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) } *)
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
