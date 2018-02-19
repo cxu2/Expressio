@@ -9,19 +9,21 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 
 type uop = UNeg | UNot | ULit | UStar
 
+type nop = NOne | NZero
+
 type typ = TInt | TBool | TUnit | TRegexp
 
 type bind = typ * string
 
 type expr =
-    Literal  of int
-  | BoolLit  of bool
-  | RegexLit of char RegExp.regexp
-  | Id       of string
-  | Binop    of expr * bop * expr
-  | Unop     of uop * expr
-  | Assign   of string * expr
-  | Call     of string * expr list
+    Literal of int
+  | BoolLit of bool
+  | Regex   of char RegExp.regexp
+  | Id      of string
+  | Binop   of expr * bop * expr
+  | Unop    of uop * expr
+  | Assign  of string * expr
+  | Call    of string * expr list
   | Noexpr
 
 type stmt =
@@ -81,7 +83,7 @@ let string_of_uop = function
 
 let rec string_of_expr = function
     Literal l         -> string_of_int l
-  | RegexLit r        -> RegExp.string_of_re r
+  | Regex r           -> RegExp.string_of_re r
   | BoolLit true      -> "true"
   | BoolLit false     -> "false"
   | Id s              -> s
@@ -92,14 +94,14 @@ let rec string_of_expr = function
   | Noexpr            -> ""
 
 let rec string_of_stmt = function
-    Block stmts          -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
-  | Expr expr            -> string_of_expr expr ^ ";\n";
-  | Return expr          -> "return " ^ string_of_expr expr ^ ";\n";
-  | If (e, s, Block([])) -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s
-  | If (e, s1, s2)       -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-  | For (e1, e2, e3, s)  -> "for " ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^ string_of_expr e3 ^ " " ^ string_of_stmt s
-  | While (e, s)         -> "for ;" ^ string_of_expr e ^ "; " ^ string_of_stmt s
-  | Infloop (s)          -> "for " ^ string_of_stmt s
+    Block stmts         -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
+  | Expr expr           -> string_of_expr expr ^ ";\n";
+  | Return expr         -> "return " ^ string_of_expr expr ^ ";\n";
+  | If (e, s, Block []) -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s
+  | If (e, s1, s2)      -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
+  | For (e1, e2, e3, s) -> "for " ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^ string_of_expr e3 ^ " " ^ string_of_stmt s
+  | While (e, s)        -> "for ;" ^ string_of_expr e ^ "; " ^ string_of_stmt s
+  | Infloop (s)         -> "for " ^ string_of_stmt s
 
 let string_of_typ = function
     TInt    -> "int"

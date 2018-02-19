@@ -46,6 +46,7 @@ infixr 8 `closure`
 %left REOR
 %left REAND
 %right RESTAR
+%right RELIT
 
 %%
 

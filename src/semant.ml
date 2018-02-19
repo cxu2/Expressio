@@ -95,7 +95,7 @@ let check (globals, functions) =
         Literal  l           -> (TInt, SLiteral l)
       (* | Fliteral l -> (Float, SFliteral l) *)
       | BoolLit l            -> (TBool, SBoolLit l)
-      | RegexLit _           -> raise (TODO "implement")
+      | Regex _              -> raise (TODO "implement")
       | Noexpr               -> (TUnit, SNoexpr)
       | Id s                 -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> let lt = type_of_identifier var
