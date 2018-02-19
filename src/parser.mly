@@ -2,6 +2,7 @@
 
 %{
 open Ast
+open RegExp
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
@@ -114,6 +115,8 @@ expr:
   | BLIT                      { BoolLit ($1)             }
   | ID                        { Id ($1)                  }
   | RELIT expr                { Unop (ULit, $2)          }
+  | REEMPTY                   { Regex RegExp.Zero        }
+  | REEPS                     { Regex RegExp.One         }
   | expr PLUS   expr          { Binop ($1, BAdd,     $3) }
   | expr MINUS  expr          { Binop ($1, BSub,     $3) }
   | expr TIMES  expr          { Binop ($1, BMult,    $3) }

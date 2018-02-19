@@ -9,7 +9,7 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 
 type uop = UNeg | UNot | ULit | UStar
 
-type nop = NOne | NZero
+(* type nop = NZero | NOne *)
 
 type typ = TInt | TBool | TUnit | TRegexp
 
@@ -80,6 +80,12 @@ let string_of_uop = function
   | UNot  -> "!"
   | ULit  -> "lit"
   | UStar -> "**"
+
+(*
+let string_of_nop = function
+    NZero -> "{.}" (* TODO "{}"? *)
+  | NOne  -> "(.)" (* TODO "{{}}"? *)
+  *)
 
 let rec string_of_expr = function
     Literal l         -> string_of_int l
