@@ -112,7 +112,7 @@ stmt:
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
   | IF expr stmt %prec NOELSE               { If ($2, $3, Block []) }
   | IF expr stmt ELSE stmt                  { If ($2, $3, $5)       }
-  /* | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
+  /* | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt */
   | FOR expr_opt SEMI expr SEMI expr_opt stmt
                                             { For ($2, $4, $6, $7)  }
   | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
@@ -123,32 +123,32 @@ expr_opt:
   | expr                                    { $1 }
 
 expr:
-    LITERAL                   { Literal ($1)             }
-  | BLIT                      { BoolLit ($1)             }
-  | ID                        { Id ($1)                  }
-  | RELIT expr                { Unop (ULit, $2)          }
-  | REEMPTY                   { Regex RegExp.Zero        }
-  | REEPS                     { Regex RegExp.One         }
-  | expr PLUS   expr          { Binop ($1, BAdd,     $3) }
-  | expr MINUS  expr          { Binop ($1, BSub,     $3) }
-  | expr TIMES  expr          { Binop ($1, BMult,    $3) }
-  | expr DIVIDE expr          { Binop ($1, BDiv,     $3) }
-  | expr EQ     expr          { Binop ($1, BEqual,   $3) }
-  | expr NEQ    expr          { Binop ($1, BNeq,     $3) }
-  | expr LT     expr          { Binop ($1, BLess,    $3) }
-  | expr LEQ    expr          { Binop ($1, BLeq,     $3) }
-  | expr GT     expr          { Binop ($1, BGreater, $3) }
-  | expr GEQ    expr          { Binop ($1, BGeq,     $3) }
-  | expr AND    expr          { Binop ($1, BAnd,     $3) }
-  | expr OR     expr          { Binop ($1, BOr,      $3) }
-  | expr REOR   expr          { Binop ($1, BUnion,   $3) }
-  | expr REAND  expr          { Binop ($1, BConcat,  $3) }
-  | MINUS expr %prec NEG      { Unop (UNeg, $2)          }
-  | NOT expr                  { Unop (UNot, $2)          }
-  | RESTAR expr               { Unop (UStar, $2)         }
-  | ID ASSIGN expr            { Assign ($1, $3)          }
-  | ID LPAREN args_opt RPAREN { Call ($1, $3)            }
-  | LPAREN expr RPAREN        { $2                       }
+    LITERAL                                 { Literal ($1)             }
+  | BLIT                                    { BoolLit ($1)             }
+  | ID                                      { Id ($1)                  }
+  | RELIT expr                              { Unop (ULit, $2)          }
+  | REEMPTY                                 { Regex RegExp.Zero        }
+  | REEPS                                   { Regex RegExp.One         }
+  | expr PLUS   expr                        { Binop ($1, BAdd,     $3) }
+  | expr MINUS  expr                        { Binop ($1, BSub,     $3) }
+  | expr TIMES  expr                        { Binop ($1, BMult,    $3) }
+  | expr DIVIDE expr                        { Binop ($1, BDiv,     $3) }
+  | expr EQ     expr                        { Binop ($1, BEqual,   $3) }
+  | expr NEQ    expr                        { Binop ($1, BNeq,     $3) }
+  | expr LT     expr                        { Binop ($1, BLess,    $3) }
+  | expr LEQ    expr                        { Binop ($1, BLeq,     $3) }
+  | expr GT     expr                        { Binop ($1, BGreater, $3) }
+  | expr GEQ    expr                        { Binop ($1, BGeq,     $3) }
+  | expr AND    expr                        { Binop ($1, BAnd,     $3) }
+  | expr OR     expr                        { Binop ($1, BOr,      $3) }
+  | expr REOR   expr                        { Binop ($1, BUnion,   $3) }
+  | expr REAND  expr                        { Binop ($1, BConcat,  $3) }
+  | MINUS expr %prec NEG                    { Unop (UNeg, $2)          }
+  | NOT expr                                { Unop (UNot, $2)          }
+  | RESTAR expr                             { Unop (UStar, $2)         }
+  | ID ASSIGN expr                          { Assign ($1, $3)          }
+  | ID LPAREN args_opt RPAREN               { Call ($1, $3)            }
+  | LPAREN expr RPAREN                      { $2                       }
 
 args_opt:
     /* nothing */                           { [] }
