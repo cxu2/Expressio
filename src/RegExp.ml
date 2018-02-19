@@ -122,4 +122,13 @@ module RegExp = struct
     | Plus (a, b) -> Plus (reversal a, reversal b)
     | Mult (a, b) -> Mult (reversal b, reversal a)
     | Star a      -> Star (reversal a)
+
+  let rec string_of_re = function
+      Zero         -> "∅"
+    | One          -> "ε"
+    | Lit  c       -> "(lit " ^ (String.make 1 c) ^ ")"
+    | Plus (a, b)  -> "(" ^ string_of_re a ^ "+" ^ string_of_re b ^ ")"
+    | Mult (a, b)  -> "(" ^ string_of_re a ^ "." ^ string_of_re b ^ ")"
+    | Star (Lit c) -> (String.make 1 c) ^ "⋆"
+    | Star a       -> "(" ^ string_of_re a ^ ")⋆"
 end
