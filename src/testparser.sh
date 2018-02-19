@@ -11,6 +11,8 @@
 MICROC="./minimicroc.native" # To be changed to proper test driver name
 #MICROC="_build/microc.native"
 
+REGEXPTEST="./test_regexp.native"
+
 # Set time limit for all operations
 ulimit -t 30
 
@@ -168,5 +170,15 @@ do
 	    ;;
     esac
 done
+
+error=0
+Run $REGEXPTEST
+    if [ $error -eq 0 ] ; then
+        echo "OK"
+        echo "###### SUCCESS" 1>&2
+    else
+        echo "###### FAILED" 1>&2
+        globalerror=$error
+    fi
 
 exit $globalerror
