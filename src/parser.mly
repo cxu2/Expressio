@@ -5,7 +5,7 @@ open Ast
 open RegExp
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR WHILE INT BOOL UNIT
 %token COLON ARROW
@@ -34,7 +34,7 @@ infixr 8 `closure`
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
-%left PLUS MINUS
+%left PLUS PERIOD MINUS
 %left TIMES DIVIDE
 %right NOT NEG
 
@@ -130,7 +130,7 @@ expr:
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
   | expr PLUS   expr                        { Binop ($1, BAdd,     $3) }
-  | expr MINUS  expr                        { Binop ($1, BSub,     $3) }
+  | expr PERIOD MINUS  expr                        { Binop ($1, BSub,     $4) }
   | expr TIMES  expr                        { Binop ($1, BMult,    $3) }
   | expr DIVIDE expr                        { Binop ($1, BDiv,     $3) }
   | expr EQ     expr                        { Binop ($1, BEqual,   $3) }
