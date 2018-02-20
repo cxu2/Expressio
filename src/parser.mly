@@ -115,8 +115,8 @@ stmt:
   /* | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt */
   | FOR expr_opt SEMI expr SEMI expr_opt SEMI stmt
                                             { For ($2, $4, $6, $8)  }
-  | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
-  | FOR stmt                                { Infloop ($2)          }
+  /*| FOR SEMI expr SEMI stmt                 { While ($3, $5)        }*/
+  /*| FOR stmt                                { Infloop ($2)          }*/
 
 expr_opt:
     /* nothing */                           { Noexpr }
