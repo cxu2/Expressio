@@ -20,6 +20,7 @@ type expr =
   | BoolLit of bool
   | Regex   of char RegExp.regexp
   | Id      of string
+  | String  of string
   | Binop   of expr * bop * expr
   | Unop    of uop * expr
   | Assign  of string * expr
