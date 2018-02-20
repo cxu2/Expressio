@@ -25,8 +25,8 @@ infixl 7 * (Numeric.Algebra.Class)
 infixr 8 `closure`
 */
 
-%start program
-%type <Ast.program> program
+%start stmt
+%type <Ast.stmt> stmt
 
 %nonassoc NOELSE
 %nonassoc ELSE
@@ -111,13 +111,15 @@ stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
-  | IF expr stmt %prec NOELSE               { If ($2, $3, Block []) }
-  | IF expr stmt ELSE stmt                  { If ($2, $3, $5)       }
+  | IF LPAREN expr RPAREN stmt %prec NOELSE               { If ($3, $5, Block []) }
+  
+  | IF LPAREN expr RPAREN stmt ELSE stmt                  { If ($3, $5, $7)       }
   /* | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt */
   | FOR expr_opt SEMI expr SEMI expr_opt SEMI stmt
                                             { For ($2, $4, $6, $8)  }
-  /*| FOR SEMI expr SEMI stmt                 { While ($3, $5)        }*/
-  /*| FOR stmt                                { Infloop ($2)          }*/
+  /*| FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
+  | FOR stmt                                { Infloop ($2)          }*/
+
 
 expr_opt:
     /* nothing */                           { Noexpr }
@@ -127,7 +129,7 @@ expr:
     LITERAL                                 { Literal ($1)             }
   | BLIT                                    { BoolLit ($1)             }
   | ID                                      { Id ($1)                  }
-  | QUOTATION STRING QUOTATION              { Id ($2)                  }
+ /*| QUOTATION STRING QUOTATION              { Id ($2)                  }
   | RELIT expr                              { Unop (ULit, $2)          }
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
@@ -147,10 +149,10 @@ expr:
   | expr REAND  expr                        { Binop ($1, BConcat,  $3) }
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)          }
   | NOT expr                                { Unop (UNot, $2)          }
-  | RESTAR expr                             { Unop (UStar, $2)         }
+  | RESTAR expr                             { Unop (UStar, $2)         }*/
   | ID ASSIGN expr                          { Assign ($1, $3)          }
-  | ID LPAREN args_opt RPAREN               { Call ($1, $3)            }
   | LPAREN expr RPAREN                      { $2                       }
+  | ID LPAREN args_opt RPAREN               { Call ($1, $3)            }
 
 args_opt:
     /* nothing */                           { [] }
