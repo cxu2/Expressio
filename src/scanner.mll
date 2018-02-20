@@ -29,6 +29,7 @@ rule token = parse
 | ':'      { COLON }                     (* Symbol for function definition arg types *)
 (*| "->"     { ARROW }                      Symbol for function definition return type *)
 | '.'		{ PERIOD }
+| '"'		{ QUOTATION }
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }

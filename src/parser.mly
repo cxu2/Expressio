@@ -5,7 +5,7 @@ open Ast
 open RegExp
 %}
 
-%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE QUOTATION COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR WHILE INT BOOL UNIT
 %token COLON ARROW
@@ -13,6 +13,7 @@ open RegExp
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID
+%token <string> STRING
 %token EOF
 
 /* FIXME we will need to think about the correct precedence of these
@@ -126,6 +127,7 @@ expr:
     LITERAL                                 { Literal ($1)             }
   | BLIT                                    { BoolLit ($1)             }
   | ID                                      { Id ($1)                  }
+  | QUOTATION STRING QUOTATION              { Id ($2)                  }
   | RELIT expr                              { Unop (ULit, $2)          }
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
