@@ -120,7 +120,6 @@ stmt:
   /*| FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
   | FOR stmt                                { Infloop ($2)          }*/
 
-
 expr_opt:
     /* nothing */                           { Noexpr }
   | expr                                    { $1 }
@@ -129,7 +128,8 @@ expr:
     LITERAL                                 { Literal ($1)             }
   | BLIT                                    { BoolLit ($1)             }
   | ID                                      { Id ($1)                  }
- /*| QUOTATION STRING QUOTATION              { Id ($2)                  }
+  | QUOTATION STRING QUOTATION              { Id ($2)                  }
+  | STRING PLUS STRING 
   | RELIT expr                              { Unop (ULit, $2)          }
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
