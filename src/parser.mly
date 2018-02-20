@@ -113,8 +113,8 @@ stmt:
   | IF expr stmt %prec NOELSE               { If ($2, $3, Block []) }
   | IF expr stmt ELSE stmt                  { If ($2, $3, $5)       }
   /* | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt */
-  | FOR expr_opt SEMI expr SEMI expr_opt stmt
-                                            { For ($2, $4, $6, $7)  }
+  | FOR expr_opt SEMI expr SEMI expr_opt SEMI stmt
+                                            { For ($2, $4, $6, $8)  }
   | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
   | FOR stmt                                { Infloop ($2)          }
 
