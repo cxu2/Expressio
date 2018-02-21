@@ -1,20 +1,20 @@
 #!/bin/bash
 
-# Regression testing script for MicroC
-# Author: Stephen Edwards
+# Testing script for Expressio complier
+# Author: Lalka Rieger (but 99% borrowed from Stephen Edwards)
 # Step through a list of files
-#  Compile, run, and check the output of each expected-to-work test
+#  Compile, and run each expected-to-work test
 #  Compile and check the error of each expected-to-fail test
 
-# Path to the microc compiler.  Usually "./microc.native"
-# Try "_build/microc.native" if ocamlbuild was unable to create a symbolic link.
+# Path to the microc compiler.  Usually "./express.native"
+# Try "_build/express.native" if ocamlbuild was unable to create a symbolic link.
 MICROC="./express.native" # To be changed to proper test driver name
 #MICROC="_build/microc.native"
 
 # Set time limit for all operations
 ulimit -t 30
 
-globallog=testall.log
+globallog=testparser.log
 rm -f $globallog
 error=0
 globalerror=0
@@ -22,7 +22,7 @@ globalerror=0
 keep=0
 
 Usage() {
-    echo "Usage: testall.sh [options] [.xp files]"
+    echo "Usage: testparser.sh [options] [.xp files]"
     echo "-k    Keep intermediate files"
     echo "-h    Print this help"
     exit 1
