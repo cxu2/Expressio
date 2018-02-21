@@ -9,7 +9,7 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 
 type uop = UNeg | UNot | ULit | UStar
 
-type typ = TInt | TBool | TChar | TUnit | TRegexp | TString
+type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDfa
 
 type bind = typ * string
 
@@ -44,6 +44,20 @@ type func_decl = {
     body : stmt list;
   }
 
+type link = int * char * int
+
+type dfa_decl = {
+  dname : string;
+  states : int list; (*int*)
+  alphabet : char list;
+  start : int;
+  final: int list;
+  transitions : link list;
+}
+
+(*  
+| DfaLit    of int * char list * int * int list * link list
+*)
 
 (* type func_decl = {
   fname : string;
@@ -124,6 +138,7 @@ let string_of_typ = function
   | TUnit   -> "unit"
   | TRegexp -> "regexp"
   | TString -> "string"
+  | TDfa    -> "dfa"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
@@ -134,6 +149,8 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_vdecl fdecl.locals) ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
+
+(*let string_of_dfa *)
 
 let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^

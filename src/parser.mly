@@ -5,7 +5,7 @@ open Ast
 open RegExp
 %}
 
-%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR WHILE INT CHAR BOOL UNIT STRING
 %token COLON ARROW
@@ -55,6 +55,7 @@ decls:
    /* nothing */                            { ([], [])               }
  | decls vdecl                              { (($2 :: fst $1), snd $1) }
  | decls fdecl                              { (fst $1, ($2 :: snd $1)) }
+ | decls ddecl                              { (fst $1, ($2 :: snd $1)) }
 
 
 fdecl:
@@ -64,6 +65,9 @@ fdecl:
 	                                              formals = $4;
 	                                              locals = List.rev $7;
 	                                              body = List.rev $8 } }
+
+ddecl:
+  DFA ID LBRACE 
 
 
 /*
