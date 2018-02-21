@@ -17,6 +17,7 @@ type expr =
   | BoolLit   of bool
   | CharLit   of char
   | StringLit of string
+  (* FIXME this temporary type because we have not yet implemented DFA in OCaml *)
   | DFALit    of bool
   | Regex     of char RegExp.regexp
   | Id        of string
