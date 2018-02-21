@@ -5,13 +5,16 @@ open Ast
 open RegExp
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELSE FOR WHILE INT BOOL UNIT
+%token RETURN IF ELSE FOR WHILE INT CHAR BOOL UNIT STRING
 %token COLON ARROW
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
-%token <int> LITERAL
+%token DFA
+%token <int> INTLIT
 %token <bool> BLIT
+%token <char> CHLIT
+%token <string> STRLIT
 %token <string> ID
 %token EOF
 
@@ -34,7 +37,7 @@ infixr 8 `closure`
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
-%left PLUS MINUS
+%left PLUS PERIOD MINUS
 %left TIMES DIVIDE
 %right NOT NEG
 
@@ -63,9 +66,9 @@ fdecl:
 	                                              body = List.rev $8 } }
 
 
-/* 
+/*
 fdecl:
-  ID COLON typs_opt ARROW typ ptn_list 
+  ID COLON typs_opt ARROW typ ptn_list
 
 
 ptn_list:
@@ -85,7 +88,10 @@ typ:
     INT                                     { TInt    }
   | BOOL                                    { TBool   }
   | UNIT                                    { TUnit   }
+  | CHAR                                    { TChar   }
   | REGEXP                                  { TRegexp }
+  | STRING                                  { TString }
+
 
 typs_opt:
     /* nothing */                           { [] }
@@ -106,30 +112,33 @@ stmt_list:
     /* nothing */                           { [] }
   | stmt_list stmt                          { $2 :: $1 }
 
+
 stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
-  | IF expr stmt_list %prec NOELSE          { If ($2, $3, Block []) }
-  | IF expr stmt_list ELSE stmt             { If ($2, $3, $5)       }
-  | FOR expr_opt SEMI expr SEMI expr_opt stmt_list
-                                            { For ($2, $4, $6, $7)  }
-  | FOR SEMI expr SEMI stmt_list            { While ($3, $5)        }
-  | FOR stmt_list                           { Infloop ($2)          }
+  | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
+  | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
+  | FOR expr_opt SEMI expr SEMI expr_opt SEMI stmt
+                                            { For ($2, $4, $6, $8)  }
+  | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
+  | FOR stmt                                { Infloop ($2)          }
 
 expr_opt:
     /* nothing */                           { Noexpr }
   | expr                                    { $1 }
 
 expr:
-    LITERAL                                 { Literal ($1)             }
+    INTLIT                                  { IntLit ($1)              }
   | BLIT                                    { BoolLit ($1)             }
+  | CHLIT                                   { CharLit ($1)             }
+  | STRLIT                                  { StringLit ($1)           }
   | ID                                      { Id ($1)                  }
   | RELIT expr                              { Unop (ULit, $2)          }
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
   | expr PLUS   expr                        { Binop ($1, BAdd,     $3) }
-  | expr MINUS  expr                        { Binop ($1, BSub,     $3) }
+  | expr MINUS PERIOD expr                  { Binop ($1, BSub,     $4) }
   | expr TIMES  expr                        { Binop ($1, BMult,    $3) }
   | expr DIVIDE expr                        { Binop ($1, BDiv,     $3) }
   | expr EQ     expr                        { Binop ($1, BEqual,   $3) }

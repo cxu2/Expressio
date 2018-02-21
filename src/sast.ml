@@ -4,15 +4,17 @@ open Ast
 
 type sexpr = typ * sx
 and sx =
-    SLiteral of int
+    SIntLit    of int
   (* | SFliteral of string *)
-  | SBoolLit of bool
-  | SId      of string
-  | SBinop   of sexpr * bop * sexpr
-  | SUnop    of uop * sexpr
+  | SCharLit   of char
+  | SStringLit of string
+  | SBoolLit   of bool
+  | SId        of string
+  | SBinop     of sexpr * bop * sexpr
+  | SUnop      of uop * sexpr
   (* TODO add post version of unary op here for Kleene star to be a* instead of *a *)
-  | SAssign  of string * sexpr
-  | SCall    of string * sexpr list
+  | SAssign    of string * sexpr
+  | SCall      of string * sexpr list
   | SNoexpr
 
 type sstmt =
@@ -38,9 +40,11 @@ type sprogram = bind list * sfunc_decl list
 
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
-                                      SLiteral l         -> string_of_int l
+                                      SIntLit l         -> string_of_int l
                                     | SBoolLit true      -> "true"
                                     | SBoolLit false     -> "false"
+                                    | SCharLit c         -> String.make 1 c
+                                    | SStringLit s       -> s
                                     | SId s              -> s
                                     | SBinop (e1, o, e2) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
                                     | SUnop (o, e)       -> string_of_uop o ^ string_of_sexpr e
