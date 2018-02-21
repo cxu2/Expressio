@@ -2,6 +2,8 @@ module Prelude = struct
   type ('a, 'b) either = Left of 'a | Right of 'b
   let const (x : 'a) (y : 'b) : 'a = x
   let id (x : 'a) = x
+  let third (triple : 'a * 'b * 'c) : 'c = match triple with
+    (_ , _ , c) -> c
   exception TODO of string
   module StringMap = Map.Make(String)
 
