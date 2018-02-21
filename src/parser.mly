@@ -7,7 +7,7 @@ open RegExp
 
 %token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELSE FOR WHILE INT CHAR BOOL UNIT STRING
+%token RETURN IF ELSE FOR INT CHAR BOOL UNIT STRING
 %token COLON ARROW
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
 %token DFA
@@ -45,6 +45,7 @@ infixr 8 `closure`
 %left REAND
 %right RESTAR
 %right RELIT
+%right REMATCH
 
 %%
 
@@ -121,8 +122,8 @@ stmt:
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
   | FOR expr_opt SEMI expr SEMI expr_opt SEMI stmt
                                             { For ($2, $4, $6, $8)  }
-  | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
-  | FOR stmt                                { Infloop ($2)          }
+  /* | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
+  | FOR stmt                                { Infloop ($2)          } */
 
 expr_opt:
     /* nothing */                           { Noexpr }
@@ -151,6 +152,7 @@ expr:
   | expr OR     expr                        { Binop ($1, BOr,      $3) }
   | expr REOR   expr                        { Binop ($1, BUnion,   $3) }
   | expr REAND  expr                        { Binop ($1, BConcat,  $3) }
+  | expr REMATCH expr                       { Binop ($1, BMatch,   $3) }
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)          }
   | NOT expr                                { Unop (UNot, $2)          }
   | RESTAR expr                             { Unop (UStar, $2)         }
