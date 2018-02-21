@@ -5,7 +5,7 @@
 # Easiest way to build: using ocamlbuild, which in turn uses ocamlfind
 
 .PHONY : all
-all : 
+all :
 	ocamlbuild minimicroc.native
 	ocamlbuild RegExp.native
 
@@ -16,6 +16,10 @@ microc.native :
 .PHONY : RegExp.native
 RegExp.native :
 	ocamlbuild RegExp.native
+
+.PHONY : Prelude.native
+Prelude.native :
+	ocamlbuild Prelude.native
 
 # "make clean" removes all generated files
 
@@ -80,7 +84,7 @@ FAILS = \
   for1 for2 for3 for4 for5 func1 func2 func3 func4 func5 func6 func7 \
   func8 func9 global1 global2 if1 if2 if3 nomain printbig printb print \
   return1 return2 while1 while2
-  
+
 TESTFILES = $(TESTS:%=test-%.mc) $(TESTS:%=test-%.out) \
 	    $(FAILS:%=fail-%.mc) $(FAILS:%=fail-%.err)
 
