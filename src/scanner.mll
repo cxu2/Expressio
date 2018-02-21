@@ -22,8 +22,8 @@ rule token = parse
 | "lit"     { RELIT }                    (* RegExp operator for encapsulating a literal symbol *)
 | "regexp"  { REGEXP }                   (* RegExp keyword for declaring a RegExp *)
 | "matches" { REMATCH }                  (* RegExp operator for pattern matching an RE against a string *)
-(* TODO we will need these next once the new automata syntax is decided.
 | "dfa"     { DFA }
+(* TODO we will need these next once the new automata syntax is decided.
 | "nfa"     { NFA }
 *)
 | ':'      { COLON }                     (* Symbol for function definition arg types *)
