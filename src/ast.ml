@@ -9,23 +9,21 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 
 type uop = UNeg | UNot | ULit | UStar
 
-(* type nop = NZero | NOne *)
-
-type typ = TInt | TBool | TChar | TUnit | TRegexp | TString 
+type typ = TInt | TBool | TChar | TUnit | TRegexp | TString
 
 type bind = typ * string
 
 type expr =
-    IntLit of int
-  | BoolLit of bool
-  | CharLit of char
-  | StringLit of string 
-  | Regex   of char RegExp.regexp
-  | Id      of string
-  | Binop   of expr * bop * expr
-  | Unop    of uop * expr
-  | Assign  of string * expr
-  | Call    of string * expr list
+    IntLit    of int
+  | BoolLit   of bool
+  | CharLit   of char
+  | StringLit of string
+  | Regex     of char RegExp.regexp
+  | Id        of string
+  | Binop     of expr * bop * expr
+  | Unop      of uop * expr
+  | Assign    of string * expr
+  | Call      of string * expr list
   | Noexpr
 
 type stmt =
@@ -96,7 +94,7 @@ let string_of_nop = function
   *)
 
 let rec string_of_expr = function
-    IntLit l         -> string_of_int l
+    IntLit l          -> string_of_int l
   | Regex r           -> RegExp.string_of_re r
   | BoolLit true      -> "true"
   | BoolLit false     -> "false"

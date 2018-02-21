@@ -13,7 +13,8 @@ open RegExp
 %token <int> INTLIT
 %token <bool> BLIT
 %token <char> CHLIT
-%token <string> ID 
+%token <string> STRLIT
+%token <string> ID
 %token EOF
 
 /* FIXME we will need to think about the correct precedence of these
@@ -128,9 +129,10 @@ expr_opt:
   | expr                                    { $1 }
 
 expr:
-    INTLIT                                 { IntLit ($1)             }
+    INTLIT                                  { IntLit ($1)              }
   | BLIT                                    { BoolLit ($1)             }
   | CHLIT                                   { CharLit ($1)             }
+  | STRLIT                                  { StringLit ($1)           }
   | ID                                      { Id ($1)                  }
   | RELIT expr                              { Unop (ULit, $2)          }
   | REEMPTY                                 { Regex RegExp.Zero        }
