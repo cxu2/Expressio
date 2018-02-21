@@ -16,7 +16,7 @@ type typ = TInt | TBool | TChar | TUnit | TRegexp | TString
 type bind = typ * string
 
 type expr =
-    Literal of int
+    IntLit of int
   | BoolLit of bool
   | CharLit of char
   | StringLit of string 
@@ -96,7 +96,7 @@ let string_of_nop = function
   *)
 
 let rec string_of_expr = function
-    Literal l         -> string_of_int l
+    IntLit l         -> string_of_int l
   | Regex r           -> RegExp.string_of_re r
   | BoolLit true      -> "true"
   | BoolLit false     -> "false"

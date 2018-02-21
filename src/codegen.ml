@@ -102,7 +102,7 @@ let translate (globals, functions) =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder (_, e) = match e with
-	      SLiteral i          -> L.const_int i32_t i
+	      SIntLit i          -> L.const_int i32_t i
       | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
       | SCharLit _          -> raise (TODO "SCharLit")
       (* | SFliteral l         -> L.const_float_of_string float_t l *)

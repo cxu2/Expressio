@@ -4,7 +4,7 @@ open Ast
 
 type sexpr = typ * sx
 and sx =
-    SLiteral of int
+    SIntLit of int
   (* | SFliteral of string *)
   | SCharLit of char
   | SStringLit of string 
@@ -40,7 +40,7 @@ type sprogram = bind list * sfunc_decl list
 
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
-                                      SLiteral l         -> string_of_int l
+                                      SIntLit l         -> string_of_int l
                                     | SBoolLit true      -> "true"
                                     | SBoolLit false     -> "false"
                                     | SCharLit c         -> String.make 1 c

@@ -7,13 +7,13 @@ open RegExp
 
 %token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELSE FOR WHILE INT CHAR BOOL UNIT
+%token RETURN IF ELSE FOR WHILE INT CHAR BOOL UNIT STRING
 %token COLON ARROW
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
-%token <int> LITERAL
+%token <int> INTLIT
 %token <bool> BLIT
 %token <char> CHLIT
-%token <string> ID
+%token <string> ID 
 %token EOF
 
 /* FIXME we will need to think about the correct precedence of these
@@ -88,6 +88,8 @@ typ:
   | UNIT                                    { TUnit   }
   | CHAR                                    { TChar   }
   | REGEXP                                  { TRegexp }
+  | STRING                                  { TString }
+
 
 typs_opt:
     /* nothing */                           { [] }
@@ -126,7 +128,7 @@ expr_opt:
   | expr                                    { $1 }
 
 expr:
-    LITERAL                                 { Literal ($1)             }
+    INTLIT                                 { IntLit ($1)             }
   | BLIT                                    { BoolLit ($1)             }
   | CHLIT                                   { CharLit ($1)             }
   | ID                                      { Id ($1)                  }
