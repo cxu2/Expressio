@@ -5,21 +5,24 @@
 # Easiest way to build: using ocamlbuild, which in turn uses ocamlfind
 
 .PHONY : all
-all : microc.native printbig.o
+all : 
+	ocamlbuild minimicroc.native
+	ocamlbuild RegExp.native
 
-.PHONY : microc.native
+.PHONY : minimicroc.native
 microc.native :
-	rm -f *.o
-	ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 \
-		microc.native
+	ocamlbuild minimicroc.native
+
+.PHONY : RegExp.native
+RegExp.native :
+	ocamlbuild RegExp.native
 
 # "make clean" removes all generated files
 
 .PHONY : clean
 clean :
 	ocamlbuild -clean
-	rm -rf testall.log *.diff microc scanner.ml parser.ml parser.mli
-	rm -rf printbig
+	rm -rf testparser.log *.diff minimicroc scanner.ml parser.ml parser.mli
 	rm -rf *.cmx *.cmi *.cmo *.cmx *.o *.s *.ll *.out *.exe
 
 # More detailed: build using ocamlc/ocamlopt + ocamlfind to locate LLVM
