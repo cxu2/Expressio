@@ -1,15 +1,14 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
 open RegExp
-
-exception TODO of string
+open Prelude
 
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
            BAnd | BOr | BUnion | BConcat | BMatch
 
 type uop = UNeg | UNot | ULit | UStar
 
-type typ = TInt | TBool | TChar | TUnit | TRegexp | TString
+type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDFA
 
 type bind = typ * string
 
@@ -18,6 +17,8 @@ type expr =
   | BoolLit   of bool
   | CharLit   of char
   | StringLit of string
+  (* FIXME this temporary type because we have not yet implemented DFA in OCaml *)
+  | DFALit    of bool
   | Regex     of char RegExp.regexp
   | Id        of string
   | Binop     of expr * bop * expr
@@ -97,6 +98,7 @@ let string_of_nop = function
 let rec string_of_expr = function
     IntLit l          -> string_of_int l
   | Regex r           -> RegExp.string_of_re r
+  | DFALit _          -> raise (Prelude.TODO "DFALit")
   | BoolLit true      -> "true"
   | BoolLit false     -> "false"
   | CharLit c         -> String.make 1 c
@@ -126,6 +128,7 @@ let string_of_typ = function
   | TUnit   -> "unit"
   | TRegexp -> "regexp"
   | TString -> "string"
+  | TDFA    -> "dfa"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 

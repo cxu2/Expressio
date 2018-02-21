@@ -73,7 +73,7 @@ formals_opt:
 
 formal_list:
     LPAREN ID COLON typ RPAREN              { [($4,$2)]     }
-  | formal_list LPAREN ID COLON typ RPAREN              
+  | formal_list LPAREN ID COLON typ RPAREN
                                             { ($5,$3) :: $1 }
 
 typ:
@@ -83,6 +83,7 @@ typ:
   | CHAR                                    { TChar   }
   | REGEXP                                  { TRegexp }
   | STRING                                  { TString }
+  | DFA                                     { TDFA    }
 
 
 typs_opt:

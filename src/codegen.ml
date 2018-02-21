@@ -16,10 +16,7 @@ http://llvm.moe/ocaml/
 module L = Llvm
 module A = Ast
 open Sast
-
-exception TODO of string
-
-module StringMap = Map.Make(String)
+open Prelude
 
 (* Code Generation from the SAST. Returns an LLVM module if successful,
    throws an exception if something is wrong. *)
@@ -38,10 +35,11 @@ let translate (globals, functions) =
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
-    | A.TChar   -> raise (TODO "LLVM Char")
+    | A.TChar   -> raise (Prelude.TODO "LLVM Char")
     | A.TUnit   -> void_t
-    | A.TRegexp -> raise (TODO "LLVM RegExp")
-    | A.TString -> raise (TODO "LLVM String")
+    | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")
+    | A.TString -> raise (Prelude.TODO "LLVM String")
+    | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")
 
   (* Declare each global variable; remember its value in a map *)
   in let global_vars =
@@ -104,9 +102,9 @@ let translate (globals, functions) =
     let rec expr builder (_, e) = match e with
 	      SIntLit i          -> L.const_int i32_t i
       | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
-      | SCharLit _          -> raise (TODO "SCharLit")
+      | SCharLit _          -> raise (Prelude.TODO "SCharLit")
       (* | SFliteral l         -> L.const_float_of_string float_t l *)
-      | SStringLit _        -> raise (TODO "SStringLit")
+      | SStringLit _        -> raise (Prelude.TODO "SStringLit")
       | SNoexpr             -> L.const_int i32_t 0
       | SId s               -> L.build_load (lookup s) s builder
       | SBinop (e1, op, e2) -> let e1' = expr builder e1
@@ -124,9 +122,9 @@ let translate (globals, functions) =
                                 	  | A.BLeq     -> L.build_icmp L.Icmp.Sle
                                 	  | A.BGreater -> L.build_icmp L.Icmp.Sgt
                                 	  | A.BGeq     -> L.build_icmp L.Icmp.Sge
-                                    | A.BUnion   -> raise (TODO "implement")
-                                    | A.BConcat  -> raise (TODO "implement")
-                                    | A.BMatch   -> raise (TODO "implement")
+                                    | A.BUnion   -> raise (Prelude.TODO "implement")
+                                    | A.BConcat  -> raise (Prelude.TODO "implement")
+                                    | A.BMatch   -> raise (Prelude.TODO "implement")
                                 	  ) e1' e2' "tmp" builder
       | SUnop (op, e)           -> (* let (t, _) = e *)
                                    let e' = expr builder e
@@ -134,8 +132,8 @@ let translate (globals, functions) =
               	                          (* A.UNeg when t = A.TFloat -> L.build_fneg *)
               	                          A.UNeg                   -> L.build_neg
                                         | A.UNot                   -> L.build_not
-                                        | A.UStar                  -> raise (TODO "implement")
-                                        | A.ULit                   -> raise (TODO "implement")
+                                        | A.UStar                  -> raise (Prelude.TODO "implement")
+                                        | A.ULit                   -> raise (Prelude.TODO "implement")
                                    ) e' "tmp" builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
