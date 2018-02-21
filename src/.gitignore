@@ -27,3 +27,6 @@ setup.log
 # bison output files
 *.output
 *.tab.c
+
+# microc test logs
+*.log
