@@ -23,7 +23,7 @@ rule token = parse
 | "regexp"  { REGEXP }                   (* RegExp keyword for declaring a RegExp *)
 | "matches" { REMATCH }                  (* RegExp operator for pattern matching an RE against a string *)
 | "dfa"     { DFA }
-(* TODO we will need these next once the new automata syntax is decided.
+(* TODO we may need this later
 | "nfa"     { NFA }
 *)
 | ':'      { COLON }                     (* Symbol for function definition arg types *)
@@ -54,11 +54,13 @@ rule token = parse
 | "return" { RETURN }
 | "int"    { INT }
 | "char"   { CHAR }
+| "string" { STRING }
 | "bool"   { BOOL }
 | "unit"   { UNIT }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
 | digits as ds                       { INTLIT(int_of_string ds) }
+| '"'([^'"']* as strlit)'"'          { STRLIT(strlit) }
 | '''([^''']  as chlit)'''           { CHLIT(chlit) }
 | alpha (alphanumeric | '_')* as str { ID(str) }
 | eof                                { EOF }

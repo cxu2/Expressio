@@ -1,0 +1,8 @@
+~~ comment
+int main() {
+  char c;
+  string str;
+  c = '9';
+  str = "hi";
+  return 0;
+}
