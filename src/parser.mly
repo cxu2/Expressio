@@ -12,6 +12,7 @@ open RegExp
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
 %token <int> LITERAL
 %token <bool> BLIT
+%token <char> CHLIT
 %token <string> ID
 %token EOF
 
@@ -127,6 +128,7 @@ expr_opt:
 expr:
     LITERAL                                 { Literal ($1)             }
   | BLIT                                    { BoolLit ($1)             }
+  | CHLIT                                   { CharLit ($1)             }
   | ID                                      { Id ($1)                  }
   | RELIT expr                              { Unop (ULit, $2)          }
   | REEMPTY                                 { Regex RegExp.Zero        }

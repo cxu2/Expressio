@@ -103,6 +103,7 @@ let translate (globals, functions) =
     let rec expr builder (_, e) = match e with
 	      SLiteral i          -> L.const_int i32_t i
       | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
+      | SCharLit _          -> raise (TODO "SCharLit")
       (* | SFliteral l         -> L.const_float_of_string float_t l *)
       | SNoexpr             -> L.const_int i32_t 0
       | SId s               -> L.build_load (lookup s) s builder

@@ -94,6 +94,7 @@ let check (globals, functions) =
     in let rec expr = function
         Literal  l           -> (TInt, SLiteral l)
       (* | Fliteral l -> (Float, SFliteral l) *)
+      | CharLit c            -> (TChar, SCharLit c)
       | BoolLit l            -> (TBool, SBoolLit l)
       | Regex _              -> raise (TODO "implement")
       | Noexpr               -> (TUnit, SNoexpr)
