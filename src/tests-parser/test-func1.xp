@@ -1,5 +1,5 @@
 ~~ comments 
-int gcd (int a, int b) {
+gcd : (a : int) (b : int) -> int {
   for ;a != b; {
     print ("42");
   }

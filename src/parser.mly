@@ -59,22 +59,12 @@ decls:
 
 
 fdecl:
-   typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
-                                            { { typ = $1;
-	                                              fname = $2;
-	                                              formals = $4;
+  ID COLON formals_opt ARROW typ LBRACE vdecl_list stmt_list RBRACE
+                                            { { typ = $5;
+	                                              fname = $1;
+	                                              formals = $3;
 	                                              locals = List.rev $7;
 	                                              body = List.rev $8 } }
-
-
-/*
-fdecl:
-  ID COLON typs_opt ARROW typ ptn_list
-
-
-ptn_list:
-    ID expr ASSIGN expr
-*/
 
 formals_opt:
     /* nothing */                           { [] }
@@ -82,8 +72,9 @@ formals_opt:
 
 
 formal_list:
-    typ ID                                  { [($1,$2)]     }
-  | formal_list COMMA typ ID                { ($3,$4) :: $1 }
+    LPAREN ID COLON typ RPAREN              { [($4,$2)]     }
+  | formal_list LPAREN ID COLON typ RPAREN              
+                                            { ($5,$3) :: $1 }
 
 typ:
     INT                                     { TInt    }
@@ -122,8 +113,8 @@ stmt:
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
   | FOR expr_opt SEMI expr SEMI expr_opt SEMI stmt
                                             { For ($2, $4, $6, $8)  }
-  /* | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
-  | FOR stmt                                { Infloop ($2)          } */
+  | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
+  | FOR stmt                                { Infloop ($2)          }
 
 expr_opt:
     /* nothing */                           { Noexpr }

@@ -27,7 +27,7 @@ rule token = parse
 | "nfa"     { NFA }
 *)
 | ':'      { COLON }                     (* Symbol for function definition arg types *)
-(* | "->"     { ARROW }                      Symbol for function definition return type *)
+| "->"     { ARROW }                     (* Symbol for function definition return type *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
