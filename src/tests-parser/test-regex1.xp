@@ -1,5 +1,5 @@
 ~~ comment
-int main() {
+main : -> int {
   int i;
   regexp x;
   regexp y;

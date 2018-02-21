@@ -1,4 +1,4 @@
-int main()
+main : -> int
 {
   int i;
   for ;; i=0{

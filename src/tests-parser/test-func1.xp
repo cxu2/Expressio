@@ -1,7 +1,4 @@
 ~~ comments 
-gcd : (a : int) (b : int) -> int {
-  for ;a != b; {
-    print ("42");
-  }
-  return a;
+gcd : (a : int) (b : int) -> unit {
+  print ("42");
 }

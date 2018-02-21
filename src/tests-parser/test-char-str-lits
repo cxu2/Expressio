@@ -1,5 +1,5 @@
 ~~ comment
-int main() {
+main : -> int {
   char c;
   string str;
   c = '9';

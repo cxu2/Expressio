@@ -1,4 +1,4 @@
-int main() {
+main : -> int {
 <~ I am a block comment
 I need a closing tag
   int i;

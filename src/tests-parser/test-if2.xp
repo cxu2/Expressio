@@ -1,6 +1,5 @@
 ~~ test if/else statement
-
-int iftest () {
+iftest : -> int {
   int a;
   int b;
   if (a > b) { a = b; }
