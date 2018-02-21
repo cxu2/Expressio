@@ -5,13 +5,13 @@
 # Easiest way to build: using ocamlbuild, which in turn uses ocamlfind
 
 .PHONY : all
-all : microc.native printbig.o
+all : minimicroc.native printbig.o
 
-.PHONY : microc.native
-microc.native :
+.PHONY : minimicroc.native
+minimicroc.native :
 	rm -f *.o
 	ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 \
-		microc.native
+		minimicroc.native
 
 # "make clean" removes all generated files
 
@@ -24,10 +24,10 @@ clean :
 
 # More detailed: build using ocamlc/ocamlopt + ocamlfind to locate LLVM
 
-OBJS = ast.cmx sast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx microc.cmx
+OBJS = ast.cmx sast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx minimicroc.cmx
 
-microc : $(OBJS)
-	ocamlfind ocamlopt -linkpkg -package llvm -package llvm.analysis $(OBJS) -o microc
+minimicroc : $(OBJS)
+	ocamlfind ocamlopt -linkpkg -package llvm -package llvm.analysis $(OBJS) -o minimicroc
 
 scanner.ml : scanner.mll
 	ocamllex scanner.mll
@@ -54,8 +54,8 @@ ast.cmo :
 ast.cmx :
 codegen.cmo : ast.cmo
 codegen.cmx : ast.cmx
-microc.cmo : semant.cmo scanner.cmo parser.cmi codegen.cmo ast.cmo
-microc.cmx : semant.cmx scanner.cmx parser.cmx codegen.cmx ast.cmx
+minimicroc.cmo : semant.cmo scanner.cmo parser.cmi codegen.cmo ast.cmo
+minimicroc.cmx : semant.cmx scanner.cmx parser.cmx codegen.cmx ast.cmx
 parser.cmo : ast.cmo parser.cmi
 parser.cmx : ast.cmx parser.cmi
 scanner.cmo : parser.cmi
@@ -82,7 +82,7 @@ TESTFILES = $(TESTS:%=test-%.mc) $(TESTS:%=test-%.out) \
 	    $(FAILS:%=fail-%.mc) $(FAILS:%=fail-%.err)
 
 TARFILES = README \
-        ast.ml sast.ml codegen.ml Makefile microc.ml parser.mly \
+        ast.ml sast.ml codegen.ml Makefile minimicroc.ml parser.mly \
         scanner.mll semant.ml testall.sh printbig.c \
 	$(TESTFILES:%=tests/%)
 

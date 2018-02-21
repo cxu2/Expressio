@@ -1,5 +1,4 @@
 (* Abstract Syntax Tree and functions for printing it *)
-
 open RegExp
 
 exception TODO of string
@@ -9,7 +8,7 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 
 type uop = UNeg | UNot | ULit | UStar
 
-type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDfa
+type typ = TInt | TBool | TChar | TUnit | TRegexp | TString
 
 type bind = typ * string
 
@@ -64,7 +63,7 @@ type dfa_decl = {
   typ : typ
 } *)
 
-type program = bind list * func_decl list
+type program = bind list * dfa_decl list * func_decl list
 
 (* Pretty-printing functions *)
 (*
@@ -138,9 +137,10 @@ let string_of_typ = function
   | TUnit   -> "unit"
   | TRegexp -> "regexp"
   | TString -> "string"
-  | TDfa    -> "dfa"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
+
+(* let string_of_list val = val ^ ";\n" *)
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.typ ^ " " ^
@@ -150,8 +150,37 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
 
+(* dname : string;
+  states : int list; (*int*)
+  alphabet : char list;
+  start : int;
+  final: int list;
+  transitions : link list; 
+
+type func_decl = {
+    typ : typ;
+    fname : string;
+    formals : bind list;
+    locals : bind list;
+    body : stmt list;
+  }
+ *)
+let string_of_char c = String.make 1 c
+let string_of_ddecl ddecl =
+  String.concat "" (List.map string_of_int ddecl.states)  ^
+  ")\n{\n" 
+(*   String.concat "" (List.map string_of_char ddecl.alphabet)  ^
+  ")\n{\n" ^
+  String.concat "" (string_of_int ddecl.start) ^
+  ")\n{\n" ^
+  String.concat "" (List.map string_of_int ddecl.final)  ^
+  ")\n{\n" ^
+  String.concat "" (List.map string_of_int ddecl.transitions)  ^
+  "}\n" *)
+
 (*let string_of_dfa *)
 
-let string_of_program (vars, funcs) =
+let string_of_program (vars,dfas,funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
+(*   String.concat "" (List.map string_of_ddecl dfas) ^ "\n" ^ *)
   String.concat "\n" (List.map string_of_fdecl funcs)
