@@ -95,6 +95,7 @@ let check (globals, functions) =
         Literal  l           -> (TInt, SLiteral l)
       (* | Fliteral l -> (Float, SFliteral l) *)
       | CharLit c            -> (TChar, SCharLit c)
+      | StringLit s          -> (TString,SStringLit s)
       | BoolLit l            -> (TBool, SBoolLit l)
       | Regex _              -> raise (TODO "implement")
       | Noexpr               -> (TUnit, SNoexpr)

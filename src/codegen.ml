@@ -41,6 +41,7 @@ let translate (globals, functions) =
     | A.TChar   -> raise (TODO "LLVM Char")
     | A.TUnit   -> void_t
     | A.TRegexp -> raise (TODO "LLVM RegExp")
+    | A.TString -> raise (TODO "LLVM String")
 
   (* Declare each global variable; remember its value in a map *)
   in let global_vars =
@@ -105,6 +106,7 @@ let translate (globals, functions) =
       | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
       | SCharLit _          -> raise (TODO "SCharLit")
       (* | SFliteral l         -> L.const_float_of_string float_t l *)
+      | SStringLit _        -> raise (TODO "SStringLit")
       | SNoexpr             -> L.const_int i32_t 0
       | SId s               -> L.build_load (lookup s) s builder
       | SBinop (e1, op, e2) -> let e1' = expr builder e1

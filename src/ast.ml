@@ -11,7 +11,7 @@ type uop = UNeg | UNot | ULit | UStar
 
 (* type nop = NZero | NOne *)
 
-type typ = TInt | TBool | TChar | TUnit | TRegexp
+type typ = TInt | TBool | TChar | TUnit | TRegexp | TString 
 
 type bind = typ * string
 
@@ -19,6 +19,7 @@ type expr =
     Literal of int
   | BoolLit of bool
   | CharLit of char
+  | StringLit of string 
   | Regex   of char RegExp.regexp
   | Id      of string
   | Binop   of expr * bop * expr
@@ -100,6 +101,7 @@ let rec string_of_expr = function
   | BoolLit true      -> "true"
   | BoolLit false     -> "false"
   | CharLit c         -> String.make 1 c
+  | StringLit s       -> s
   | Id s              -> s
   | Binop (e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop (o, e)       -> string_of_uop o ^ string_of_expr e
@@ -123,6 +125,7 @@ let string_of_typ = function
   | TChar   -> "char"
   | TUnit   -> "unit"
   | TRegexp -> "regexp"
+  | TString -> "string"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
