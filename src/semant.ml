@@ -2,8 +2,7 @@
 
 open Ast
 open Sast
-
-exception TODO of string
+open Prelude
 
 module StringMap = Map.Make(String)
 
@@ -42,7 +41,7 @@ let check (globals, functions) =
       fname   = name;
       formals = [(ty, "x")];
       locals  = [];
-      body = []
+      body    = []
       } map
     in List.fold_left add_bind StringMap.empty [ ("print", TInt);
 			                         ("printb", TBool);
@@ -96,7 +95,8 @@ let check (globals, functions) =
       | CharLit c             -> (TChar, SCharLit c)
       | StringLit s           -> (TString, SStringLit s)
       | BoolLit l             -> (TBool, SBoolLit l)
-      | Regex _               -> raise (TODO "implement")
+      | DFALit _              -> raise (Prelude.TODO "implement for DFALit")
+      | Regex _               -> raise (Prelude.TODO "implement for Regex")
       | Noexpr                -> (TUnit, SNoexpr)
       | Id s                  -> (type_of_identifier s, SId s)
       | Assign (var, e) as ex -> let lt = type_of_identifier var

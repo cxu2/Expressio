@@ -40,7 +40,7 @@ type sprogram = bind list * sfunc_decl list
 
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
-                                      SIntLit l         -> string_of_int l
+                                      SIntLit l          -> string_of_int l
                                     | SBoolLit true      -> "true"
                                     | SBoolLit false     -> "false"
                                     | SCharLit c         -> String.make 1 c
