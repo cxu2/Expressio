@@ -10,6 +10,7 @@ open RegExp
 %token RETURN IF ELSE FOR WHILE INT CHAR BOOL UNIT STRING
 %token COLON ARROW
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
+%token DFA
 %token <int> INTLIT
 %token <bool> BLIT
 %token <char> CHLIT
