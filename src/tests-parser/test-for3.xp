@@ -4,6 +4,7 @@ block comment
 infloop : -> int {
   for {
    print(42); 
+   print(1);
   }
   return 0;
 }

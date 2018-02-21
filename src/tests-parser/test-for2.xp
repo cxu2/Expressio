@@ -1,6 +1,6 @@
 ~~ comments
 gcd : (a : int) (b : int) -> int {
-  for ;a != b; {
+  for ;a != b;; {
     if (a > b) { a = 5; }
     else { b = 5; }
   }

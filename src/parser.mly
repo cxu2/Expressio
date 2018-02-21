@@ -104,6 +104,8 @@ stmt_list:
     /* nothing */                           { [] }
   | stmt_list stmt                          { $2 :: $1 }
 
+for_body: LBRACE stmt_list RBRACE           { Block (List.rev $2)  }
+  
 
 stmt:
     expr SEMI                               { Expr $1               }
@@ -111,10 +113,10 @@ stmt:
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
-  | FOR expr_opt SEMI expr SEMI expr_opt SEMI stmt
-                                            { For ($2, $4, $6, $8)  }
-  | FOR SEMI expr SEMI stmt                 { While ($3, $5)        }
-  | FOR stmt                                { Infloop ($2)          }
+  | FOR expr SEMI expr SEMI expr for_body
+                                            { For ($2, $4, $6, $7)  }
+  | FOR SEMI expr SEMI for_body                 { While ($3, $5)        }
+  | FOR for_body                                { Infloop ($2)          }
 
 expr_opt:
     /* nothing */                           { Noexpr }
