@@ -66,8 +66,29 @@ fdecl:
 	                                              locals = List.rev $7;
 	                                              body = List.rev $8 } }
 
+/* DFA name lbrace states, alphabet, start, final, transitions */ 
+
 ddecl:
-  DFA ID LBRACE 
+  DFA ID LBRACE ID COLON INTLIT ID COLON args_list ID COLON INTLIT ID COLON args_list ID COLON args_list RBRACE
+    {{
+      dname = $2 
+      states = $6
+      alphabet = $9
+      start = $12
+      final = $15
+      transitions = $18
+      }} 
+
+/*
+type dfa_decl = {
+  dname : string;
+  states : int; (*int*)
+  alphabet : char list;
+  start : int;
+  final: int list;
+  transitions : link list;
+}
+*/
 
 
 /*

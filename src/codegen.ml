@@ -42,6 +42,7 @@ let translate (globals, functions) =
     | A.TUnit   -> void_t
     | A.TRegexp -> raise (TODO "LLVM RegExp")
     | A.TString -> raise (TODO "LLVM String")
+    | A.TDfa    -> raise (TODO "LLVM DFA")
 
   (* Declare each global variable; remember its value in a map *)
   in let global_vars =
