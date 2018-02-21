@@ -30,10 +30,10 @@ type stmt =
     Block   of stmt list
   | Expr    of expr
   | Return  of expr
-  | If      of expr * stmt * stmt
+  | If      of expr * stmt * stmt 
   | For     of expr * expr * expr * stmt
   | Infloop of stmt
-  | While   of expr * stmt
+  | While   of expr * stmt 
 
 
 type func_decl = {
