@@ -155,7 +155,7 @@ expr:
   | expr REMATCH expr                       { Binop ($1, BMatch,   $3) }
   | MINUS expr %prec NEG                    { UnopPre (UNeg, $2)       }
   | NOT expr                                { UnopPre (UNot, $2)       }
-  | RESTAR expr                             { UnopPre (UStar, $2)      }
+  | expr RESTAR                             { UnopPost ($1, UStar)     }
   | ID ASSIGN expr                          { Assign ($1, $3)          }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)            }
   | LPAREN expr RPAREN                      { $2                       }

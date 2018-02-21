@@ -8,7 +8,7 @@ int main() {
   string s;
   regexp m;
   x = lit 'c';
-  y = ** x;
+  y = x **;
   z = x | y;
   t = y ^ x;
   m = x matches s;
