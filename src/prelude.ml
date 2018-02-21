@@ -3,6 +3,7 @@ module Prelude = struct
   let const (x : 'a) (y : 'b) : 'a = x
   let id (x : 'a) = x
   exception TODO of string
+  module StringMap = Map.Make(String)
 
   type nat = Zero | Succ of nat
   let rec nat_to_int = function

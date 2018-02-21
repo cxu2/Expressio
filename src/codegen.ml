@@ -18,8 +18,6 @@ module A = Ast
 open Sast
 open Prelude
 
-module StringMap = Map.Make(String)
-
 (* Code Generation from the SAST. Returns an LLVM module if successful,
    throws an exception if something is wrong. *)
 let translate (globals, functions) =
