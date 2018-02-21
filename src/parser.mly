@@ -5,7 +5,7 @@ open Ast
 open RegExp
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR WHILE INT BOOL UNIT
 %token COLON ARROW
@@ -34,7 +34,7 @@ infixr 8 `closure`
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
-%left PLUS MINUS
+%left PLUS PERIOD MINUS
 %left TIMES DIVIDE
 %right NOT NEG
 
@@ -106,12 +106,13 @@ stmt_list:
     /* nothing */                           { [] }
   | stmt_list stmt                          { $2 :: $1 }
 
+
 stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
-  | IF expr stmt %prec NOELSE               { If ($2, $3, Block []) }
-  | IF expr stmt ELSE stmt                  { If ($2, $3, $5)       }
+  | IF LPAREN expr RPAREN stmt %prec NOELSE               { If ($3, $5, Block []) }
+  | IF LPAREN expr RPAREN stmt ELSE stmt                  { If ($3, $5, $7)       }
   /* | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt */
   | FOR expr_opt SEMI expr SEMI expr_opt SEMI stmt
                                             { For ($2, $4, $6, $8)  }
@@ -130,7 +131,7 @@ expr:
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
   | expr PLUS   expr                        { Binop ($1, BAdd,     $3) }
-  | expr MINUS  expr                        { Binop ($1, BSub,     $3) }
+  | expr MINUS PERIOD expr                  { Binop ($1, BSub,     $4) }
   | expr TIMES  expr                        { Binop ($1, BMult,    $3) }
   | expr DIVIDE expr                        { Binop ($1, BDiv,     $3) }
   | expr EQ     expr                        { Binop ($1, BEqual,   $3) }
