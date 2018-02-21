@@ -27,7 +27,7 @@ rule token = parse
 | "nfa"     { NFA }
 *)
 | ':'      { COLON }                     (* Symbol for function definition arg types *)
-(*| "->"     { ARROW }                      Symbol for function definition return type *)
+(* | "->"     { ARROW }                      Symbol for function definition return type *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
@@ -51,19 +51,17 @@ rule token = parse
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }
-(*| "while"  { WHILE }*)
 | "return" { RETURN }
 | "int"    { INT }
 | "char"   { CHAR }
 | "bool"   { BOOL }
-(*| "float"  { FLOAT }*)
 | "unit"   { UNIT }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
-| digits as lxm { INTLIT(int_of_string lxm) }
-(* | digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) } *)
-| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
-| eof { EOF }
+| digits as ds                       { INTLIT(int_of_string ds) }
+| '''([^''']  as chlit)'''           { CHLIT(chlit) }
+| alpha (alphanumeric | '_')* as str { ID(str) }
+| eof                                { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
 and comment = parse

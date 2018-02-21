@@ -1,1 +1,3 @@
-int x = 5;
+~~ should fail because it is not inside a function declaration
+int x;
+x = 5;
