@@ -133,7 +133,7 @@ expr:
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
   | expr PLUS   expr                        { Binop ($1, BAdd,     $3) }
-  | expr MINUS PERIOD expr                  { Binop ($1, BSub,     $4) }
+  | expr MINUS expr                  { Binop ($1, BSub,     $3) }
   | expr TIMES  expr                        { Binop ($1, BMult,    $3) }
   | expr DIVIDE expr                        { Binop ($1, BDiv,     $3) }
   | expr EQ     expr                        { Binop ($1, BEqual,   $3) }

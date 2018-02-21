@@ -1,0 +1,6 @@
+~~ comment
+main : -> int {
+  int i;
+  i = i - 1;
+  i = -i;
+}
