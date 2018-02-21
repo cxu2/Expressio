@@ -135,7 +135,7 @@ expr:
   | CHLIT                                   { CharLit ($1)             }
   | STRLIT                                  { StringLit ($1)           }
   | ID                                      { Id ($1)                  }
-  | RELIT expr                              { Unop (ULit, $2)          }
+  | RELIT expr                              { UnopPre (ULit, $2)       }
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
   | expr PLUS   expr                        { Binop ($1, BAdd,     $3) }
@@ -153,9 +153,9 @@ expr:
   | expr REOR   expr                        { Binop ($1, BUnion,   $3) }
   | expr REAND  expr                        { Binop ($1, BConcat,  $3) }
   | expr REMATCH expr                       { Binop ($1, BMatch,   $3) }
-  | MINUS expr %prec NEG                    { Unop (UNeg, $2)          }
-  | NOT expr                                { Unop (UNot, $2)          }
-  | RESTAR expr                             { Unop (UStar, $2)         }
+  | MINUS expr %prec NEG                    { UnopPre (UNeg, $2)       }
+  | NOT expr                                { UnopPre (UNot, $2)       }
+  | RESTAR expr                             { UnopPre (UStar, $2)      }
   | ID ASSIGN expr                          { Assign ($1, $3)          }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)            }
   | LPAREN expr RPAREN                      { $2                       }

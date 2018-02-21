@@ -92,19 +92,18 @@ let check (globals, functions) =
 
     (* Return a semantically-checked expression, i.e., with a type *)
     in let rec expr = function
-        IntLit  l           ->  (TInt, SIntLit l)
-      (* | Fliteral l -> (Float, SFliteral l) *)
-      | CharLit c            -> (TChar, SCharLit c)
-      | StringLit s          -> (TString,SStringLit s)
-      | BoolLit l            -> (TBool, SBoolLit l)
-      | Regex _              -> raise (TODO "implement")
-      | Noexpr               -> (TUnit, SNoexpr)
-      | Id s                 -> (type_of_identifier s, SId s)
-      | Assign(var, e) as ex -> let lt = type_of_identifier var
-                                and (rt, e') = expr e
-                                in let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ string_of_typ rt ^ " in " ^ string_of_expr ex
-                                in (check_assign lt rt err, SAssign(var, (rt, e')))
-      | Unop (op, e) as ex ->
+        IntLit  l             -> (TInt, SIntLit l)
+      | CharLit c             -> (TChar, SCharLit c)
+      | StringLit s           -> (TString, SStringLit s)
+      | BoolLit l             -> (TBool, SBoolLit l)
+      | Regex _               -> raise (TODO "implement")
+      | Noexpr                -> (TUnit, SNoexpr)
+      | Id s                  -> (type_of_identifier s, SId s)
+      | Assign (var, e) as ex -> let lt = type_of_identifier var
+                                 and (rt, e') = expr e
+                                 in let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ string_of_typ rt ^ " in " ^ string_of_expr ex
+                                 in (check_assign lt rt err, SAssign(var, (rt, e')))
+      | UnopPre (op, e) as ex ->
           let (t, e') = expr e
           in let ty = match op with
                         UNeg when t = TInt  -> t
@@ -113,7 +112,7 @@ let check (globals, functions) =
                                              string_of_uop op ^ string_of_typ t ^
                                              " in " ^ string_of_expr ex))
           in (ty, SUnop (op, (t, e')))
-      | Binop(e1, op, e2) as e ->
+      | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2
           (* All binary operators require operands of the same type *)
