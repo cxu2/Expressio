@@ -1,7 +1,8 @@
-~~ comments 
-int gcd (int a, int b) {
+~~ comments
+gcd : (a : int) (b : int) -> int {
   for ;a != b; {
-    print ("42");
+    if (a > b) { a = 5; }
+    else { b = 5; }
   }
   return a;
 }

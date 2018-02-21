@@ -1,0 +1,9 @@
+~~ test if/else statement
+
+int iftest () {
+  int a;
+  int b;
+  if (a > b) { a = b; }
+  else { b = 5; }
+  return a;
+}

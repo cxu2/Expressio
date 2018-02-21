@@ -21,7 +21,8 @@ type expr =
   | Regex     of char RegExp.regexp
   | Id        of string
   | Binop     of expr * bop * expr
-  | Unop      of uop * expr
+  | UnopPre   of uop * expr
+  | UnopPost  of expr * uop
   | Assign    of string * expr
   | Call      of string * expr list
   | Noexpr
@@ -30,10 +31,10 @@ type stmt =
     Block   of stmt list
   | Expr    of expr
   | Return  of expr
-  | If      of expr * stmt * stmt 
+  | If      of expr * stmt * stmt
   | For     of expr * expr * expr * stmt
   | Infloop of stmt
-  | While   of expr * stmt 
+  | While   of expr * stmt
 
 
 type func_decl = {
@@ -102,7 +103,8 @@ let rec string_of_expr = function
   | StringLit s       -> s
   | Id s              -> s
   | Binop (e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
-  | Unop (o, e)       -> string_of_uop o ^ string_of_expr e
+  | UnopPre (o, e)    -> "(" ^ string_of_uop o ^ " " ^ string_of_expr e ^ ")"
+  | UnopPost (e, o)   -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
   | Assign (v, e)     -> v ^ " = " ^ string_of_expr e
   | Call (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr            -> ""
