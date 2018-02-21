@@ -22,8 +22,8 @@ rule token = parse
 | "lit"     { RELIT }                    (* RegExp operator for encapsulating a literal symbol *)
 | "regexp"  { REGEXP }                   (* RegExp keyword for declaring a RegExp *)
 | "matches" { REMATCH }                  (* RegExp operator for pattern matching an RE against a string *)
-(* TODO we will need these next once the new automata syntax is decided.
 | "dfa"     { DFA }
+(* TODO we will need these next once the new automata syntax is decided.
 | "nfa"     { NFA }
 *)
 | ':'      { COLON }                     (* Symbol for function definition arg types *)
@@ -54,12 +54,13 @@ rule token = parse
 (*| "while"  { WHILE }*)
 | "return" { RETURN }
 | "int"    { INT }
+| "char"   { CHAR }
 | "bool"   { BOOL }
 (*| "float"  { FLOAT }*)
 | "unit"   { UNIT }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
-| digits as lxm { LITERAL(int_of_string lxm) }
+| digits as lxm { INTLIT(int_of_string lxm) }
 (* | digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) } *)
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
 | eof { EOF }
