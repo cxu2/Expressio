@@ -38,6 +38,7 @@ let translate (globals, functions) =
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
+    | A.TChar   -> raise (TODO "LLVM Char")
     | A.TUnit   -> void_t
     | A.TRegexp -> raise (TODO "LLVM RegExp")
 

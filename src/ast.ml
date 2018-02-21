@@ -11,13 +11,14 @@ type uop = UNeg | UNot | ULit | UStar
 
 (* type nop = NZero | NOne *)
 
-type typ = TInt | TBool | TUnit | TRegexp
+type typ = TInt | TBool | TChar | TUnit | TRegexp
 
 type bind = typ * string
 
 type expr =
     Literal of int
   | BoolLit of bool
+  (* | CharLit of char *)
   | Regex   of char RegExp.regexp
   | Id      of string
   | Binop   of expr * bop * expr
@@ -118,6 +119,7 @@ let rec string_of_stmt = function
 let string_of_typ = function
     TInt    -> "int"
   | TBool   -> "bool"
+  | TChar   -> "char"
   | TUnit   -> "unit"
   | TRegexp -> "regexp"
 

@@ -54,6 +54,7 @@ rule token = parse
 (*| "while"  { WHILE }*)
 | "return" { RETURN }
 | "int"    { INT }
+| "char"   { CHAR }
 | "bool"   { BOOL }
 (*| "float"  { FLOAT }*)
 | "unit"   { UNIT }

@@ -7,7 +7,7 @@ open RegExp
 
 %token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELSE FOR WHILE INT BOOL UNIT
+%token RETURN IF ELSE FOR WHILE INT CHAR BOOL UNIT
 %token COLON ARROW
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
 %token <int> LITERAL
@@ -63,9 +63,9 @@ fdecl:
 	                                              body = List.rev $8 } }
 
 
-/* 
+/*
 fdecl:
-  ID COLON typs_opt ARROW typ ptn_list 
+  ID COLON typs_opt ARROW typ ptn_list
 
 
 ptn_list:
@@ -85,6 +85,7 @@ typ:
     INT                                     { TInt    }
   | BOOL                                    { TBool   }
   | UNIT                                    { TUnit   }
+  | CHAR                                    { TChar   }
   | REGEXP                                  { TRegexp }
 
 typs_opt:
