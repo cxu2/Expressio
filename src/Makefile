@@ -6,12 +6,12 @@
 
 .PHONY : all
 all :
-	ocamlbuild minimicroc.native
+	ocamlbuild express.native
 	ocamlbuild RegExp.native
 
-.PHONY : minimicroc.native
+.PHONY : express.native
 microc.native :
-	ocamlbuild minimicroc.native
+	ocamlbuild express.native
 
 .PHONY : RegExp.native
 RegExp.native :
@@ -26,7 +26,7 @@ Prelude.native :
 .PHONY : clean
 clean :
 	ocamlbuild -clean
-	rm -rf testparser.log *.diff minimicroc scanner.ml parser.ml parser.mli
+	rm -rf testparser.log *.diff express scanner.ml parser.ml parser.mli
 	rm -rf *.cmx *.cmi *.cmo *.cmx *.o *.s *.ll *.out *.exe
 
 # More detailed: build using ocamlc/ocamlopt + ocamlfind to locate LLVM
