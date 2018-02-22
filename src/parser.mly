@@ -64,9 +64,9 @@ ddecl:
                                             { { dfa_name = $1;
                                                 dfa_states = $6;
                                                 dfa_alphabet = $10;
-                                                dfa_start = $14;
-                                                dfa_final = $18;
-                                                dfa_tranves = $23 } }
+                                                dfa_start    = $14;
+                                                dfa_final    = $18;
+                                                dfa_tranves  = $23 } }
 
 
 fdecl:
