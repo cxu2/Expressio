@@ -2,6 +2,8 @@ module Prelude = struct
   type ('a, 'b) either = Left of 'a | Right of 'b
   let const (x : 'a) (y : 'b) : 'a = x
   let id (x : 'a) = x
+  let curry (f : (('a * 'b) -> 'c)) (x : 'a) (y : 'b) : 'c = f (x, y)
+  let uncurry (f : 'a -> 'b -> 'c) (p : ('a * 'b)) : 'c = f (fst p) (snd p)
   let first (triple : 'a * 'b * 'c) : 'a = match triple with
     (a , _ , _) -> a
   let second (triple : 'a * 'b * 'c) : 'b = match triple with
