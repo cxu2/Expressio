@@ -144,8 +144,8 @@ stmt:
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
   | FOR expr SEMI expr SEMI expr for_body
                                             { For ($2, $4, $6, $7)  }
-  | FOR SEMI expr SEMI for_body                 { While ($3, $5)        }
-  | FOR for_body                                { Infloop ($2)          }
+  | FOR SEMI expr SEMI for_body             { While ($3, $5)        }
+  | FOR for_body                            { Infloop ($2)          }
 
 expr_opt:
     /* nothing */                           { Noexpr }
