@@ -148,8 +148,8 @@ let string_of_fdecl fdecl =
 
 let rec string_of_clist = function
   []              -> ""
-  | [last]        -> String.make 1 last
-  | first :: rest -> String.make 1 first ^ ", " ^ string_of_clist rest
+  | [last]        -> "'" ^ String.make 1 last ^ "'"
+  | first :: rest -> "'" ^ String.make 1 first ^ "', " ^ string_of_clist rest ^ ""
 
 let rec string_of_intlist = function
   []              -> ""
@@ -166,8 +166,8 @@ let rec string_of_tlist = function
   | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
 
 let string_of_ddecl dfa =
-  "dfa " ^ dfa.dfa_name ^ " " ^ 
-  "{ states : " ^ string_of_int dfa.dfa_states ^ 
+  dfa.dfa_name ^ " = " ^ 
+  "{\n states : " ^ string_of_int dfa.dfa_states ^ 
   "\n alphabet : " ^ string_of_clist dfa.dfa_alphabet ^ 
   "\n start : " ^ string_of_int dfa.dfa_start ^ 
   "\n final : " ^ string_of_intlist dfa.dfa_final ^
