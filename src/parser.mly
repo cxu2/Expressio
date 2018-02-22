@@ -54,11 +54,11 @@ program:
   decls EOF                                 { $1 }
 
 decls:
-   /* nothing */                            { ([],                     [],                      [])                     }
- | decls vdecl                              { ($2 :: Prelude.first $1, Prelude.second $1,       Prelude.third $1)       }
- | decls ddecl                              { (Prelude.first $1,       $2 :: Prelude.second $1, Prelude.third $1)       }
- | decls fdecl                              { (Prelude.first $1,       Prelude.second $1,       $2 :: Prelude.third $1) }
+   /* nothing */                            { ([],                     [])                     }
+ | decls vdecl                              { (($2 :: fst $1), snd $1) }
+ | decls fdecl                              { (fst $1, ($2 :: snd $1)) }
 
+/*
 ddecl:
   ID ASSIGN LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { { dfa_name     = $1;
@@ -67,7 +67,7 @@ ddecl:
                                                 dfa_start    = $14;
                                                 dfa_final    = $18;
                                                 dfa_tranves  = $23 } }
-
+*/
 
 fdecl:
   ID COLON formals_opt ARROW typ LBRACE vdecl_list stmt_list RBRACE
@@ -181,6 +181,9 @@ expr:
   | ID ASSIGN expr                          { Assign ($1, $3)          }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)            }
   | LPAREN expr RPAREN                      { $2                       }
+  | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
+{ DFABody($4,$8,$12,$16,$21)}
+
 
 args_opt:
     /* nothing */                           { [] }

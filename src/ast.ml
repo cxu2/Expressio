@@ -28,6 +28,7 @@ type expr =
   | UnopPost  of expr * uop
   | Assign    of string * expr
   | Call      of string * expr list
+  | DFABody   of int * char list * int * int list * tranf list(* DFABody($4,$8,$12,$16,$21) *)
   | Noexpr
 
 type stmt =
@@ -58,7 +59,7 @@ type dfa_decl = {
     dfa_tranves: tranf list;
   }
 
-type program = bind list * dfa_decl list *  func_decl list
+type program = bind list * func_decl list
 
 (* Pretty-printing functions *)
 (*
@@ -100,6 +101,24 @@ let string_of_nop = function
     NZero -> "{.}" (* TODO "{}"? *)
   | NOne  -> "(.)" (* TODO "{{}}"? *)
   *)
+let rec string_of_clist = function
+  []              -> ""
+  | [last]        -> "'" ^ String.make 1 last ^ "'"
+  | first :: rest -> "'" ^ String.make 1 first ^ "', " ^ string_of_clist rest ^ ""
+
+let rec string_of_intlist = function
+  []              -> ""
+  | [last]        -> string_of_int last
+  | first :: rest -> string_of_int first ^ ", " ^string_of_intlist rest
+
+let string_of_tranf tranf =
+  let (one, two, three) = tranf in
+  "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
+
+let rec string_of_tlist = function
+  []              -> ""
+  | [last]        -> string_of_tranf last
+  | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
 
 let rec string_of_expr = function
     IntLit l          -> string_of_int l
@@ -115,6 +134,11 @@ let rec string_of_expr = function
   | UnopPost (e, o)   -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
   | Assign (v, e)     -> v ^ " = " ^ string_of_expr e
   | Call (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | DFABody(a,b,c,d,e) -> "{\n states : " ^ string_of_int a ^ 
+  "\n alphabet : " ^ string_of_clist b ^ 
+  "\n start : " ^ string_of_int c ^ 
+  "\n final : " ^ string_of_intlist d ^
+  "\n transitions : " ^ string_of_tlist e ^ "\n }"
   | Noexpr            -> ""
 
 let rec string_of_stmt = function
@@ -146,25 +170,6 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
 
-let rec string_of_clist = function
-  []              -> ""
-  | [last]        -> "'" ^ String.make 1 last ^ "'"
-  | first :: rest -> "'" ^ String.make 1 first ^ "', " ^ string_of_clist rest ^ ""
-
-let rec string_of_intlist = function
-  []              -> ""
-  | [last]        -> string_of_int last
-  | first :: rest -> string_of_int first ^ ", " ^string_of_intlist rest
-
-let string_of_tranf tranf =
-  let (one, two, three) = tranf in
-  "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
-
-let rec string_of_tlist = function
-  []              -> ""
-  | [last]        -> string_of_tranf last
-  | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
-
 let string_of_ddecl dfa =
   dfa.dfa_name ^ " = " ^ 
   "{\n states : " ^ string_of_int dfa.dfa_states ^ 
@@ -173,7 +178,7 @@ let string_of_ddecl dfa =
   "\n final : " ^ string_of_intlist dfa.dfa_final ^
   "\n transitions : " ^ string_of_tlist dfa.dfa_tranves ^ "\n }"
 
-let string_of_program (vars, dfas, funcs) =
+let string_of_program (vars, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
-  String.concat "\n" (List.map string_of_ddecl dfas) ^ "\n" ^
+  (* String.concat "\n" (List.map string_of_ddecl dfas) ^ "\n" ^ *)
   String.concat "\n" (List.map string_of_fdecl funcs)
