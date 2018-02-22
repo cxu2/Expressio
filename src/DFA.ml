@@ -6,8 +6,7 @@ module DFA = struct
   (* TODO uncurry this ? (add curry/uncurry to prelude) *)
   type t = { delta : q -> s -> q;
              q0    : q;
-             (* TODO use set instead *)
-             f     : q list;
+             f     : q list; (* TODO use set instead *)
            }
 
   let make (delta : q -> s -> q) (q0 : q) (f : q list) : t =
