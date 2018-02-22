@@ -1,10 +1,11 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-open RegExp
 open Prelude
+open RegExp
+open DFA
 
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
-           BAnd | BOr | BUnion | BConcat | BMatch
+           BAnd | BOr  | BUnion | BConcat | BMatch
 
 type uop = UNeg | UNot | ULit | UStar
 
@@ -20,7 +21,7 @@ type expr =
   | CharLit   of char
   | StringLit of string
   (* FIXME this temporary type because we have not yet implemented DFA in OCaml *)
-  | DFALit    of bool
+  | DFALit    of DFA.t
   | Regex     of char RegExp.regexp
   | Id        of string
   | Binop     of expr * bop * expr
@@ -156,7 +157,7 @@ let rec string_of_intlist = function
   | [last]        -> string_of_int last
   | first :: rest -> string_of_int first ^ ", " ^string_of_intlist rest
 
-let string_of_tranf tranf = 
+let string_of_tranf tranf =
   let (one, two, three) = tranf in
   "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
 
@@ -166,12 +167,12 @@ let rec string_of_tlist = function
   | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
 
 let string_of_ddecl dfa =
-  "dfa " ^ dfa.dfa_name ^ " " ^ 
-  "{ states : " ^ string_of_int dfa.dfa_states ^ 
-  "\n alphabet : " ^ string_of_clist dfa.dfa_alphabet ^ 
-  "\n start : " ^ string_of_int dfa.dfa_start ^ 
+  "dfa " ^ dfa.dfa_name ^ " " ^
+  "{ states : " ^ string_of_int dfa.dfa_states ^
+  "\n alphabet : " ^ string_of_clist dfa.dfa_alphabet ^
+  "\n start : " ^ string_of_int dfa.dfa_start ^
   "\n final : " ^ string_of_intlist dfa.dfa_final ^
-  "\n transitions : " ^ string_of_tlist dfa.dfa_tranves ^ "\n }" 
+  "\n transitions : " ^ string_of_tlist dfa.dfa_tranves ^ "\n }"
 
 let string_of_program (vars, dfas, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^

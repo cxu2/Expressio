@@ -61,12 +61,12 @@ decls:
 
 ddecl:
   DFA ID LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
-                                            { { dfa_name = $2;
-                                                dfa_states = $6;
+                                            { { dfa_name     = $2;
+                                                dfa_states   = $6;
                                                 dfa_alphabet = $10;
-                                                dfa_start = $14;
-                                                dfa_final = $18;
-                                                dfa_tranves = $23 } }
+                                                dfa_start    = $14;
+                                                dfa_final    = $18;
+                                                dfa_tranves  = $23 } }
 
 
 fdecl:

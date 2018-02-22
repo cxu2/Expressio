@@ -8,6 +8,7 @@
 all :
 	ocamlbuild express.native
 	ocamlbuild RegExp.native
+	ocamlbuild DFA.native
 
 .PHONY : express.native
 microc.native :
@@ -20,6 +21,10 @@ RegExp.native :
 .PHONY : Prelude.native
 Prelude.native :
 	ocamlbuild Prelude.native
+
+.PHONY : DFA.native
+DFA.native :
+	ocamlbuild DFA.native
 
 # "make clean" removes all generated files
 

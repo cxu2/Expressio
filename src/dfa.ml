@@ -1,19 +1,7 @@
-(*
-module type DFA =
-  sig
-    type q = int
-    type s = char
-    type t = { delta : q -> s -> q; q0 : q; f : q list; }
-    val make : q -> (q -> s -> q) -> q list -> t
-    val deltaStar : t -> q -> s list -> q
-    val eval : t -> s list -> q
-    val accepts : t -> s list -> bool
-  end
-  *)
 module DFA = struct
   (* TODO use functor and ordered type parameter if possible *)
   type q = int
-  type s  = char
+  type s = char
 
   (* TODO uncurry this ? (add curry/uncurry to prelude) *)
   type t = { delta : q -> s -> q;
@@ -30,8 +18,8 @@ module DFA = struct
   deltaStar :: DFA q s -> q -> [s] -> q
   deltaStar = foldl . curry . delta
   *)
-  (* let deltaStar ({ q0 ; delta; f } : t) (start0 : q) (word : s list) : q = List.fold_left delta start0 word *)
-  (* let deltaStar ({ q0 ; delta; f } : t) = List.fold_left delta *)
+  (* let deltaStar ({ delta; q0 ; f } : t) (start0 : q) (word : s list) : q = List.fold_left delta start0 word *)
+  (* let deltaStar ({ delta; q0 ; f } : t) = List.fold_left delta *)
   (* let deltaStar (x : t) = match x with
    { q0 = y ; delta = z ; f  = t} -> List.fold_left z
    *)
