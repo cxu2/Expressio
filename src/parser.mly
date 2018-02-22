@@ -54,10 +54,10 @@ program:
   decls EOF                                 { $1 }
 
 decls:
-   /* nothing */                            { ([], [], [])               }
- | decls vdecl                              { (($2 :: fst $1), snd $1, Prelude.third $1) }
- | decls ddecl                              { (fst $1, ($2 :: snd $1), Prelude.third $1) }
- | decls fdecl                              { (fst $1, snd $1, ($2 :: Prelude.third $1)) }
+   /* nothing */                            { ([],                     [],                      [])                     }
+ | decls vdecl                              { ($2 :: Prelude.first $1, Prelude.second $1,       Prelude.third $1)       }
+ | decls ddecl                              { (Prelude.first $1,       $2 :: Prelude.second $1, Prelude.third $1)       }
+ | decls fdecl                              { (Prelude.first $1,       Prelude.second $1,       $2 :: Prelude.third $1) }
 
 ddecl:
   DFA ID LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
@@ -102,7 +102,7 @@ int_opt:
 
 int_list:
   INTLIT                                   { [$1] }
-  | int_list COMMA INTLIT                  { $3 :: $1 } 
+  | int_list COMMA INTLIT                  { $3 :: $1 }
 
 char_opt:
   char_list                                { List.rev $1 }
@@ -135,7 +135,7 @@ stmt_list:
   | stmt_list stmt                          { $2 :: $1 }
 
 for_body: LBRACE stmt_list RBRACE           { Block (List.rev $2)  }
-  
+
 stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
