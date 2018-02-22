@@ -61,8 +61,8 @@ decls:
 
 ddecl:
   ID ASSIGN LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
-                                            { { dfa_name = $1;
-                                                dfa_states = $6;
+                                            { { dfa_name     = $1;
+                                                dfa_states   = $6;
                                                 dfa_alphabet = $10;
                                                 dfa_start    = $14;
                                                 dfa_final    = $18;
@@ -71,11 +71,11 @@ ddecl:
 
 fdecl:
   ID COLON formals_opt ARROW typ LBRACE vdecl_list stmt_list RBRACE
-                                            { { typ = $5;
-	                                              fname = $1;
+                                            { { typ     = $5;
+	                                              fname   = $1;
 	                                              formals = $3;
-	                                              locals = List.rev $7;
-	                                              body = List.rev $8 } }
+	                                              locals  = List.rev $7;
+	                                              body    = List.rev $8 } }
 
 formals_opt:
     /* nothing */                           { [] }
@@ -161,7 +161,7 @@ expr:
   | REEMPTY                                 { Regex RegExp.Zero        }
   | REEPS                                   { Regex RegExp.One         }
   | expr PLUS   expr                        { Binop ($1, BAdd,     $3) }
-  | expr MINUS expr                  { Binop ($1, BSub,     $3) }
+  | expr MINUS expr                         { Binop ($1, BSub,     $3) }
   | expr TIMES  expr                        { Binop ($1, BMult,    $3) }
   | expr DIVIDE expr                        { Binop ($1, BDiv,     $3) }
   | expr EQ     expr                        { Binop ($1, BEqual,   $3) }
