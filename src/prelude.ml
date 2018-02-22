@@ -2,6 +2,10 @@ module Prelude = struct
   type ('a, 'b) either = Left of 'a | Right of 'b
   let const (x : 'a) (y : 'b) : 'a = x
   let id (x : 'a) = x
+  let first (triple : 'a * 'b * 'c) : 'a = match triple with
+    (a , _ , _) -> a
+  let second (triple : 'a * 'b * 'c) : 'b = match triple with
+    (_ , b , _) -> b
   let third (triple : 'a * 'b * 'c) : 'c = match triple with
     (_ , _ , c) -> c
   exception TODO of string

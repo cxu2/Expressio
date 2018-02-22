@@ -1,3 +1,4 @@
+
 (* Ocamllex scanner for MicroC *)
 
 { open Parser }
@@ -33,6 +34,8 @@ rule token = parse
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
+| '['      { LBRAC }
+| ']'      { RBRAC }
 | ';'      { SEMI }
 | ','      { COMMA }
 | '+'      { PLUS }
@@ -60,6 +63,11 @@ rule token = parse
 | "unit"   { UNIT }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
+| "states" { STATES }
+| "alphabet" { ALPH }
+| "start"  { START }
+| "final"  { FINAL }
+| "transitions" { TRANF }
 | digits as ds                       { INTLIT(int_of_string ds) }
 | '"'([^'"']* as strlit)'"'          { STRLIT(strlit) }
 | '''([^''']  as chlit)'''           { CHLIT(chlit) }
