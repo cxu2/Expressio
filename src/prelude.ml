@@ -6,11 +6,13 @@ module Prelude = struct
   (* the identity function *)
   let id (x : 'a) = x
   (* function composition "f after g" *)
-  let after (f : 'b -> 'c) (g : 'a -> 'b) (x : 'a) = f (g x)
+  let after (f : 'b -> 'c) (g : 'a -> 'b) (x : 'a) : 'c = f (g x)
   (* given a function of one argument (being a pair), turn it into a function of two arguments *)
   let curry (f : (('a * 'b) -> 'c)) (x : 'a) (y : 'b) : 'c = f (x, y)
   (* given a function of two arguments, turn it into a function of one argument (a pair) *)
   let uncurry (f : 'a -> 'b -> 'c) (p : ('a * 'b)) : 'c = f (fst p) (snd p)
+  (* given a function of two arguments, swap the arguments *)
+  let flip (f : 'a -> 'b -> 'c) (x : 'b) (y : 'a) : 'c = f y x
 
   let first (triple : 'a * 'b * 'c) : 'a = match triple with
     (a , _ , _) -> a

@@ -1,15 +1,15 @@
+open Prelude
+
 module DFA = struct
   (* TODO use functor and ordered type parameter if possible *)
   type q = int
   type s = char
 
-  (* TODO uncurry this ? (add curry/uncurry to prelude) *)
-  type t = { delta : q -> s -> q;
+  type t = { delta : (q * s) -> q;
              q0    : q;
              f     : q list; (* TODO use set instead *)
            }
-
-  let make (delta : q -> s -> q) (q0 : q) (f : q list) : t =
+  let make (delta : (q * s) -> q) (q0 : q) (f : q list) : t =
     { delta = delta;
       q0    = q0;
       f     = f; }
@@ -17,17 +17,7 @@ module DFA = struct
   deltaStar :: DFA q s -> q -> [s] -> q
   deltaStar = foldl . curry . delta
   *)
-  (* let deltaStar ({ delta; q0 ; f } : t) (start0 : q) (word : s list) : q = List.fold_left delta start0 word *)
-  (* let deltaStar ({ delta; q0 ; f } : t) = List.fold_left delta *)
-  (* let deltaStar (x : t) = match x with
-   { q0 = y ; delta = z ; f  = t} -> List.fold_left z
-   *)
-   (*
-  let deltaStar = function
-    { delta ; q0 ; _ } -> List.fold_left delta
-    *)
-  let deltaStar = function
-    { delta ; _ } -> List.fold_left delta
+  let deltaStar ({ delta; q0 ; _ } : t) (start : q) (word : s list) : q = List.fold_left (Prelude.curry delta) start word
   (*
   eval :: DFA q s -> [s] -> q
   eval m@(DFA _ q₀ _) = deltaStar m q₀
