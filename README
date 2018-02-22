@@ -3,7 +3,7 @@ Lalka Rieger (Tester) ler2161
 Chengtian Xu (System Architect) cx2168
 David Han (Team Manager) dth2126
 
-To build our toplevel:
+To build our toplevel (expresso.native):
 $ cd src
 $ make
 
@@ -13,4 +13,5 @@ $ ./express.native <filename.xp>
 To run tests:
 $ ./testparser.sh
 
-Syntax TODO:
+Syntax TODO: Expressions with DFA. RegExp decomposition through 
+pattern matching (no longer able to do through pattern matching).
