@@ -1,3 +1,0 @@
-ocamlbuild RegExp.native
-ocamlbuild test_regexp.native
-./test_regexp.native
