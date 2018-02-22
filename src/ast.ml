@@ -12,6 +12,8 @@ type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDFA
 
 type bind = typ * string
 
+type tranf = int * char * int
+
 type expr =
     IntLit    of int
   | BoolLit   of bool
@@ -47,12 +49,16 @@ type func_decl = {
   }
 
 
-(* type func_decl = {
-  fname : string;
-  typ : typ
-} *)
+type dfa_decl = {
+    dfa_name : string;
+    dfa_states : int;
+    dfa_alphabet: char list;
+    dfa_start: int;
+    dfa_final: int list;
+    dfa_tranves: tranf list;
+  }
 
-type program = bind list * func_decl list
+type program = bind list * dfa_decl list *  func_decl list
 
 (* Pretty-printing functions *)
 (*
@@ -140,6 +146,34 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
 
-let string_of_program (vars, funcs) =
+let rec string_of_clist = function
+  []              -> ""
+  | [last]        -> String.make 1 last
+  | first :: rest -> String.make 1 first ^ ", " ^ string_of_clist rest
+
+let rec string_of_intlist = function
+  []              -> ""
+  | [last]        -> string_of_int last
+  | first :: rest -> string_of_int first ^ ", " ^string_of_intlist rest
+
+let string_of_tranf tranf = 
+  let (one, two, three) = tranf in
+  "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
+
+let rec string_of_tlist = function
+  []              -> ""
+  | [last]        -> string_of_tranf last
+  | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
+
+let string_of_ddecl dfa =
+  "dfa " ^ dfa.dfa_name ^ " " ^ 
+  "{ states : " ^ string_of_int dfa.dfa_states ^ 
+  "\n alphabet : " ^ string_of_clist dfa.dfa_alphabet ^ 
+  "\n start : " ^ string_of_int dfa.dfa_start ^ 
+  "\n final : " ^ string_of_intlist dfa.dfa_final ^
+  "\n transitions : " ^ string_of_tlist dfa.dfa_tranves ^ "\n }" 
+
+let string_of_program (vars, dfas, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
+  String.concat "\n" (List.map string_of_ddecl dfas) ^ "\n" ^
   String.concat "\n" (List.map string_of_fdecl funcs)

@@ -3,14 +3,15 @@
 %{
 open Ast
 open RegExp
+open Prelude
 %}
 
-%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR UNIT BOOL CHAR INT STRING
 %token COLON ARROW
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
-%token DFA
+%token DFA STATES ALPH START FINAL TRANF
 %token <int> INTLIT
 %token <bool> BLIT
 %token <char> CHLIT
@@ -53,9 +54,19 @@ program:
   decls EOF                                 { $1 }
 
 decls:
-   /* nothing */                            { ([], [])               }
- | decls vdecl                              { (($2 :: fst $1), snd $1) }
- | decls fdecl                              { (fst $1, ($2 :: snd $1)) }
+   /* nothing */                            { ([], [], [])               }
+ | decls vdecl                              { (($2 :: fst $1), snd $1, Prelude.third $1) }
+ | decls ddecl                              { (fst $1, ($2 :: snd $1), Prelude.third $1) }
+ | decls fdecl                              { (fst $1, snd $1, ($2 :: Prelude.third $1)) }
+
+ddecl:
+  DFA ID LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
+                                            { { dfa_name = $2;
+                                                dfa_states = $6;
+                                                dfa_alphabet = $10;
+                                                dfa_start = $14;
+                                                dfa_final = $18;
+                                                dfa_tranves = $23 } }
 
 
 fdecl:
@@ -85,14 +96,20 @@ typ:
   | STRING                                  { TString }
   | DFA                                     { TDFA    }
 
+int_opt:
+  /* nothing */                            { [] }
+  | int_list                               { List.rev $1 }
 
-typs_opt:
-    /* nothing */                           { [] }
-    | typ_list                              { List.rev $1 }
+int_list:
+  INTLIT                                   { [$1] }
+  | int_list COMMA INTLIT                  { $3 :: $1 } 
 
-typ_list:
-    typ                                     { [$1] }
-    | typ_list ARROW typ                    { $3 :: $1 }
+char_opt:
+  char_list                                { List.rev $1 }
+
+char_list:
+  CHLIT                                    { [$1] }
+  | char_list COMMA CHLIT                  { $3 :: $1 }
 
 vdecl_list:
     /* nothing */                           { [] }
@@ -101,13 +118,24 @@ vdecl_list:
 vdecl:
    typ ID SEMI                              { ($1, $2) }
 
+tfdecl:
+   LPAREN INTLIT CHLIT INTLIT RPAREN      { ($2, $3, $4) }
+
+tfdecl_opt:
+  /* nothing */                             { [] }
+  | tfdecl_list                             { List.rev $1 }
+
+tfdecl_list:
+    tfdecl                                  { [$1] }
+  | tfdecl_list COMMA tfdecl                { $3 :: $1 }
+
+
 stmt_list:
     /* nothing */                           { [] }
   | stmt_list stmt                          { $2 :: $1 }
 
 for_body: LBRACE stmt_list RBRACE           { Block (List.rev $2)  }
   
-
 stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
