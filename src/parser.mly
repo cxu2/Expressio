@@ -60,7 +60,8 @@ decls:
  | decls fdecl                              { (      Prelude.first $1,       Prelude.second $1, $2 :: Prelude.third $1) }
 
 ddecl:
-  ID ASSIGN LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
+  ID ASSIGN LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON 
+  INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { { dfa_name     = $1;
                                                 dfa_states   = $6;
                                                 dfa_alphabet = $10;
@@ -97,19 +98,19 @@ typ:
   | DFA                                     { TDFA    }
 
 int_opt:
-  /* nothing */                            { [] }
-  | int_list                               { List.rev $1 }
+  /* nothing */                             { [] }
+  | int_list                                { List.rev $1 }
 
 int_list:
-  INTLIT                                   { [$1] }
-  | int_list COMMA INTLIT                  { $3 :: $1 }
+  INTLIT                                    { [$1] }
+  | int_list COMMA INTLIT                   { $3 :: $1 }
 
 char_opt:
-  char_list                                { List.rev $1 }
+  char_list                                 { List.rev $1 }
 
 char_list:
-  CHLIT                                    { [$1] }
-  | char_list COMMA CHLIT                  { $3 :: $1 }
+  CHLIT                                     { [$1] }
+  | char_list COMMA CHLIT                   { $3 :: $1 }
 
 vdecl_list:
     /* nothing */                           { [] }
@@ -119,7 +120,7 @@ vdecl:
    typ ID SEMI                              { ($1, $2) }
 
 tfdecl:
-   LPAREN INTLIT CHLIT INTLIT RPAREN      { ($2, $3, $4) }
+   LPAREN INTLIT CHLIT INTLIT RPAREN        { ($2, $3, $4) }
 
 tfdecl_opt:
   /* nothing */                             { [] }
@@ -181,7 +182,9 @@ expr:
   | ID ASSIGN expr                          { Assign ($1, $3)          }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)            }
   | LPAREN expr RPAREN                      { $2                       }
-  | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE { DFABody($4,$8,$12,$16,$21)}
+  | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON 
+  INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE 
+                                            { DFABody ($4, $8, $12, $16, $21) }
 
 args_opt:
     /* nothing */                           { [] }
