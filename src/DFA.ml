@@ -55,6 +55,6 @@ module DFA = struct
           where q = qs m₁
                 p = qs m₂
                 *)
-  let union ({delta = delta1 ; q0 ; f = f1} as m1 : 'q t) ({delta = delta2 ; q0 ; f = f2} as m2 : 'p t) : ('q * 'p) t =
-    product m1 m2 [] (* FIXME need OCaml equivalent of *)
+  let union ({delta ; q0 ; f = f1} as m1 : 'q t) ({delta ; q0 ; f = f2} as m2 : 'p t) : ('q * 'p) t =
+    product m1 m2 [] (* FIXME need OCaml equivalent of Haskell type classes *)
 end
