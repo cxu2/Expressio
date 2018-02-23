@@ -101,7 +101,25 @@ let string_of_nop = function
     NZero -> "{.}" (* TODO "{}"? *)
   | NOne  -> "(.)" (* TODO "{{}}"? *)
   *)
+let rec string_of_clist = function
+  []              -> ""
+  | [last]        -> "'" ^ String.make 1 last ^ "'"
+  | first :: rest -> "'" ^ String.make 1 first ^ "', " ^ string_of_clist rest ^ ""
 
+let rec string_of_intlist = function
+  []              -> ""
+  | [last]        -> string_of_int last
+  | first :: rest -> string_of_int first ^ ", " ^string_of_intlist rest
+
+let string_of_tranf tranf =
+  let (one, two, three) = tranf in
+  "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
+
+let rec string_of_tlist = function
+  []              -> ""
+  | [last]        -> string_of_tranf last
+  | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
+  
 let rec string_of_expr = function
     IntLit l          -> string_of_int l
   | Regex r           -> RegExp.string_of_re r
@@ -116,7 +134,11 @@ let rec string_of_expr = function
   | UnopPost (e, o)   -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
   | Assign (v, e)     -> v ^ " = " ^ string_of_expr e
   | Call (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | DFABody(a,b,c,d,e) -> "DFABody\n"
+  | DFABody(a,b,c,d,e) -> "{\n states : " ^ string_of_int a ^ 
+  "\n alphabet : " ^ string_of_clist b ^ 
+  "\n start : " ^ string_of_int c ^ 
+  "\n final : " ^ string_of_intlist d ^
+  "\n transitions : " ^ string_of_tlist e ^ "\n }"
   | Noexpr            -> ""
 
 let rec string_of_stmt = function
@@ -147,25 +169,6 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_vdecl fdecl.locals) ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
-
-let rec string_of_clist = function
-  []              -> ""
-  | [last]        -> "'" ^ String.make 1 last ^ "'"
-  | first :: rest -> "'" ^ String.make 1 first ^ "', " ^ string_of_clist rest ^ ""
-
-let rec string_of_intlist = function
-  []              -> ""
-  | [last]        -> string_of_int last
-  | first :: rest -> string_of_int first ^ ", " ^string_of_intlist rest
-
-let string_of_tranf tranf =
-  let (one, two, three) = tranf in
-  "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
-
-let rec string_of_tlist = function
-  []              -> ""
-  | [last]        -> string_of_tranf last
-  | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
 
 let string_of_ddecl dfa =
   dfa.dfa_name ^ " = " ^ 
