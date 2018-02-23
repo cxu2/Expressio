@@ -40,10 +40,10 @@ module DFA = struct
                                                          } where δ' ((q, p), σ) = (δ₁ (q, σ), δ₂ (p, σ))
   *)
   (* let product ({delta1 ; q0 ; _} as m1 : t) ({delta2 ; p0 ; _} as m2 : t) (finals : q list) : t =  *)
-  let product ({delta = delta1 ; q0 = q01 ; _} : 'q t) ({delta = delta2 ; q0 = q02 ; _} : 'p t) (finals : ('q * 'p) list) : ('q * 'p) t =
+  let product ({delta = delta1 ; q0 = q0 ; _} : 'q t) ({delta = delta2 ; q0 = p0 ; _} : 'p t) (finals : ('q * 'p) list) : ('q * 'p) t =
       (* { delta = (fun (((q : 'q), (p : 'p)), (s : s)) -> (delta1 (q, s), delta2 (p, s))) *)
       { delta = (fun ((q, p), s) -> (delta1 (q, s), delta2 (p, s)))
-      ; q0    = (q01, q02)
+      ; q0    = (q0, p0)
       ; f     = finals
       }
 end
