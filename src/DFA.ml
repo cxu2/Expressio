@@ -30,4 +30,21 @@ module DFA = struct
   accepts m@(DFA _ _ f) w = eval m w ∈ f
   *)
   let accepts ({ delta ; q0 ; f } as m : t) (word : s list) : bool = List.mem (eval m word) f
+  (*
+  The product construction
+  Essentially this runs two DFAs in parallel
+  productConstruct :: DFA q s -> DFA p s -> Set (q, p) -> DFA (q, p) s
+  productConstruct (DFA δ₁ q₀ _) (DFA δ₂ p₀ _) fs' = DFA { delta = δ'
+                                                         , q0    = (q₀, p₀)
+                                                         , fs    = fs'
+                                                         } where δ' ((q, p), σ) = (δ₁ (q, σ), δ₂ (p, σ))
+  *)
+  (* let product ({delta1 ; q0 ; _} as m1 : t) ({delta2 ; p0 ; _} as m2 : t) (finals : q list) : t =  *)
+  let product ({delta = delta1 ; q0 = q0 ; _} as m1 : t) ({delta = delta2 ; q0 = p0 ; _} as m2 : t) finals : t = raise (TODO "implement DFA product")
+  (*
+      { delta = fun (q, p) s -> (delta1 (q, s), delta2 (p, s))
+      ; q0    = (q0, p0)
+      ; f     = finals
+      ;}
+      *)
 end
