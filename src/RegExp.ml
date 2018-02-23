@@ -119,7 +119,7 @@ module RegExp = struct
   let rec reversal = function
       Zero        -> Zero
     | One         -> One
-    | Lit  s      -> Lit s
+    | Lit  s      -> Lit  s
     | Plus (a, b) -> Plus (reversal a, reversal b)
     | Mult (a, b) -> Mult (reversal b, reversal a)
     | Star a      -> Star (reversal a)

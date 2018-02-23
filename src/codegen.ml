@@ -22,21 +22,21 @@ open Prelude
    throws an exception if something is wrong. *)
 let translate (globals, functions) = let context = L.global_context ()
                                      (* Add types to the context so we can use them in our LLVM code *)
-                                     in let i32_t   = L.i32_type    context
-                                     and i8_t       = L.i8_type     context
-                                     and i1_t       = L.i1_type     context
-                                     and void_t     = L.void_type   context
+                                     in let i32_t      = L.i32_type    context
+                                        and i8_t       = L.i8_type     context
+                                        and i1_t       = L.i1_type     context
+                                        and void_t     = L.void_type   context
                                      (* Create an LLVM module -- this is a "container" into which we'll
                                      generate actual code *)
-                                     and the_module = L.create_module context "MicroC"
+                                        and the_module = L.create_module context "MicroC"
                                      (* Convert MicroC types to LLVM types *)
                                      in let ltype_of_typ = function
-                                        A.TInt    -> i32_t
+                                        A.TUnit   -> void_t
                                       | A.TBool   -> i1_t
-                                      | A.TChar   -> raise (Prelude.TODO "LLVM Char")
-                                      | A.TUnit   -> void_t
-                                      | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")
+                                      | A.TInt    -> i32_t
+                                      | A.TChar   -> i8_t
                                       | A.TString -> raise (Prelude.TODO "LLVM String")
+                                      | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")
                                       | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")
 
   (* Declare each global variable; remember its value in a map *)
@@ -62,7 +62,7 @@ let translate (globals, functions) = let context = L.global_context ()
    in let build_function_body fdecl = let (the_function, _) = StringMap.find fdecl.sfname function_decls
                                       in let builder = L.builder_at_end context (L.entry_block the_function)
                                       in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-                                      and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder
+                                         and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder
                                       (* Construct the function's "locals": formal arguments and locally
                                          declared variables.  Allocate each on the stack, initialize their
                                          value, if appropriate, and remember their values in the "locals" map *)
@@ -86,7 +86,7 @@ let translate (globals, functions) = let context = L.global_context ()
     in let rec expr builder (_, e) = match e with
 	      SIntLit i           -> L.const_int i32_t i
       | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
-      | SCharLit _          -> raise (Prelude.TODO "SCharLit")
+      | SCharLit c          -> L.const_int i8_t (int_of_char c)
       (* | SFliteral l         -> L.const_float_of_string float_t l *)
       | SStringLit _        -> raise (Prelude.TODO "SStringLit")
       | SNoexpr             -> L.const_int i32_t 0

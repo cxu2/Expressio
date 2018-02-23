@@ -46,4 +46,15 @@ module DFA = struct
       ; q0    = (q0, p0)
       ; f     = finals
       }
+  (*
+  -- The union of two DFAs, m₁ and m₂, produces a new DFA, m₃, such that
+  -- L(m₃) = L(m₁) ∪ L(m₂)
+  -- F = {(q, p) | q ∈ F₁  ∨  p ∈ F₂}
+  union :: (Ord q, Enum q, Ord p, Enum p) =>        DFA q s -> DFA p s -> DFA (q, p) s
+  union m₁@(DFA _ _ f₁) m₂@(DFA _ _ f₂) = productConstruct m₁ m₂ ((f₁ × p) ∪ (q × f₂))
+          where q = qs m₁
+                p = qs m₂
+                *)
+  let union ({delta = delta1 ; q0 ; f = f1} as m1 : 'q t) ({delta = delta2 ; q0 ; f = f2} as m2 : 'p t) : ('q * 'p) t =
+    product m1 m2 [] (* FIXME need OCaml equivalent of *)
 end
