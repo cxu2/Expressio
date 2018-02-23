@@ -20,7 +20,7 @@ type expr =
   | BoolLit   of bool
   | CharLit   of char
   | StringLit of string
-  | DFALit    of DFA.t
+  | DFALit    of int DFA.t
   | Regex     of char RegExp.regexp
   | Id        of string
   | Binop     of expr * bop * expr
@@ -166,10 +166,10 @@ let rec string_of_tlist = function
   | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
 
 let string_of_ddecl dfa =
-  dfa.dfa_name ^ " = " ^ 
-  "{\n states : " ^ string_of_int dfa.dfa_states ^ 
-  "\n alphabet : " ^ string_of_clist dfa.dfa_alphabet ^ 
-  "\n start : " ^ string_of_int dfa.dfa_start ^ 
+  dfa.dfa_name ^ " = " ^
+  "{\n states : " ^ string_of_int dfa.dfa_states ^
+  "\n alphabet : " ^ string_of_clist dfa.dfa_alphabet ^
+  "\n start : " ^ string_of_int dfa.dfa_start ^
   "\n final : " ^ string_of_intlist dfa.dfa_final ^
   "\n transitions : " ^ string_of_tlist dfa.dfa_tranves ^ "\n }"
 
