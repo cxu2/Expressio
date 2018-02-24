@@ -55,6 +55,8 @@ rule token = parse
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }
+| "continue" { CONTINUE }
+| "break"  { BREAK }
 | "return" { RETURN }
 | "int"    { INT }
 | "char"   { CHAR }

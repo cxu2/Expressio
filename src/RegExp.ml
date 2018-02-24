@@ -1,23 +1,23 @@
 module RegExp = struct
   type 'a regexp =
-    | Zero                               (* The empty language             -- L(Zero)  = ∅              *)
-    | One                                (* The empty string, epsilon      -- L(One)   = {ε}            *)
-    | Lit  of 'a                         (* Literal, single symbol         -- L(σ)     = {σ}, for σ ∈ Σ *)
-    | Plus of ('a regexp) * ('a regexp)  (* Multiplication, Concatenation  -- L(α · β) = L(α) · L(β)    *)
-    | Mult of ('a regexp) * ('a regexp)  (* Plus, union, or                -- L(α | β) = L(α) ∪ L(β)    *)
-    | Star of ('a regexp)                (* Kleene star, repetition        -- L(α⋆)    = L(α)⋆          *)
+    | Zero                               (* The empty language             L(Zero)  = ∅              *)
+    | One                                (* The empty string, epsilon      L(One)   = {ε}            *)
+    | Lit  of 'a                         (* Literal, single symbol         L(σ)     = {σ}, for σ ∈ Σ *)
+    | Plus of ('a regexp) * ('a regexp)  (* Multiplication, Concatenation  L(α · β) = L(α) · L(β)    *)
+    | Mult of ('a regexp) * ('a regexp)  (* Plus, union, or                L(α | β) = L(α) ∪ L(β)    *)
+    | Star of ('a regexp)                (* Kleene star, repetition        L(α⋆)    = L(α)⋆          *)
 
   let rec star (r : 'a regexp) : 'a regexp = match r with
-      Zero   -> One     (* -- ∅⋆ ≈ ε *)
-    | One    -> One     (* -- ε⋆ ≈ ε *)
-    | Star a -> star a  (* -- recursively apply idempotence L⋆⋆ ≈ L⋆ *)
+      Zero   -> One     (* ∅⋆ ≈ ε *)
+    | One    -> One     (* ε⋆ ≈ ε *)
+    | Star a -> star a  (* recursively apply idempotence L⋆⋆ ≈ L⋆ *)
     | a      -> Star a
   (*
-  -- Concatentation is associative          (LM)N = L(MN)
-  -- ε is identity for concatenation         εL = Lε = L
-  -- ∅ is annihilation for concatenation    ∅L = L∅ = ∅
-  -- distributes over +     L(M+N) = LM + LN
-  --                        (M+N)L = ML + NL
+  Concatentation is associative          (LM)N = L(MN)
+  ε is identity for concatenation         εL = Lε = L
+  ∅ is annihilation for concatenation    ∅L = L∅ = ∅
+  distributes over +     L(M+N) = LM + LN
+                          (M+N)L = ML + NL
   *)
   let rec mult (r1 : 'a regexp) (r2 : 'a regexp) : 'a regexp = match (r1, r2) with
       (_,             Zero)         -> Zero                    (* Annihilation for mult is ∅ *)
@@ -28,9 +28,9 @@ module RegExp = struct
     | (Star a,   Star b) when a = b -> star a
     | (a,             b)            -> Mult (a, b)
   (*
-  -- Union is commutative L+M = M+L
-  --          associative (L+M)+N = L+(M+N)
-  --          idempotent  L + L = L
+  Union is commutative L+M = M+L
+           associative (L+M)+N = L+(M+N)
+           idempotent  L + L = L
   *)
   let rec plus (r1 : 'a regexp) (r2 : 'a regexp) : 'a regexp = match (r1, r2) with
       (a,             Zero)          -> a                   (* Identity for plus is ∅ *)
