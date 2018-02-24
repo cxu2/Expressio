@@ -39,6 +39,8 @@ type stmt =
   | For     of expr * expr * expr * stmt
   | Infloop of stmt
   | While   of expr * stmt
+  | Continue
+  | Break
 
 
 type func_decl = {
@@ -101,7 +103,7 @@ let string_of_nop = function
     NZero -> "{.}" (* TODO "{}"? *)
   | NOne  -> "(.)" (* TODO "{{}}"? *)
   *)
-  
+
 let rec string_of_clist = function
   []              -> ""
   | [last]        -> "'" ^ String.make 1 last ^ "'"
@@ -120,7 +122,7 @@ let rec string_of_tlist = function
   []              -> ""
   | [last]        -> string_of_tranf last
   | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
-  
+
 let rec string_of_expr = function
     IntLit l          -> string_of_int l
   | Regex r           -> RegExp.string_of_re r
@@ -135,9 +137,9 @@ let rec string_of_expr = function
   | UnopPost (e, o)   -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
   | Assign (v, e)     -> v ^ " = " ^ string_of_expr e
   | Call (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | DFABody(a,b,c,d,e) -> "{\n states : " ^ string_of_int a ^ 
-  "\n alphabet : " ^ string_of_clist b ^ 
-  "\n start : " ^ string_of_int c ^ 
+  | DFABody(a,b,c,d,e) -> "{\n states : " ^ string_of_int a ^
+  "\n alphabet : " ^ string_of_clist b ^
+  "\n start : " ^ string_of_int c ^
   "\n final : " ^ string_of_intlist d ^
   "\n transitions : " ^ string_of_tlist e ^ "\n }"
   | Noexpr            -> ""
