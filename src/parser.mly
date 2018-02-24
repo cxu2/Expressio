@@ -9,6 +9,7 @@ open Prelude
 %token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR UNIT BOOL CHAR INT STRING
+%token CONTINUE BREAK
 %token COLON ARROW
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
 %token DFA STATES ALPH START FINAL TRANF
@@ -140,6 +141,8 @@ for_body: LBRACE stmt_list RBRACE           { Block (List.rev $2)  }
 stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
+  | CONTINUE SEMI                           { Continue              }
+  | BREAK SEMI                              { Break                 }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
