@@ -2,6 +2,7 @@
 regexp alphaLower;
 regexp alphaUpper;
 regexp numeric;
+regexp alpha;
 regexp alphaNumeric
 regexp digits;
 alphaLower = lit 'a' | lit 'b' | lit 'c' | lit 'd' | lit 'e' | lit 'f' | lit 'g' | lit 'h' | lit 'i' | lit 'j' | lit 'k' | lit 'l' | lit 'm' | lit 'n' | lit 'o' | lit 'p' | lit 'q' | lit 'r' | lit 's' | lit 't' | lit 'u' | lit 'v' | lit 'w' | lit 'x' | lit 'y' | lit 'z';
@@ -10,3 +11,8 @@ numeric = lit '0' | lit '1' | lit '2' | lit '3' | lit '4' | lit '5' | lit '6' | 
 alpha = alphaLower | alphaUpper;
 alphaNumeric = alpha | numeric;
 digits = numeric **;
+
+
+isNumeric : (s : string) -> bool {
+  return (digits matches s);
+}
