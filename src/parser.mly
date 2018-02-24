@@ -60,14 +60,14 @@ decls:
  | decls fdecl                              { (      Prelude.first $1,       Prelude.second $1, $2 :: Prelude.third $1) }
 
 ddecl:
-  ID ASSIGN LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
+  ID LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
   INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { { dfa_name     = $1;
-                                                dfa_states   = $6;
-                                                dfa_alphabet = $10;
-                                                dfa_start    = $14;
-                                                dfa_final    = $18;
-                                                dfa_tranves  = $23 } }
+                                                dfa_states   = $5;
+                                                dfa_alphabet = $9;
+                                                dfa_start    = $13;
+                                                dfa_final    = $17;
+                                                dfa_tranves  = $22 } }
 
 
 fdecl:

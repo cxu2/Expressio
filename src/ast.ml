@@ -172,7 +172,7 @@ let string_of_fdecl fdecl =
   "}\n"
 
 let string_of_ddecl dfa =
-  dfa.dfa_name ^ " = " ^
+  dfa.dfa_name ^
   "{\n states : " ^ string_of_int dfa.dfa_states ^
   "\n alphabet : " ^ string_of_clist dfa.dfa_alphabet ^
   "\n start : " ^ string_of_int dfa.dfa_start ^

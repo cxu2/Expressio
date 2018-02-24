@@ -1,6 +1,6 @@
 ~~ comment
 dfa even_zeros;
-even_zeros = {
+even_zeros {
   states : 2
   alphabet : ['0', '1', '2']
   start : 0
