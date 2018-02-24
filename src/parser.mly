@@ -42,11 +42,11 @@ infixr 8 `closure`
 %left TIMES DIVIDE
 %right NOT NEG
 
+%right REMATCH
 %left REOR
 %left REAND
 %right RESTAR
 %right RELIT
-%right REMATCH
 
 %%
 
@@ -60,7 +60,7 @@ decls:
  | decls fdecl                              { (      Prelude.first $1,       Prelude.second $1, $2 :: Prelude.third $1) }
 
 ddecl:
-  ID ASSIGN LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON 
+  ID ASSIGN LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
   INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { { dfa_name     = $1;
                                                 dfa_states   = $6;
@@ -182,8 +182,8 @@ expr:
   | ID ASSIGN expr                          { Assign ($1, $3)          }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)            }
   | LPAREN expr RPAREN                      { $2                       }
-  | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON 
-  INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE 
+  | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
+  INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { DFABody ($4, $8, $12, $16, $21) }
 
 args_opt:
