@@ -77,3 +77,11 @@ February 11, 2018:
 		       Lit
 		       (.)
 		       {.}
+
+February 24, 2018:
+	TODOs for LRM:
+	- Standard Library section
+	- Pattern matching?
+	- DFA/NFA functions 
+	- Declaring vs assigning in nfa/dfa
+	- Regular Expressions
