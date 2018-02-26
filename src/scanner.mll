@@ -62,6 +62,8 @@ rule token = parse
 | "char"   { CHAR }
 | "string" { STRING }
 | "bool"   { BOOL }
+| "case"   { CASE }
+| "of"     { OF }
 | "unit"   { UNIT }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }

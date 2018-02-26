@@ -5,7 +5,7 @@ open RegExp
 open DFA
 
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
-           BAnd | BOr  | BUnion | BConcat | BMatch
+           BAnd | BOr  | BREUnion | BREConcat | BREMatches | BCase
 
 type uop = UNeg | UNot | ULit | UStar
 
@@ -76,21 +76,22 @@ let rec string_of_re = function
   *)
 
 let string_of_op = function
-    BAdd     -> "+"
-  | BSub     -> "-"
-  | BMult    -> "*"
-  | BDiv     -> "/"
-  | BEqual   -> "=="
-  | BNeq     -> "!="
-  | BLess    -> "<"
-  | BLeq     -> "<="
-  | BGreater -> ">"
-  | BGeq     -> ">="
-  | BAnd     -> "&&"
-  | BOr      -> "||"
-  | BUnion   -> "|"
-  | BConcat  -> "^"
-  | BMatch   -> "matches"
+    BAdd       -> "+"
+  | BSub       -> "-"
+  | BMult      -> "*"
+  | BDiv       -> "/"
+  | BEqual     -> "=="
+  | BNeq       -> "!="
+  | BLess      -> "<"
+  | BLeq       -> "<="
+  | BGreater   -> ">"
+  | BGeq       -> ">="
+  | BAnd       -> "&&"
+  | BOr        -> "||"
+  | BREUnion   -> "|"
+  | BREConcat  -> "^"
+  | BREMatches -> "matches"
+  | BCase      -> "case"
 
 let string_of_uop = function
     UNeg  -> "-"
