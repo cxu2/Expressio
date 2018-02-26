@@ -13,7 +13,7 @@ numeric = lit '0' | lit '1' | lit '2' | lit '3' | lit '4' | lit '5' | lit '6' | 
 alpha = alphaLower | alphaUpper;
 alphaNumeric = alpha | numeric;
 digits = numeric **;
-ascii = lit ' ' | lit '!' | lit '"' | lit '#' | lit '$' | lit '';
+ascii = lit ' ' | lit '!' | lit '"' | lit '#' | lit '$' | lit '%' | lit '&' | lit '\'' | lit '(' | lit ')' | lit '*' | lit '+' | lit ',' | lit '-' | lit '.' | lit '/' | digits | lit ':' | lit ';' | lit '<' | lit '=' | lit '>' | lit '?' | lit '@' | alphaUpper | lit '[' | lit '\' | lit ']' | lit '^' | lit '_' | lit '`' | alphaLower | lit '{' | lit '|' | lit '}' | lit '~' | lit 'DEL' 
 
 
 isNumeric : (s : string) -> bool {
