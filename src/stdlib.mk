@@ -13,7 +13,7 @@ numeric = lit '0' | lit '1' | lit '2' | lit '3' | lit '4' | lit '5' | lit '6' | 
 alpha = alphaLower | alphaUpper;
 alphaNumeric = alpha | numeric;
 digits = numeric **;
-~~ FIXME ascii = lit '' |;
+ascii = lit ' ' | lit '!' | lit '"' | lit '#' | lit '$' | lit '';
 
 
 isNumeric : (s : string) -> bool {

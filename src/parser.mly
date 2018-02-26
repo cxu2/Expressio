@@ -42,7 +42,7 @@ infixr 8 `closure`
 %left LT GT LEQ GEQ
 %left PLUS PERIOD MINUS
 %left TIMES DIVIDE
-%right NOT NEG
+%nonassoc NOT NEG
 
 %right REMATCH
 %left REOR

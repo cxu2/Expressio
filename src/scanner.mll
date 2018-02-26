@@ -13,64 +13,64 @@ let alphanumeric = (alpha | digit)
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf }  (* Whitespace *)
-| "<~"      { comment lexbuf }           (* Block Comments *)
-| "~~"      { line_comment lexbuf }      (* Line Comment *)
-| "{.}"     { REEMPTY }                  (* RegExp literal for empty language *)
-| "{{.}}"   { REEPS }                    (* RegExp literal for empty string *)
-| '|'       { REOR }                     (* RegExp operator for "or" (union) *)
-| '^'       { REAND }                    (* RegExp operator for "and" (concatenation) *)
-| "**"      { RESTAR }                   (* RegExp operator for Kleene star (closure) *)
-| "lit"     { RELIT }                    (* RegExp operator for encapsulating a literal symbol *)
-| "regexp"  { REGEXP }                   (* RegExp keyword for declaring a RegExp *)
-| "matches" { REMATCH }                  (* RegExp operator for pattern matching an RE against a string *)
-| "dfa"     { DFA }
+| "<~"          { comment lexbuf }           (* Block Comments *)
+| "~~"          { line_comment lexbuf }      (* Line Comment *)
+| "{.}"         { REEMPTY }                  (* RegExp literal for empty language *)
+| "{{.}}"       { REEPS }                    (* RegExp literal for empty string *)
+| '|'           { REOR }                     (* RegExp operator for "or" (union) *)
+| '^'           { REAND }                    (* RegExp operator for "and" (concatenation) *)
+| "**"          { RESTAR }                   (* RegExp operator for Kleene star (closure) *)
+| "lit"         { RELIT }                    (* RegExp operator for encapsulating a literal symbol *)
+| "regexp"      { REGEXP }                   (* RegExp keyword for declaring a RegExp *)
+| "matches"     { REMATCH }                  (* RegExp operator for pattern matching an RE against a string *)
+| "dfa"         { DFA }
 (* TODO we may need this later
 | "nfa"     { NFA }
 *)
-| ':'      { COLON }                     (* Symbol for function definition arg types *)
-| "->"     { ARROW }                     (* Symbol for function definition return type *)
-| '.'      { PERIOD }
-| '('      { LPAREN }
-| ')'      { RPAREN }
-| '{'      { LBRACE }
-| '}'      { RBRACE }
-| '['      { LBRAC }
-| ']'      { RBRAC }
-| ';'      { SEMI }
-| ','      { COMMA }
-| '+'      { PLUS }
-| '-'      { MINUS }
-| '*'      { TIMES }
-| '/'      { DIVIDE }
-| '='      { ASSIGN }
-| "=="     { EQ }
-| "!="     { NEQ }
-| '<'      { LT }
-| "<="     { LEQ }
-| ">"      { GT }
-| ">="     { GEQ }
-| "&&"     { AND }
-| "||"     { OR }
-| "!"      { NOT }
-| "if"     { IF }
-| "else"   { ELSE }
-| "for"    { FOR }
-| "continue" { CONTINUE }
-| "break"  { BREAK }
-| "return" { RETURN }
-| "int"    { INT }
-| "char"   { CHAR }
-| "string" { STRING }
-| "bool"   { BOOL }
-| "case"   { CASE }
-| "of"     { OF }
-| "unit"   { UNIT }
-| "true"   { BLIT(true)  }
-| "false"  { BLIT(false) }
-| "states" { STATES }
-| "alphabet" { ALPH }
-| "start"  { START }
-| "final"  { FINAL }
+| ':'           { COLON }                     (* Symbol for function definition arg types *)
+| "->"          { ARROW }                     (* Symbol for function definition return type *)
+| '.'           { PERIOD }
+| '('           { LPAREN }
+| ')'           { RPAREN }
+| '{'           { LBRACE }
+| '}'           { RBRACE }
+| '['           { LBRAC }
+| ']'           { RBRAC }
+| ';'           { SEMI }
+| ','           { COMMA }
+| '+'           { PLUS }
+| '-'           { MINUS }
+| '*'           { TIMES }
+| '/'           { DIVIDE }
+| '='           { ASSIGN }
+| "=="          { EQ }
+| "!="          { NEQ }
+| '<'           { LT }
+| "<="          { LEQ }
+| ">"           { GT }
+| ">="          { GEQ }
+| "&&"          { AND }
+| "||"          { OR }
+| "!"           { NOT }
+| "if"          { IF }
+| "else"        { ELSE }
+| "for"         { FOR }
+| "continue"    { CONTINUE }
+| "break"       { BREAK }
+| "return"      { RETURN }
+| "int"         { INT }
+| "char"        { CHAR }
+| "string"      { STRING }
+| "bool"        { BOOL }
+| "case"        { CASE }
+| "of"          { OF }
+| "unit"        { UNIT }
+| "true"        { BLIT(true)  }
+| "false"       { BLIT(false) }
+| "states"      { STATES }
+| "alphabet"    { ALPH }
+| "start"       { START }
+| "final"       { FINAL }
 | "transitions" { TRANF }
 | digits as ds                       { INTLIT(int_of_string ds) }
 | '"'([^'"']* as strlit)'"'          { STRLIT(strlit) }
