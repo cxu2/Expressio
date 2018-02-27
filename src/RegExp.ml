@@ -1,11 +1,15 @@
 module RegExp = struct
   type 'a regexp =
-    | Zero                               (* The empty language             L(Zero)  = ∅              *)
-    | One                                (* The empty string, epsilon      L(One)   = {ε}            *)
-    | Lit  of 'a                         (* Literal, single symbol         L(σ)     = {σ}, for σ ∈ Σ *)
-    | Plus of ('a regexp) * ('a regexp)  (* Multiplication, Concatenation  L(α · β) = L(α) · L(β)    *)
-    | Mult of ('a regexp) * ('a regexp)  (* Plus, union, or                L(α | β) = L(α) ∪ L(β)    *)
-    | Star of ('a regexp)                (* Kleene star, repetition        L(α⋆)    = L(α)⋆          *)
+    | Zero                              (* The empty language             L(Zero)  = ∅              *)
+    | One                               (* The empty string, epsilon      L(One)   = {ε}            *)
+    | Lit  of 'a                        (* Literal, single symbol         L(σ)     = {σ}, for σ ∈ Σ *)
+    | Plus of ('a regexp) * ('a regexp) (* Multiplication, Concatenation  L(α · β) = L(α) · L(β)    *)
+    | Mult of ('a regexp) * ('a regexp) (* Plus, union, or                L(α | β) = L(α) ∪ L(β)    *)
+    | Star of ('a regexp)               (* Kleene star, repetition        L(α⋆)    = L(α)⋆          *)
+    (* TODO better name? *)
+    | And  of ('a regexp) * ('a regexp) (* Intersection (logical and)     L(α & β) = L(α) ∩ L(β)    *)
+    | Comp of ('a regexp)               (* complement ¬                   L(¬α)    = Σ⋆ \ L(α)      *)
+
 
   let rec star (r : 'a regexp) : 'a regexp = match r with
       Zero   -> One     (* ∅⋆ ≈ ε *)
@@ -46,6 +50,13 @@ module RegExp = struct
                                         else if a < b
                                              then Plus (a, b)
                                              else Plus (b, a)
+
+  let comp (r : 'a regexp) : 'a regexp = match r with
+    | Comp a -> a
+    | a      -> Comp a
+  let intersect (r1 : 'a regexp) (r2 : 'a regexp) : 'a regexp = match (r1, r2) with
+      (a, Zero) -> raise (TODO "")
+    | (a, b)    -> raise (TODO "")
   let rec normalize = function
       Zero        -> Zero
     | One         -> One
@@ -53,6 +64,10 @@ module RegExp = struct
     | Plus (a, b) -> plus (normalize a) (normalize b)
     | Mult (a, b) -> mult (normalize a) (normalize b)
     | Star a      -> star (normalize a)
+    | And (a, b)  -> raise (TODO "")
+    | Comp a      -> raise (TODO "") (* should be, `comp (normalize a)` but I'll double check first *)
+
+  (* Does the language of this RE contain the empty string? *)
   let rec nullable = function
       Zero        -> false
     | One         -> true
@@ -73,9 +88,11 @@ module RegExp = struct
       | Plus (a, b) -> (finite' a) && (finite' b)
       | Mult (a, b) -> (finite' a) && (finite' b)
       | Star _      -> false
+      | And _       -> raise (TODO "intersection")
+      | Comp _      -> raise (TODO "finite'")
     in finite' (normalize r)
   let infinite (r : 'a regexp) : bool = not (finite r)
-  (* Brzozowski derivative with respect to σ ∈ Σ *)
+  (* Brzozowski derivative with respect to s ∈ Σ *)
   let rec derivative (r : 'a regexp) (s : 'a) : 'a regexp = match r with
       Zero        -> Zero
     | One         -> Zero
@@ -83,6 +100,9 @@ module RegExp = struct
     | Plus (a, b) -> plus (derivative a s) (derivative b s)
     | Mult (a, b) -> plus (mult (derivative a s) b) (mult (constant a) (derivative b s))
     | Star a      -> mult (derivative a s) (star a)
+    (* TODO double check *)
+    | And (a, b)  -> intersect (derivative a s) (derivative b s)
+    | Comp a      -> comp (derivative a s)
   let derivative' (r : 'a regexp) (word : 'a list) = List.fold_left derivative r word
   (* can be written point-free as:
    let derivative' = List.fold_left derivative
@@ -99,6 +119,8 @@ module RegExp = struct
       | Plus (a, b) -> (isZero' a) && (isZero' b)
       | Mult (a, b) -> (isZero' a) || (isZero' b)
       | Star _      -> false
+      | And (a, b)  -> raise (TODO "isZero")
+      | Comp a      -> raise (TODO "isZero")
     in isZero' (normalize r)
   let rec matches (r : 'a regexp) (word : 'a list) = match r with
       Zero -> false
@@ -112,6 +134,8 @@ module RegExp = struct
     | Plus (a, b) -> Plus (fmap f a, fmap f b)
     | Mult (a, b) -> Mult (fmap f a, fmap f b)
     | Star a      -> Star (fmap f a)
+    | And (a, b)  -> And  (fmap f a, fmap f b)
+    | Comp a      -> Comp (fmap f a)
   (* Regular languages are closed under reversal
      adapted from proof on slide 12
      http://infolab.stanford.edu/~ullman/ialc/spr10/slides/rs2.pdf
@@ -123,6 +147,8 @@ module RegExp = struct
     | Plus (a, b) -> Plus (reversal a, reversal b)
     | Mult (a, b) -> Mult (reversal b, reversal a)
     | Star a      -> Star (reversal a)
+    | And (a, b)  -> raise (TODO "reversal")
+    | Comp a      -> raise (TODO "reversal")
 
   let rec string_of_re = function
       Zero         -> "∅"
@@ -132,4 +158,6 @@ module RegExp = struct
     | Mult (a, b)  -> "(" ^ string_of_re a ^ "." ^ string_of_re b ^ ")"
     | Star (Lit c) -> (String.make 1 c) ^ "⋆"
     | Star a       -> "(" ^ string_of_re a ^ ")⋆"
+    | And  (a, b)  -> "(" ^ string_of_re a ^ "&" ^ string_of_re b ^ ")"
+    | Comp a       -> "¬(" ^ string_of_re a ^ ")"
 end
