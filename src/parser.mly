@@ -12,7 +12,7 @@ open Prelude
 %token CONTINUE BREAK
 %token COLON ARROW
 %token CASE OF
-%token REGEXP REMATCH REEMPTY REEPS RELIT REOR REAND RESTAR
+%token REGEXP REMATCH REEMPTY REEPS RELIT REOR RECAT RESTAR
 %token DFA STATES ALPH START FINAL TRANF
 %token <int> INTLIT
 %token <bool> BLIT
@@ -36,6 +36,9 @@ infixr 8 `closure`
 %nonassoc NOELSE
 %nonassoc ELSE
 %right ASSIGN
+
+%right CASE
+
 %left OR
 %left AND
 %left EQ NEQ
@@ -178,9 +181,10 @@ expr:
   | expr AND    expr                        { Binop ($1, BAnd,       $3) }
   | expr OR     expr                        { Binop ($1, BOr,        $3) }
   | expr REOR   expr                        { Binop ($1, BREUnion,   $3) }
-  | expr REAND  expr                        { Binop ($1, BREConcat,  $3) }
+  | expr RECAT  expr                        { Binop ($1, BREConcat,  $3) }
   | expr REMATCH expr                       { Binop ($1, BREMatches, $3) }
-  /* | CASE expr OF expr                       { Binop ($2, BCase,      $4) } */
+  /* The line which follows should probably be CASE X OF Y, but this is tough to add without conflicts */
+  | expr CASE expr                          { Binop ($1, BCase,      $3) }
   | MINUS expr %prec NEG                    { UnopPre (UNeg, $2)         }
   | NOT expr                                { UnopPre (UNot, $2)         }
   | expr RESTAR                             { UnopPost ($1, UStar)       }
