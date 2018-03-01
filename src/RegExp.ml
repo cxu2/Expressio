@@ -50,13 +50,14 @@ module RegExp = struct
                                         else if a < b
                                              then Plus (a, b)
                                              else Plus (b, a)
-
+  (* FIXME might need to add more cases for comp and intersect algebraic properties *)
   let comp (r : 'a regexp) : 'a regexp = match r with
     | Comp a -> a
     | a      -> Comp a
   let intersect (r1 : 'a regexp) (r2 : 'a regexp) : 'a regexp = match (r1, r2) with
-      (a, Zero) -> raise (TODO "")
-    | (a, b)    -> raise (TODO "")
+      (Zero, _)      -> Zero
+    | (Comp Zero, b) -> b
+    | (a, b)         -> And (a, b)
   let rec normalize = function
       Zero        -> Zero
     | One         -> One
@@ -88,7 +89,7 @@ module RegExp = struct
       | Plus (a, b) -> (finite' a) && (finite' b)
       | Mult (a, b) -> (finite' a) && (finite' b)
       | Star _      -> false
-      | And _       -> raise (TODO "intersection")
+      | And  _      -> raise (TODO "intersection")
       | Comp _      -> raise (TODO "finite'")
     in finite' (normalize r)
   let infinite (r : 'a regexp) : bool = not (finite r)
