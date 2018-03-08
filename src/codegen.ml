@@ -30,14 +30,14 @@ let translate (globals, functions) = let context = L.global_context ()
                                      generate actual code *)
                                         and the_module = L.create_module context "MicroC"
                                      (* Convert MicroC types to LLVM types *)
-                                     in let ltype_of_typ = function
+                                     in let rec ltype_of_typ = function
                                         A.TUnit   -> void_t
                                       | A.TBool   -> i1_t
                                       | A.TInt    -> i32_t
                                       | A.TChar   -> i8_t
-                                      | A.TString -> raise (Prelude.TODO "LLVM String")
-                                      | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")
-                                      | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")
+                                      | A.TString -> pointer_type (ltype_of_typ A.TChar)
+                                      | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")  (* TODO struct_type, waiting for Lalka to name/implement then point to it here*)
+                                      | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")     (* TODO struct_type, same as above *)
 
   (* Declare each global variable; remember its value in a map *)
   in let global_vars = let global_var m (t, n) = let init = L.const_int (ltype_of_typ t) 0
@@ -87,8 +87,7 @@ let translate (globals, functions) = let context = L.global_context ()
 	      SIntLit i           -> L.const_int i32_t i
       | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
       | SCharLit c          -> L.const_int i8_t (int_of_char c)
-      (* | SFliteral l         -> L.const_float_of_string float_t l *)
-      | SStringLit _        -> raise (Prelude.TODO "SStringLit")
+      | SStringLit s        -> L.build_global_stringptr s "string" builder
       | SNoexpr             -> L.const_int i32_t 0
       | SId s               -> L.build_load (lookup s) s builder
       | SBinop (e1, op, e2) -> let e1' = expr builder e1
@@ -106,7 +105,7 @@ let translate (globals, functions) = let context = L.global_context ()
                                 	  | A.BLeq     -> L.build_icmp L.Icmp.Sle
                                 	  | A.BGreater -> L.build_icmp L.Icmp.Sgt
                                 	  | A.BGeq     -> L.build_icmp L.Icmp.Sge
-                                    | A.BUnion   -> raise (Prelude.TODO "implement")
+                                    | A.BUnion   -> raise (Prelude.TODO "implement") (* awaiting LLVM implementation *)
                                     | A.BConcat  -> raise (Prelude.TODO "implement")
                                     | A.BMatch   -> raise (Prelude.TODO "implement")
                                 	  ) e1' e2' "tmp" builder
