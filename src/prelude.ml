@@ -14,14 +14,22 @@ module Prelude = struct
   (* given a function of two arguments, swap the arguments *)
   let flip (f : 'a -> 'b -> 'c) (x : 'b) (y : 'a) : 'c = f y x
 
-  let first (quadruple : 'a * 'b * 'c * 'd) : 'a = match quadruple with
+  let first' (quadruple : 'a * 'b * 'c * 'd) : 'a = match quadruple with
     (a , _ , _ , _) -> a
-  let second (quadruple : 'a * 'b * 'c * 'd) : 'b = match quadruple with
+  let second' (quadruple : 'a * 'b * 'c * 'd) : 'b = match quadruple with
     (_ , b , _ , _) -> b
-  let third (quadruple : 'a * 'b * 'c * 'd) : 'c = match quadruple with
+  let third' (quadruple : 'a * 'b * 'c * 'd) : 'c = match quadruple with
     (_ , _ , c , _) -> c
-  let fourth (quadruple : 'a * 'b * 'c * 'd) : 'd = match quadruple with
+  let fourth' (quadruple : 'a * 'b * 'c * 'd) : 'd = match quadruple with
     (_ , _ , _ , d) -> d
+
+  let first (triple : 'a * 'b * 'c) : 'a = match triple with
+    (a , _ , _) -> a
+  let second (triple : 'a * 'b * 'c) : 'b = match triple with
+    (_ , b , _) -> b
+  let third (triple : 'a * 'b * 'c) : 'c = match triple with
+    (_ , _ , c) -> c
+
   exception TODO of string
   module StringMap = Map.Make(String)
 
