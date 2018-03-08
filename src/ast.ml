@@ -5,9 +5,9 @@ open RegExp
 open DFA
 
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
-           BAnd | BOr  | BREUnion | BREConcat | BREMatches | BCase
+           BAnd | BOr  | BREUnion | BREConcat | BREMatches | BCase | BREIntersect 
 
-type uop = UNeg | UNot | ULit | UStar
+type uop = UNeg | UNot | ULit | UStar | BREComplement
 
 type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDFA
 
@@ -92,12 +92,14 @@ let string_of_op = function
   | BREConcat  -> "^"
   | BREMatches -> "matches"
   | BCase      -> "case"
+  | BREIntersect -> "&"
 
 let string_of_uop = function
     UNeg  -> "-"
   | UNot  -> "!"
   | ULit  -> "lit"
   | UStar -> "**"
+  | BREComplement -> "'" 
 
 (*
 let string_of_nop = function

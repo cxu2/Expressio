@@ -12,7 +12,7 @@ open Prelude
 %token CONTINUE BREAK
 %token COLON ARROW
 %token CASE OF
-%token REGEXP REMATCH REEMPTY REEPS RELIT REOR RECAT RESTAR
+%token REGEXP REMATCH REEMPTY REEPS RELIT REOR RECAT RESTAR REAND RECOMP
 %token DFA STATES ALPH START FINAL TRANF
 %token <int> INTLIT
 %token <bool> BLIT
@@ -50,6 +50,7 @@ infixr 8 `closure`
 %right REMATCH
 %left REOR
 %left REAND
+%nonassoc RECOMP
 %nonassoc RESTAR
 %nonassoc RELIT
 
@@ -168,6 +169,8 @@ expr:
   | RELIT expr                              { UnopPre (ULit, $2)         }
   | REEMPTY                                 { Regex RegExp.Zero          }
   | REEPS                                   { Regex RegExp.One           }
+  | expr REAND expr                         { Binop ($1, BREIntersect ,$3) }
+  | expr RECOMP                             { UnopPost($1,BREComplement)}
   | expr PLUS   expr                        { Binop ($1, BAdd,       $3) }
   | expr MINUS expr                         { Binop ($1, BSub,       $3) }
   | expr TIMES  expr                        { Binop ($1, BMult,      $3) }
