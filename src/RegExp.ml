@@ -77,6 +77,8 @@ module RegExp = struct
     | Plus (a, b) -> (nullable a) || (nullable b)
     | Mult (a, b) -> (nullable a) && (nullable b)
     | Star _      -> true
+    | And _       -> raise (Prelude.TODO "")
+    | Comp _      -> raise (Prelude.TODO "")
   let constant (r : 'a regexp) : 'a regexp = if nullable r then One else Zero
   (* Check if the the regular expression, r, produces a finite language.
      This is accomplished by finding the normal form of r
