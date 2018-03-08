@@ -18,7 +18,7 @@ rule token = parse
 | "{.}"         { REEMPTY }                  (* RegExp literal for empty language *)
 | "{{.}}"       { REEPS }                    (* RegExp literal for empty string *)
 | '|'           { REOR }                     (* RegExp operator for "or" (union) *)
-| '^'           { REAND }                    (* RegExp operator for "and" (concatenation) *)
+| '^'           { RECAT }                    (* RegExp operator for concatenation *)
 | "**"          { RESTAR }                   (* RegExp operator for Kleene star (closure) *)
 | "lit"         { RELIT }                    (* RegExp operator for encapsulating a literal symbol *)
 | "regexp"      { REGEXP }                   (* RegExp keyword for declaring a RegExp *)
