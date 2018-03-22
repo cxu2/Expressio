@@ -101,12 +101,6 @@ let string_of_uop = function
   | UStar -> "**"
   | BREComplement -> "'" 
 
-(*
-let string_of_nop = function
-    NZero -> "{.}" (* TODO "{}"? *)
-  | NOne  -> "(.)" (* TODO "{{}}"? *)
-  *)
-
 let rec string_of_clist = function
   []              -> ""
   | [last]        -> "'" ^ String.make 1 last ^ "'"

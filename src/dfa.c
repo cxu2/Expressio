@@ -140,7 +140,7 @@ int evaluate(struct dfa_t dfa, char *input){
 //Simluates input on dfa
 //returns 1 if accepted
 //0 if not accepted
-int accept(struct dfa_t dfa, char *input){
+int accepts(struct dfa_t dfa, char *input){
   int check = evaluate(dfa, input);
   for(int i = 0; i < dfa.nfin; i++){
     if(dfa.final[i] == check){
@@ -180,11 +180,11 @@ int main(){
   printf("PASS\n");
 
   printf("Accept...\n");
-  assert(accept(test3, "els"));
-  assert(accept(test3, "else"));
-  assert(accept(test3, "else$$$$$$$$$$$$$$$$$$$"));
-  assert(accept(test3, "else$$$$$$$$$$$$$$$$~~$"));
-  assert(!accept(test3, "elsf"));
+  assert(accepts(test3, "els"));
+  assert(accepts(test3, "else"));
+  assert(accepts(test3, "else$$$$$$$$$$$$$$$$$$$"));
+  assert(accepts(test3, "else$$$$$$$$$$$$$$$$~~$"));
+  assert(!accepts(test3, "elsf"));
   printf("Pass\n");
 
   destruct(test3);
