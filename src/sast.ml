@@ -3,15 +3,12 @@
 open Ast
 open Prelude
 open RegExp
-open DFA
 
 type sexpr = typ * sx
 and sx =
     SIntLit    of int
-  (* | SFliteral of string *)
   | SCharLit   of char
   | SStringLit of string
-  (* | SDFALit    of int DFA.t *)
   | SRE        of char RegExp.regexp
   | SBoolLit   of bool
   | SId        of string
@@ -19,28 +16,10 @@ and sx =
   | SUnopPre   of uop * sexpr
   | SUnopPost  of sexpr * uop
   (* | SDFA       of int DFA.t *)
-  (* | SRegexp    of char RegExp.regexp *)
-  (* TODO add post version of unary op here for Kleene star to be a* instead of *a *)
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
   | SDFA       of int * char list * int * int list * tranf list
   | SNoexpr
-
-  (* type expr =
-      IntLit    of int
-    | BoolLit   of bool
-    | CharLit   of char
-    | StringLit of string
-    | DFALit    of int DFA.t
-    | Regex     of char RegExp.regexp
-    | Id        of string
-    | Binop     of expr * bop * expr
-    | UnopPre   of uop * expr
-    | UnopPost  of expr * uop
-    | Assign    of string * expr
-    | Call      of string * expr list
-    | DFABody   of int * char list * int * int list * tranf list
-    | Noexpr *)
 
 type sstmt =
     SBlock   of sstmt list
