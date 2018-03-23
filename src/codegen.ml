@@ -36,7 +36,7 @@ let translate (globals, functions) = let context = L.global_context ()
                                       | A.TInt    -> i32_t
                                       | A.TChar   -> i8_t
                                       | A.TString -> pointer_type (ltype_of_typ A.TChar)
-                                      | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")  (* TODO struct_type, waiting for Lalka to name/implement then point to it here*)
+                                      | A.TRE     -> raise (Prelude.TODO "LLVM RegExp")  (* TODO struct_type, waiting for Lalka to name/implement then point to it here*)
                                       | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")     (* TODO struct_type, same as above *)
 
   (* Declare each global variable; remember its value in a map *)

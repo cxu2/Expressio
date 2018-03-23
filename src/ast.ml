@@ -2,7 +2,7 @@
 
 open Prelude
 open RegExp
-open DFA
+(* open DFA *)
 
 (* Binary operators *)
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
@@ -12,7 +12,7 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 type uop = UNeg | UNot | URELit | UREStar | UREComp
 
 (* Types within the Expressio language *)
-type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDFA
+type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE
 
 type bind = typ * string
 
@@ -23,15 +23,15 @@ type expr =
   | BoolLit   of bool
   | CharLit   of char
   | StringLit of string
-  | DFALit    of int DFA.t
-  | Regex     of char RegExp.regexp
+  (* | DFALit    of int DFA.t *)
+  | RE        of char RegExp.regexp
   | Id        of string
   | Binop     of expr * bop * expr
   | UnopPre   of uop * expr
   | UnopPost  of expr * uop
   | Assign    of string * expr
   | Call      of string * expr list
-  | DFABody   of int * char list * int * int list * tranf list
+  | DFA       of int * char list * int * int list * tranf list
   | Noexpr
 
 type stmt =
@@ -131,8 +131,8 @@ let rec string_of_tlist = function
 
 let rec string_of_expr = function
     IntLit l          -> string_of_int l
-  | Regex r           -> RegExp.string_of_re r
-  | DFALit _          -> raise (Prelude.TODO "DFALit")
+  | RE r              -> RegExp.string_of_re r
+  | DFA _             -> raise (Prelude.TODO "implement")
   | BoolLit true      -> "true"
   | BoolLit false     -> "false"
   | CharLit c         -> String.make 1 c
@@ -143,7 +143,7 @@ let rec string_of_expr = function
   | UnopPost (e, o)   -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
   | Assign (v, e)     -> v ^ " = " ^ string_of_expr e
   | Call (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | DFABody(a,b,c,d,e) -> "{\n states : " ^ string_of_int a ^
+  | DFA (a,b,c,d,e)   -> "{\n states : " ^ string_of_int a ^
   "\n alphabet : " ^ string_of_clist b ^
   "\n start : " ^ string_of_int c ^
   "\n final : " ^ string_of_intlist d ^
@@ -167,7 +167,7 @@ let string_of_typ = function
   | TBool   -> "bool"
   | TChar   -> "char"
   | TUnit   -> "unit"
-  | TRegexp -> "regexp"
+  | TRE     -> "regexp"
   | TString -> "string"
   | TDFA    -> "dfa"
 
