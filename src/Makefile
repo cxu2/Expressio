@@ -11,7 +11,7 @@ all :
 	ocamlbuild DFA.native
 
 .PHONY : express.native
-microc.native :
+express.native :
 	ocamlbuild express.native
 
 .PHONY : RegExp.native
