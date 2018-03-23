@@ -93,15 +93,17 @@ let check (globals, functions) =
       | CharLit c             -> (TChar, SCharLit c)
       | StringLit s           -> (TString, SStringLit s)
       | BoolLit l             -> (TBool, SBoolLit l)
-      | DFALit _              -> raise (Prelude.TODO "implement for DFALit")
-      | Regex _               -> raise (Prelude.TODO "implement for Regex")
+      | DFALit d              -> let check = raise (TODO "implement any needed checking here")
+                                 in (TDFA, SDFA d)
+      | Regex r               -> let check = raise (TODO "implement any needed checking here")
+                                 in (TRegExp, SRegExp r)
       | Noexpr                -> (TUnit, SNoexpr)
       | Id s                  -> (type_of_identifier s, SId s)
       | Assign (var, e) as ex -> let lt = type_of_identifier var
                                  and (rt, e') = expr e
                                  in let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ string_of_typ rt ^ " in " ^ string_of_expr ex
                                  in (check_assign lt rt err, SAssign (var, (rt, e')))
-      (* | UnopPost (e, op) as ex -> *)
+      | UnopPost (e, op)      -> expr (UnopPre (op, e))
       | UnopPre (op, e) as ex ->
           let (t, e') = expr e
           in let ty = match op with
