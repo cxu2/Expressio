@@ -10,7 +10,7 @@ module StringMap = Map.Make(String)
 
    Check each global variable, then check each function *)
 
-let check (globals, functions) =
+let check (globals, dfas, functions) =
 
   (* Check if a certain kind of binding has void type or is a duplicate
      of another, previously checked binding *)
@@ -31,6 +31,7 @@ let check (globals, functions) =
   (**** Checking Global Variables ****)
 
   in let globals' = check_binds "global" globals
+  in let dfas' = check_binds "dfa" dfas
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
@@ -108,11 +109,8 @@ let check (globals, functions) =
       | UnopPre (op, e) as ex ->
           let (t, e') = expr e
           in let ty = match op with
-                        UNeg    when t = TInt  -> TInt
-                      | UNot    when t = TBool -> TBool
-                      | URELit  when t = TRE   -> TRE
-                      | UREStar when t = TRE   -> TRE
-                      | UREComp when t = TRE   -> TRE
+                        UNeg when t = TInt  -> t
+                      | UNot when t = TBool -> TBool
                       | _ -> raise (Failure ("illegal unary operator " ^
                                              string_of_uop op ^ string_of_typ t ^
                                              " in " ^ string_of_expr ex))
@@ -189,4 +187,4 @@ let check (globals, functions) =
                   | _        -> let err = "internal error: block didn't become a block?"
                                 in raise (Failure err)
     }
-  in (globals', List.map check_function functions)
+  in (globals', dfas',List.map check_function functions)
