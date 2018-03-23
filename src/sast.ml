@@ -52,7 +52,7 @@ let rec string_of_sexpr (t, e) =
                                     | SUnop (o, e)       -> string_of_uop o ^ string_of_sexpr e
                                     | SAssign (v, e)     -> v ^ " = " ^ string_of_sexpr e
                                     | SCall (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-                                    | SNoexpr -> ""
+                                    | SNoexpr            -> ""
                                    ) ^ ")"
 
 let rec string_of_sstmt = function
