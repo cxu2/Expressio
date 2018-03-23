@@ -49,6 +49,7 @@ infixr 8 `closure`
 
 %right REMATCH
 %left REOR
+%left RECAT
 %left REAND
 %nonassoc RECOMP
 %nonassoc RESTAR

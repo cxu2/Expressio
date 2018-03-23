@@ -5,9 +5,9 @@ open RegExp
 open DFA
 
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
-           BAnd | BOr  | BREUnion | BREConcat | BREMatches | BCase | BREIntersect 
+           BAnd | BOr  | BCase | BREUnion | BREConcat | BREMatches | BREIntersect
 
-type uop = UNeg | UNot | ULit | UStar | BREComplement
+type uop = UNeg | UNot | ULit | UStar | UREComp
 
 type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDFA
 
@@ -76,30 +76,30 @@ let rec string_of_re = function
   *)
 
 let string_of_op = function
-    BAdd       -> "+"
-  | BSub       -> "-"
-  | BMult      -> "*"
-  | BDiv       -> "/"
-  | BEqual     -> "=="
-  | BNeq       -> "!="
-  | BLess      -> "<"
-  | BLeq       -> "<="
-  | BGreater   -> ">"
-  | BGeq       -> ">="
-  | BAnd       -> "&&"
-  | BOr        -> "||"
-  | BREUnion   -> "|"
-  | BREConcat  -> "^"
-  | BREMatches -> "matches"
-  | BCase      -> "case"
+    BAdd         -> "+"
+  | BSub         -> "-"
+  | BMult        -> "*"
+  | BDiv         -> "/"
+  | BEqual       -> "=="
+  | BNeq         -> "!="
+  | BLess        -> "<"
+  | BLeq         -> "<="
+  | BGreater     -> ">"
+  | BGeq         -> ">="
+  | BAnd         -> "&&"
+  | BOr          -> "||"
+  | BREUnion     -> "|"
+  | BREConcat    -> "^"
+  | BREMatches   -> "matches"
+  | BCase        -> "case"
   | BREIntersect -> "&"
 
 let string_of_uop = function
-    UNeg  -> "-"
-  | UNot  -> "!"
-  | ULit  -> "lit"
-  | UStar -> "**"
-  | BREComplement -> "'" 
+    UNeg    -> "-"
+  | UNot    -> "!"
+  | ULit    -> "lit"
+  | UStar   -> "**"
+  | UREComp -> "'"
 
 (*
 let string_of_nop = function

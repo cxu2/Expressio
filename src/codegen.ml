@@ -93,29 +93,31 @@ let translate (globals, functions) = let context = L.global_context ()
       | SBinop (e1, op, e2) -> let e1' = expr builder e1
                                and e2' = expr builder e2
                                in (match op with
-                                	    A.BAdd     -> L.build_add
-                                	  | A.BSub     -> L.build_sub
-                                	  | A.BMult    -> L.build_mul
-                                    | A.BDiv     -> L.build_sdiv
-                                	  | A.BAnd     -> L.build_and
-                                	  | A.BOr      -> L.build_or
-                                	  | A.BEqual   -> L.build_icmp L.Icmp.Eq
-                                	  | A.BNeq     -> L.build_icmp L.Icmp.Ne
-                                	  | A.BLess    -> L.build_icmp L.Icmp.Slt
-                                	  | A.BLeq     -> L.build_icmp L.Icmp.Sle
-                                	  | A.BGreater -> L.build_icmp L.Icmp.Sgt
-                                	  | A.BGeq     -> L.build_icmp L.Icmp.Sge
-                                    | A.BUnion   -> raise (Prelude.TODO "implement") (* awaiting LLVM implementation *)
-                                    | A.BConcat  -> raise (Prelude.TODO "implement")
-                                    | A.BMatch   -> raise (Prelude.TODO "implement")
+                                	    A.BAdd         -> L.build_add
+                                	  | A.BSub         -> L.build_sub
+                                	  | A.BMult        -> L.build_mul
+                                    | A.BDiv         -> L.build_sdiv
+                                	  | A.BAnd         -> L.build_and
+                                	  | A.BOr          -> L.build_or
+                                	  | A.BEqual       -> L.build_icmp L.Icmp.Eq
+                                	  | A.BNeq         -> L.build_icmp L.Icmp.Ne
+                                	  | A.BLess        -> L.build_icmp L.Icmp.Slt
+                                	  | A.BLeq         -> L.build_icmp L.Icmp.Sle
+                                	  | A.BGreater     -> L.build_icmp L.Icmp.Sgt
+                                	  | A.BGeq         -> L.build_icmp L.Icmp.Sge
+                                    | A.BREUnion     -> raise (Prelude.TODO "implement") (* awaiting LLVM implementation *)
+                                    | A.BREConcat    -> raise (Prelude.TODO "implement")
+                                    | A.BREMatch     -> raise (Prelude.TODO "implement")
+                                    | A.BREIntersect -> raise (Prelude.TODO "implement")
                                 	  ) e1' e2' "tmp" builder
       | SUnop (op, e)           -> (* let (t, _) = e *)
                                    let e' = expr builder e
                                    in (match op with
-              	                          A.UNeg  -> L.build_neg
-                                        | A.UNot  -> L.build_not
-                                        | A.UStar -> raise (Prelude.TODO "implement")
-                                        | A.ULit  -> raise (Prelude.TODO "implement")
+              	                          A.UNeg    -> L.build_neg
+                                        | A.UNot    -> L.build_not
+                                        | A.UStar   -> raise (Prelude.TODO "implement")
+                                        | A.ULit    -> raise (Prelude.TODO "implement")
+                                        | A.UREComp -> raise (Prelude.TODO "implement")
                                    ) e' "tmp" builder
       | SAssign (s, e)          -> let e' = expr builder e
                                    in let _  = L.build_store e' (lookup s) builder
