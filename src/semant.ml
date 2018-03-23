@@ -4,6 +4,7 @@ open Ast
 open Sast
 open Prelude
 
+module StringMap = Map.Make(String)
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
 
