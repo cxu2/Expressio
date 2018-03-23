@@ -2,7 +2,7 @@ module Prelude = struct
   (* sum types *)
   type ('a, 'b) either = Left of 'a | Right of 'b
   (* the constant function *)
-  let const (x : 'a) (y : 'b) : 'a = x
+  let const (x : 'a) (_ : 'b) : 'a = x
   (* the identity function *)
   let id (x : 'a) = x
   (* function composition "f after g" *)
@@ -31,6 +31,7 @@ module Prelude = struct
     (_ , _ , c) -> c
 
   exception TODO of string
+  exception ABSURD
   module StringMap = Map.Make(String)
   let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
 
@@ -41,9 +42,9 @@ module Prelude = struct
     | Succ n -> 1 + (nat_to_int n)
   let rec int_to_nat (i : int) : nat option = match i with
         0 -> Some Zero
-      | n -> if (i < 0)
+      | n -> if (n < 0)
              then None
-             else match int_to_nat (i - 1) with
+             else match int_to_nat (n - 1) with
                     None   -> None
                   | Some a -> Some (Succ a)
 end
