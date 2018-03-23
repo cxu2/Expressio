@@ -18,6 +18,8 @@ module A = Ast
 open Sast
 open Prelude
 
+module StringMap = Map.Make(String)
+
 (* Code Generation from the SAST. Returns an LLVM module if successful,
    throws an exception if something is wrong. *)
 let translate (globals, functions) = let context = L.global_context ()
@@ -35,7 +37,7 @@ let translate (globals, functions) = let context = L.global_context ()
                                       | A.TBool   -> i1_t
                                       | A.TInt    -> i32_t
                                       | A.TChar   -> i8_t
-                                      | A.TString -> pointer_type (ltype_of_typ A.TChar)
+                                      | A.TString -> L.pointer_type (ltype_of_typ A.TChar)
                                       | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")  (* TODO struct_type, waiting for Lalka to name/implement then point to it here*)
                                       | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")     (* TODO struct_type, same as above *)
 
