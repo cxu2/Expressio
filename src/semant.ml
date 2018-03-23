@@ -94,10 +94,10 @@ let check (globals, functions) =
       | CharLit c             -> (TChar, SCharLit c)
       | StringLit s           -> (TString, SStringLit s)
       | BoolLit l             -> (TBool, SBoolLit l)
-      | DFALit d              -> let check = raise (TODO "implement any needed checking here")
-                                 in (TDFA, SDFA d)
-      | Regex r               -> let check = raise (TODO "implement any needed checking here")
-                                 in (TRegExp, SRegExp r)
+      | DFA (a, b, c, d, e)   -> let check = raise (Prelude.TODO "implement any needed checking here")
+                                 in (TDFA, SDFA (a, b, c, d, e))
+      | RE r                  -> let check = raise (Prelude.TODO "implement any needed checking here")
+                                 in (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
       | Id s                  -> (type_of_identifier s, SId s)
       | Assign (var, e) as ex -> let lt = type_of_identifier var
@@ -113,7 +113,7 @@ let check (globals, functions) =
                       | _ -> raise (Failure ("illegal unary operator " ^
                                              string_of_uop op ^ string_of_typ t ^
                                              " in " ^ string_of_expr ex))
-          in (ty, SUnop (op, (t, e')))
+          in (ty, SUnopPre (op, (t, e')))
       | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2

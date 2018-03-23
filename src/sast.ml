@@ -11,8 +11,8 @@ and sx =
   (* | SFliteral of string *)
   | SCharLit   of char
   | SStringLit of string
-  | SDFALit    of int DFA.t
-  | SRegex    of char RegExp.regexp
+  (* | SDFALit    of int DFA.t *)
+  | SRE        of char RegExp.regexp
   | SBoolLit   of bool
   | SId        of string
   | SBinop     of sexpr * bop * sexpr
@@ -23,7 +23,7 @@ and sx =
   (* TODO add post version of unary op here for Kleene star to be a* instead of *a *)
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
-  | SDFABody   of int * char list * int * int list * tranf list
+  | SDFA       of int * char list * int * int list * tranf list
   | SNoexpr
 
   (* type expr =
@@ -127,21 +127,21 @@ type sprogram = bind list * sdfa_decl list * sfunc_decl list
 
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
-                                      SIntLit l          -> string_of_int l
-                                    | SRegex r           -> RegExp.string_of_re r
-                                    | SDFALit _          -> raise (Prelude.TODO "SDFALit")
-                                    | SBoolLit true      -> "true"
-                                    | SBoolLit false     -> "false"
-                                    | SCharLit c         -> String.make 1 c
-                                    | SStringLit s       -> s
-                                    | SId s              -> s
-                                    | SBinop (e1, o, e2) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
+                                      SIntLit l            -> string_of_int l
+                                    | SRE r                -> RegExp.string_of_re r
+                                    | SDFA _               -> raise (Prelude.TODO "implement")
+                                    | SBoolLit true        -> "true"
+                                    | SBoolLit false       -> "false"
+                                    | SCharLit c           -> String.make 1 c
+                                    | SStringLit s         -> s
+                                    | SId s                -> s
+                                    | SBinop (e1, o, e2)   -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
                                     (* | SUnop (o, e)       -> string_of_uop o ^ string_of_sexpr e *)
-                                    | SUnopPre (o, e)    -> "(" ^ string_of_uop o ^ " " ^ string_of_sexpr e ^ ")"
-                                    | SUnopPost (e, o)   -> "(" ^ string_of_sexpr e ^ " " ^ string_of_uop o ^ ")"
-                                    | SAssign (v, e)     -> v ^ " = " ^ string_of_sexpr e
-                                    | SCall (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-                                    | SDFABody(a,b,c,d,e) -> "{\n states : " ^ string_of_int a ^
+                                    | SUnopPre (o, e)      -> "(" ^ string_of_uop o ^ " " ^ string_of_sexpr e ^ ")"
+                                    | SUnopPost (e, o)     -> "(" ^ string_of_sexpr e ^ " " ^ string_of_uop o ^ ")"
+                                    | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
+                                    | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
+                                    | SDFA (a, b, c, d, e) -> "{\n states : " ^ string_of_int a ^
                                     "\n alphabet : " ^ string_of_clist b ^
                                     "\n start : " ^ string_of_int c ^
                                     "\n final : " ^ string_of_intlist d ^

@@ -38,7 +38,7 @@ let translate (globals, functions) = let context = L.global_context ()
                                       | A.TInt    -> i32_t
                                       | A.TChar   -> i8_t
                                       | A.TString -> L.pointer_type (ltype_of_typ A.TChar)
-                                      | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")  (* TODO struct_type, waiting for Lalka to name/implement then point to it here*)
+                                      | A.TRE     -> raise (Prelude.TODO "LLVM RegExp")  (* TODO struct_type, waiting for Lalka to name/implement then point to it here*)
                                       | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")     (* TODO struct_type, same as above *)
 
   (* Declare each global variable; remember its value in a map *)
@@ -112,7 +112,7 @@ let translate (globals, functions) = let context = L.global_context ()
                                     | A.BREMatch     -> raise (Prelude.TODO "implement")
                                     | A.BREIntersect -> raise (Prelude.TODO "implement")
                                 	  ) e1' e2' "tmp" builder
-      | SUnop (op, e)           -> (* let (t, _) = e *)
+      | SUnopPre (op, e)           -> (* let (t, _) = e *)
                                    let e' = expr builder e
                                    in (match op with
               	                          A.UNeg    -> L.build_neg
@@ -121,6 +121,7 @@ let translate (globals, functions) = let context = L.global_context ()
                                         | A.URELit  -> raise (Prelude.TODO "implement")
                                         | A.UREComp -> raise (Prelude.TODO "implement")
                                    ) e' "tmp" builder
+      | SUnopPost (op, e)       -> raise (Prelude.TODO "implement")
       | SAssign (s, e)          -> let e' = expr builder e
                                    in let _  = L.build_store e' (lookup s) builder
                                    in e'

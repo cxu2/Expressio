@@ -168,8 +168,8 @@ expr:
   | STRLIT                                  { StringLit ($1)               }
   | ID                                      { Id ($1)                      }
   | RELIT expr                              { UnopPre (URELit, $2)         }
-  | REEMPTY                                 { Regex RegExp.Zero            }
-  | REEPS                                   { Regex RegExp.One             }
+  | REEMPTY                                 { RE RegExp.Zero               }
+  | REEPS                                   { RE RegExp.One                }
   | expr RECOMP                             { UnopPost ($1, UREComp)       }
   | expr PLUS   expr                        { Binop ($1, BAdd,         $3) }
   | expr MINUS expr                         { Binop ($1, BSub,         $3) }
@@ -197,7 +197,7 @@ expr:
   | LPAREN expr RPAREN                      { $2                           }
   | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
   INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
-                                            { DFABody ($4, $8, $12, $16, $21) }
+                                            { DFA ($4, $8, $12, $16, $21)  }
 
 args_opt:
     /* nothing */                           { [] }
