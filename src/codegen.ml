@@ -44,7 +44,7 @@ let translate (globals, dfas, functions) =
     | A.TUnit   -> void_t
     | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")
     | A.TString -> L.pointer_type i8_t
-   (*) | A.TDFA    -> dfa_t*)
+    | A.TDFA    -> dfa_t
 
   (* Declare each global variable; remember its value in a map *)
   in let global_vars =
@@ -52,12 +52,14 @@ let translate (globals, dfas, functions) =
       let init = L.const_int (ltype_of_typ t) 0
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
-(*)
-  let dfa_decls = 
-    let dfa_decl m (t, n) =
-      let init = L.
-*)
-
+ 
+ (*) let global_dfa_decls = 
+    let dfa_decl m ddecl =
+      let alloc_dfa sts alpha start fin transitions = 
+        let a = L.const_array i8_t (Array.of_list alpha) 
+        and na = L.array_length a
+        and f = L.const_array i32_t (Array.of_list fin)
+        and *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
   in let printf_func = L.declare_function "printf" printf_t the_module
   
