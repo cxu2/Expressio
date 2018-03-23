@@ -104,42 +104,33 @@ let translate (globals, functions) = let context = L.global_context ()
 
     (* Construct code for an expression; return its value *)
     in let rec expr builder (_, e) = match e with
-	      SIntLit i           -> L.const_int i32_t i
-      | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
-      | SCharLit c          -> L.const_int i8_t (int_of_char c)
-      | SStringLit s        -> L.build_global_stringptr s "string" builder
-      | SNoexpr             -> L.const_int i32_t 0
-      | SId s               -> L.build_load (lookup s) s builder
-      | SBinop (e1, op, e2) -> let e1' = expr builder e1
-                               and e2' = expr builder e2
-                               in (helper op) e1' e2' "tmp" builder
-      | SUnopPre (A.UNeg, e)    -> L.build_neg (expr builder e) "tmp" builder
-      | SUnopPre (A.UNot, e)    -> L.build_not (expr builder e) "tmp" builder
-      | SUnopPre (A.URELit, e)  -> raise (Prelude.TODO "implement")
-      | SUnopPre (A.UREComp, e) -> raise (Prelude.TODO "implement")
-      (*| SUnopPre (op, e)           ->  let (t, _) = e *)
-                                   (* let e' = expr builder e
-                                   in (match op with
-              	                          A.UNeg    -> L.build_neg
-                                        | A.UNot    -> L.build_not
-                                        | A.UREStar -> raise (Prelude.TODO "implement")
-                                        | A.URELit  -> raise (Prelude.TODO "implement")
-                                        | A.UREComp -> raise (Prelude.TODO "implement")
-                                   ) e' "tmp" builder *)
+	      SIntLit i                -> L.const_int i32_t i
+      | SBoolLit b               -> L.const_int i1_t (if b then 1 else 0)
+      | SCharLit c               -> L.const_int i8_t (int_of_char c)
+      | SStringLit s             -> L.build_global_stringptr s "string" builder
+      | SNoexpr                  -> L.const_int i32_t 0
+      | SId s                    -> L.build_load (lookup s) s builder
+      | SBinop (e1, op, e2)      -> let e1' = expr builder e1
+                                    and e2' = expr builder e2
+                                    in (helper op) e1' e2' "tmp" builder
+      | SUnopPre (A.UNeg, e)     -> L.build_neg (expr builder e) "tmp" builder
+      | SUnopPre (A.UNot, e)     -> L.build_not (expr builder e) "tmp" builder
+      | SUnopPre (A.URELit, e)   -> raise (Prelude.TODO "implement")
+      | SUnopPre (A.UREComp, e)  -> raise (Prelude.TODO "implement")
       | SUnopPost (A.UREStar, e) -> raise (Prelude.TODO "implement")
-      | SAssign (s, e)          -> let e' = expr builder e
-                                   in let _ = L.build_store e' (lookup s) builder
-                                   in e'
+      | SAssign (s, e)           -> let e' = expr builder e
+                                    in let _ = L.build_store e' (lookup s) builder
+                                    in e'
       | SCall ("print",    [e])
-      | SCall ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
-      | SCall ("printbig", [e]) -> L.build_call printbig_func [| (expr builder e) |]                    "printbig" builder
-      | SCall ("printf",   [e]) -> L.build_call printf_func   [| float_format_str ; (expr builder e) |] "printf"   builder
-      | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
-                                   in let actuals = List.rev (List.map (expr builder) (List.rev act))
-                                   in let result = (match fdecl.styp with
+      | SCall ("printb",   [e])  -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
+      | SCall ("printbig", [e])  -> L.build_call printbig_func [| (expr builder e) |]                    "printbig" builder
+      | SCall ("printf",   [e])  -> L.build_call printf_func   [| float_format_str ; (expr builder e) |] "printf"   builder
+      | SCall (f,          act)  -> let (fdef, fdecl) = StringMap.find f function_decls
+                                    in let actuals = List.rev (List.map (expr builder) (List.rev act))
+                                    in let result = (match fdecl.styp with
                                                       A.TUnit -> ""
                                                     | _       -> f ^ "_result")
-                                   in L.build_call fdef (Array.of_list actuals) result builder
+                                    in L.build_call fdef (Array.of_list actuals) result builder
     (* Each basic block in a program ends with a "terminator" instruction i.e.
     one that ends the basic block. By definition, these instructions must
     indicate which basic block comes next -- they typically yield "void" value
