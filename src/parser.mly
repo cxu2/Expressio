@@ -171,7 +171,7 @@ expr:
   | REEMPTY                                 { Regex RegExp.Zero          }
   | REEPS                                   { Regex RegExp.One           }
   | expr REAND expr                         { Binop ($1, BREIntersect ,$3) }
-  | expr RECOMP                             { UnopPost($1,UREComp)       }
+  | expr RECOMP                             { UnopPost($1, UREComp)      }
   | expr PLUS   expr                        { Binop ($1, BAdd,       $3) }
   | expr MINUS expr                         { Binop ($1, BSub,       $3) }
   | expr TIMES  expr                        { Binop ($1, BMult,      $3) }
