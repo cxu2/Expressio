@@ -6,7 +6,7 @@
 
 .PHONY : all
 all :
-	ocamlbuild express.native
+	ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 express.native
 	ocamlbuild RegExp.native
 	ocamlbuild DFA.native
 
