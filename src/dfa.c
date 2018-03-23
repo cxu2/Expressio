@@ -201,7 +201,7 @@ int accept(struct dfa_t dfa, char *input){
   return 0;    
 }
 
-
+#ifdef BUILD_TEST
 int main(){
   char *alpha = malloc(2*sizeof(char));
   alpha[0] = '0';
@@ -290,3 +290,4 @@ int main(){
   
   return 0;
 }
+#endif
