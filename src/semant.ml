@@ -78,7 +78,7 @@ let check (globals, functions) =
                                               then lvaluet
                                               else raise (Failure err)
     (* Build local symbol table of variables for this function *)
-    in let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) StringMap.empty (globals' @ formals' @ locals' )
+    in let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) StringMap.empty (globals' @ formals' @ locals')
 
 
     (* Return a variable from our local symbol table *)
