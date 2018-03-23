@@ -13,6 +13,7 @@ and sx =
   | SBinop     of sexpr * bop * sexpr
   | SUnop      of uop * sexpr
   | SDFA       of int DFA.t
+  | SRegexp    of char RegExp.regexp
   (* TODO add post version of unary op here for Kleene star to be a* instead of *a *)
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
