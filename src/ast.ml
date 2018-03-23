@@ -4,11 +4,14 @@ open Prelude
 open RegExp
 open DFA
 
+(* Binary operators *)
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
            BAnd | BOr  | BCase | BREUnion | BREConcat | BREMatches | BREIntersect
 
+(* Unary operators *)
 type uop = UNeg | UNot | URELit | UREStar | UREComp
 
+(* Types within the Expressio language *)
 type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDFA
 
 type bind = typ * string
