@@ -32,6 +32,7 @@ module Prelude = struct
 
   exception TODO of string
   module StringMap = Map.Make(String)
+  let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
 
   (* Implement the Natural numbers Peano style *)
   type nat = Zero | Succ of nat
