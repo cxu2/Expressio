@@ -115,8 +115,8 @@ let translate (globals, functions) = let context = L.global_context ()
                                    in (match op with
               	                          A.UNeg    -> L.build_neg
                                         | A.UNot    -> L.build_not
-                                        | A.UStar   -> raise (Prelude.TODO "implement")
-                                        | A.ULit    -> raise (Prelude.TODO "implement")
+                                        | A.UREStar -> raise (Prelude.TODO "implement")
+                                        | A.URELit  -> raise (Prelude.TODO "implement")
                                         | A.UREComp -> raise (Prelude.TODO "implement")
                                    ) e' "tmp" builder
       | SAssign (s, e)          -> let e' = expr builder e

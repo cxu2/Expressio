@@ -7,7 +7,7 @@ open DFA
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
            BAnd | BOr  | BCase | BREUnion | BREConcat | BREMatches | BREIntersect
 
-type uop = UNeg | UNot | ULit | UStar | UREComp
+type uop = UNeg | UNot | URELit | UREStar | UREComp
 
 type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDFA
 
@@ -97,8 +97,8 @@ let string_of_op = function
 let string_of_uop = function
     UNeg    -> "-"
   | UNot    -> "!"
-  | ULit    -> "lit"
-  | UStar   -> "**"
+  | URELit  -> "lit"
+  | UREStar -> "**"
   | UREComp -> "'"
 
 (*
