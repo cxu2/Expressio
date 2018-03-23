@@ -184,7 +184,7 @@ expr:
   | expr AND    expr                        { Binop ($1, BAnd,       $3) }
   | expr OR     expr                        { Binop ($1, BOr,        $3) }
   | expr REOR   expr                        { Binop ($1, BREUnion,   $3) }
-  | expr RECAT  expr                        { Binop ($1, BREConcat,  $3) }
+  /* | expr RECAT  expr                        { Binop ($1, BREConcat,  $3) } */
   | expr REMATCH expr                       { Binop ($1, BREMatches, $3) }
   /* The line which follows should probably be CASE X OF Y, but this is tough to add without conflicts */
   | expr CASE expr                          { Binop ($1, BCase,      $3) }
