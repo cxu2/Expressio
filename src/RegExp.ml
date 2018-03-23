@@ -66,8 +66,8 @@ module RegExp = struct
     | Plus (a, b) -> plus (normalize a) (normalize b)
     | Mult (a, b) -> mult (normalize a) (normalize b)
     | Star a      -> star (normalize a)
-    | And (a, b)  -> raise (Prelude.TODO "") (* intersect (normalize a) (normalize b) *)
-    | Comp a      -> raise (Prelude.TODO "") (* comp (normalize a) *) (* should be, `comp (normalize a)` but I'll double check first *)
+    | And (_, _)  -> raise (Prelude.TODO "") (* intersect (normalize a) (normalize b) *)
+    | Comp _      -> raise (Prelude.TODO "") (* comp (normalize a) *) (* should be, `comp (normalize a)` but I'll double check first *)
 
   (* Does the language of this RE contain the empty string? *)
   let rec nullable = function
@@ -123,8 +123,8 @@ module RegExp = struct
       | Plus (a, b) -> (isZero' a) && (isZero' b)
       | Mult (a, b) -> (isZero' a) || (isZero' b)
       | Star _      -> false
-      | And (a, b)  -> raise (Prelude.TODO "isZero")
-      | Comp a      -> raise (Prelude.TODO "isZero")
+      | And (_, _)  -> raise (Prelude.TODO "isZero")
+      | Comp _      -> raise (Prelude.TODO "isZero")
     in isZero' (normalize r)
   let rec matches (r : 'a regexp) (word : 'a list) = match r with
       Zero -> false

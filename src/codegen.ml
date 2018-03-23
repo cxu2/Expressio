@@ -55,7 +55,7 @@ let translate (globals, functions) = let context = L.global_context ()
   (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
   in let function_decls = let function_decl m fdecl = let name = fdecl.sfname
-                                                      and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.sformals)
+                                                      and formal_types = Array.of_list (List.map (fun (t, _) -> ltype_of_typ t) fdecl.sformals)
                                                       in let ftype = L.function_type (ltype_of_typ fdecl.styp) formal_types
                                                       in StringMap.add name (L.define_function name ftype the_module, fdecl) m
                           in List.fold_left function_decl StringMap.empty functions
@@ -83,6 +83,24 @@ let translate (globals, functions) = let context = L.global_context ()
      * locals, then globals *)
     in let lookup n = try StringMap.find n local_vars
                       with Not_found -> StringMap.find n global_vars
+    in let helper = function
+           A.BAdd         -> L.build_add
+         | A.BSub         -> L.build_sub
+         | A.BMult        -> L.build_mul
+         | A.BDiv         -> L.build_sdiv
+         | A.BAnd         -> L.build_and
+         | A.BOr          -> L.build_or
+         | A.BEqual       -> L.build_icmp L.Icmp.Eq
+         | A.BNeq         -> L.build_icmp L.Icmp.Ne
+         | A.BLess        -> L.build_icmp L.Icmp.Slt
+         | A.BLeq         -> L.build_icmp L.Icmp.Sle
+         | A.BGreater     -> L.build_icmp L.Icmp.Sgt
+         | A.BGeq         -> L.build_icmp L.Icmp.Sge
+         | A.BREUnion     -> raise (Prelude.TODO "implement") (* awaiting LLVM implementation *)
+         | A.BREConcat    -> raise (Prelude.TODO "implement")
+         | A.BREMatches   -> raise (Prelude.TODO "implement")
+         | A.BREIntersect -> raise (Prelude.TODO "implement")
+         | A.BCase        -> raise (Prelude.TODO "implement")
 
     (* Construct code for an expression; return its value *)
     in let rec expr builder (_, e) = match e with
@@ -94,36 +112,23 @@ let translate (globals, functions) = let context = L.global_context ()
       | SId s               -> L.build_load (lookup s) s builder
       | SBinop (e1, op, e2) -> let e1' = expr builder e1
                                and e2' = expr builder e2
-                               in (match op with
-                                	    A.BAdd         -> L.build_add
-                                	  | A.BSub         -> L.build_sub
-                                	  | A.BMult        -> L.build_mul
-                                    | A.BDiv         -> L.build_sdiv
-                                	  | A.BAnd         -> L.build_and
-                                	  | A.BOr          -> L.build_or
-                                	  | A.BEqual       -> L.build_icmp L.Icmp.Eq
-                                	  | A.BNeq         -> L.build_icmp L.Icmp.Ne
-                                	  | A.BLess        -> L.build_icmp L.Icmp.Slt
-                                	  | A.BLeq         -> L.build_icmp L.Icmp.Sle
-                                	  | A.BGreater     -> L.build_icmp L.Icmp.Sgt
-                                	  | A.BGeq         -> L.build_icmp L.Icmp.Sge
-                                    | A.BREUnion     -> raise (Prelude.TODO "implement") (* awaiting LLVM implementation *)
-                                    | A.BREConcat    -> raise (Prelude.TODO "implement")
-                                    | A.BREMatch     -> raise (Prelude.TODO "implement")
-                                    | A.BREIntersect -> raise (Prelude.TODO "implement")
-                                	  ) e1' e2' "tmp" builder
-      | SUnopPre (op, e)           -> (* let (t, _) = e *)
-                                   let e' = expr builder e
+                               in (helper op) e1' e2' "tmp" builder
+      | SUnopPre (A.UNeg, e)    -> L.build_neg (expr builder e) "tmp" builder
+      | SUnopPre (A.UNot, e)    -> L.build_not (expr builder e) "tmp" builder
+      | SUnopPre (A.URELit, e)  -> raise (Prelude.TODO "implement")
+      | SUnopPre (A.UREComp, e) -> raise (Prelude.TODO "implement")
+      (*| SUnopPre (op, e)           ->  let (t, _) = e *)
+                                   (* let e' = expr builder e
                                    in (match op with
               	                          A.UNeg    -> L.build_neg
                                         | A.UNot    -> L.build_not
                                         | A.UREStar -> raise (Prelude.TODO "implement")
                                         | A.URELit  -> raise (Prelude.TODO "implement")
                                         | A.UREComp -> raise (Prelude.TODO "implement")
-                                   ) e' "tmp" builder
-      | SUnopPost (op, e)       -> raise (Prelude.TODO "implement")
+                                   ) e' "tmp" builder *)
+      | SUnopPost (A.UREStar, e) -> raise (Prelude.TODO "implement")
       | SAssign (s, e)          -> let e' = expr builder e
-                                   in let _  = L.build_store e' (lookup s) builder
+                                   in let _ = L.build_store e' (lookup s) builder
                                    in e'
       | SCall ("print",    [e])
       | SCall ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
