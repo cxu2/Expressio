@@ -162,39 +162,39 @@ expr_opt:
   | expr                                    { $1 }
 
 expr:
-    INTLIT                                  { IntLit ($1)                }
-  | BLIT                                    { BoolLit ($1)               }
-  | CHLIT                                   { CharLit ($1)               }
-  | STRLIT                                  { StringLit ($1)             }
-  | ID                                      { Id ($1)                    }
-  | RELIT expr                              { UnopPre (URELit, $2)       }
-  | REEMPTY                                 { Regex RegExp.Zero          }
-  | REEPS                                   { Regex RegExp.One           }
-  | expr REAND expr                         { Binop ($1, BREIntersect ,$3) }
-  | expr RECOMP                             { UnopPost($1, UREComp)      }
-  | expr PLUS   expr                        { Binop ($1, BAdd,       $3) }
-  | expr MINUS expr                         { Binop ($1, BSub,       $3) }
-  | expr TIMES  expr                        { Binop ($1, BMult,      $3) }
-  | expr DIVIDE expr                        { Binop ($1, BDiv,       $3) }
-  | expr EQ     expr                        { Binop ($1, BEqual,     $3) }
-  | expr NEQ    expr                        { Binop ($1, BNeq,       $3) }
-  | expr LT     expr                        { Binop ($1, BLess,      $3) }
-  | expr LEQ    expr                        { Binop ($1, BLeq,       $3) }
-  | expr GT     expr                        { Binop ($1, BGreater,   $3) }
-  | expr GEQ    expr                        { Binop ($1, BGeq,       $3) }
-  | expr AND    expr                        { Binop ($1, BAnd,       $3) }
-  | expr OR     expr                        { Binop ($1, BOr,        $3) }
-  | expr REOR   expr                        { Binop ($1, BREUnion,   $3) }
+    INTLIT                                  { IntLit ($1)                  }
+  | BLIT                                    { BoolLit ($1)                 }
+  | CHLIT                                   { CharLit ($1)                 }
+  | STRLIT                                  { StringLit ($1)               }
+  | ID                                      { Id ($1)                      }
+  | RELIT expr                              { UnopPre (URELit, $2)         }
+  | REEMPTY                                 { Regex RegExp.Zero            }
+  | REEPS                                   { Regex RegExp.One             }
+  | expr RECOMP                             { UnopPost ($1, UREComp)       }
+  | expr PLUS   expr                        { Binop ($1, BAdd,         $3) }
+  | expr MINUS expr                         { Binop ($1, BSub,         $3) }
+  | expr TIMES  expr                        { Binop ($1, BMult,        $3) }
+  | expr DIVIDE expr                        { Binop ($1, BDiv,         $3) }
+  | expr EQ     expr                        { Binop ($1, BEqual,       $3) }
+  | expr NEQ    expr                        { Binop ($1, BNeq,         $3) }
+  | expr LT     expr                        { Binop ($1, BLess,        $3) }
+  | expr LEQ    expr                        { Binop ($1, BLeq,         $3) }
+  | expr GT     expr                        { Binop ($1, BGreater,     $3) }
+  | expr GEQ    expr                        { Binop ($1, BGeq,         $3) }
+  | expr AND    expr                        { Binop ($1, BAnd,         $3) }
+  | expr OR     expr                        { Binop ($1, BOr,          $3) }
+  | expr REAND expr                         { Binop ($1, BREIntersect, $3) }
+  | expr REOR   expr                        { Binop ($1, BREUnion,     $3) }
   /* | expr RECAT  expr                        { Binop ($1, BREConcat,  $3) } */
-  | expr REMATCH expr                       { Binop ($1, BREMatches, $3) }
+  | expr REMATCH expr                       { Binop ($1, BREMatches,   $3) }
   /* The line which follows should probably be CASE X OF Y, but this is tough to add without conflicts */
-  | expr CASE expr                          { Binop ($1, BCase,      $3) }
-  | MINUS expr %prec NEG                    { UnopPre (UNeg, $2)         }
-  | NOT expr                                { UnopPre (UNot, $2)         }
-  | expr RESTAR                             { UnopPost ($1, UREStar)     }
-  | ID ASSIGN expr                          { Assign ($1, $3)            }
-  | ID LPAREN args_opt RPAREN               { Call ($1, $3)              }
-  | LPAREN expr RPAREN                      { $2                         }
+  | expr CASE expr                          { Binop ($1, BCase,        $3) }
+  | MINUS expr %prec NEG                    { UnopPre (UNeg, $2)           }
+  | NOT expr                                { UnopPre (UNot, $2)           }
+  | expr RESTAR                             { UnopPost ($1, UREStar)       }
+  | ID ASSIGN expr                          { Assign ($1, $3)              }
+  | ID LPAREN args_opt RPAREN               { Call ($1, $3)                }
+  | LPAREN expr RPAREN                      { $2                           }
   | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
   INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { DFABody ($4, $8, $12, $16, $21) }
