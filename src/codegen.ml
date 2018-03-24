@@ -115,9 +115,16 @@ let translate (globals, functions) = let context = L.global_context ()
                                     in (helper op) e1' e2' "tmp" builder
       | SUnopPre (A.UNeg, e)     -> L.build_neg (expr builder e) "tmp" builder
       | SUnopPre (A.UNot, e)     -> L.build_not (expr builder e) "tmp" builder
-      | SUnopPre (A.URELit, e)   -> raise (Prelude.TODO "implement")
-      | SUnopPre (A.UREComp, e)  -> raise (Prelude.TODO "implement")
-      | SUnopPost (A.UREStar, e) -> raise (Prelude.TODO "implement")
+      | SUnopPre (A.UREStar, _)  -> raise Prelude.ABSURD
+      | SUnopPre (A.URELit, _)   -> raise (Prelude.TODO "implement")
+      | SUnopPre (A.UREComp, _)  -> raise (Prelude.TODO "implement")
+      | SUnopPost (_, A.UREStar) -> raise (Prelude.TODO "implement")
+      | SUnopPost (_, A.UNeg)    -> raise Prelude.ABSURD
+      | SUnopPost (_, A.UNot)    -> raise Prelude.ABSURD
+      | SUnopPost (_, A.URELit)  -> raise Prelude.ABSURD
+      | SUnopPost (_, A.UREComp) -> raise Prelude.ABSURD
+      | SRE _                    -> raise (Prelude.TODO "implement")
+      | SDFA (_, _, _, _, _)     -> raise (Prelude.TODO "implement")
       | SAssign (s, e)           -> let e' = expr builder e
                                     in let _ = L.build_store e' (lookup s) builder
                                     in e'
