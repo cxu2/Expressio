@@ -42,6 +42,7 @@ let translate (globals, functions) = let context = L.global_context ()
                                       | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")     (* TODO struct_type, same as above *)
 
   (* Declare each global variable; remember its value in a map *)
+<<<<<<< Updated upstream
   in let global_vars = let global_var m (t, n) = let init = L.const_int (ltype_of_typ t) 0
                                                  in StringMap.add n (L.define_global n init the_module) m
                        in List.fold_left global_var StringMap.empty globals
@@ -52,6 +53,17 @@ let translate (globals, functions) = let context = L.global_context ()
   in let printbig_t = L.function_type i32_t [| i32_t |]
   in let printbig_func = L.declare_function "printbig" printbig_t the_module
 
+=======
+  in let global_vars =
+    let global_var m (t, n) =
+      let init = L.const_int (ltype_of_typ t) 0
+      in StringMap.add n (L.define_global n init the_module) m in
+    List.fold_left global_var StringMap.empty globals in
+
+  let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
+  in let printf_func = L.declare_function "printf" printf_t the_module
+
+>>>>>>> Stashed changes
   (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
   in let function_decls = let function_decl m fdecl = let name = fdecl.sfname
