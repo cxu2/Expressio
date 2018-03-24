@@ -95,10 +95,10 @@ let check (globals, dfas, functions) =
       | CharLit c             -> (TChar, SCharLit c)
       | StringLit s           -> (TString, SStringLit s)
       | BoolLit l             -> (TBool, SBoolLit l)
-      | DFA (a, b, c, d, e)   -> let check = raise (Prelude.TODO "implement any needed checking here")
-                                 in (TDFA, SDFA (a, b, c, d, e))
-      | RE r                  -> let check = raise (Prelude.TODO "implement any needed checking here")
-                                 in (TRE, SRE r)
+      | DFA (a, b, c, d, e)   -> (* let check = raise (Prelude.TODO "implement any needed checking here")
+                                 in*) (TDFA, SDFA (a, b, c, d, e))
+      | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
+                                 in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
       | Id s                  -> (type_of_identifier s, SId s)
       | Assign (var, e) as ex -> let lt = type_of_identifier var
@@ -162,6 +162,8 @@ let check (globals, dfas, functions) =
       | For (e1, e2, e3, st) -> SFor (expr e1, check_bool_expr e2, expr e3, check_stmt st)
       | While (p, s)         -> SWhile (check_bool_expr p, check_stmt s)
       | Infloop (s)          -> SInfloop (check_stmt s)
+      | Continue             -> raise (Prelude.TODO "semant check_stmt Continue")
+      | Break                -> raise (Prelude.TODO "semant check_stmt Break")
       | Return e             -> let (t, e') = expr e
                                 in if t = func.typ
                                    then SReturn (t, e')
