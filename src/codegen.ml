@@ -24,10 +24,14 @@ open Prelude
    throws an exception if something is wrong. *)
 let translate (globals, dfas, functions) =
   let context    = L.global_context ()
+<<<<<<< HEAD
 
 
 
   (* Add types to the context so we can use them in our LLVM code *)
+=======
+   (* Add types to the context so we can use them in our LLVM code *)
+>>>>>>> 887945731123b2a9dd5687d9688861683f454f54
   in let i32_t      = L.i32_type    context
      and i8_t       = L.i8_type     context
      and i1_t       = L.i1_type     context
@@ -35,20 +39,27 @@ let translate (globals, dfas, functions) =
     (* Create an LLVM module -- this is a "container" into which we'll
      generate actual code *)
      and the_module = L.create_module context "Expressio"
+<<<<<<< HEAD
 
 
 
   (**************************
    * Ast type to LLVM type  *
    **************************)
+=======
+  (* Convert MicroC types to LLVM types *)
+  in let dfa_t =
+      let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type (L.pointer_type i32_t)] in
+      L.struct_type context types
+>>>>>>> 887945731123b2a9dd5687d9688861683f454f54
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
-    | A.TChar   -> raise (Prelude.TODO "LLVM Char")
+    | A.TChar   -> i8_t
     | A.TUnit   -> void_t
     | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")
-    | A.TString -> raise (Prelude.TODO "LLVM String")
-    | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")
+    | A.TString -> L.pointer_type i8_t
+    | A.TDFA    -> dfa_t
 
 
   (* Declare each global variable; remember its value in a map *)
@@ -57,6 +68,7 @@ let translate (globals, dfas, functions) =
       let init = L.const_int (ltype_of_typ t) 0
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
+<<<<<<< HEAD
 
 
   (***********************
@@ -67,6 +79,12 @@ let translate (globals, dfas, functions) =
 
 
 
+=======
+ 
+  let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
+  in let printf_func = L.declare_function "printf" printf_t the_module
+  
+>>>>>>> 887945731123b2a9dd5687d9688861683f454f54
   (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
   in let function_decls =
@@ -115,9 +133,9 @@ let translate (globals, dfas, functions) =
     let rec expr builder e = match e with
 	      IntLit i          -> L.const_int i32_t i
       | BoolLit b          -> L.const_int i1_t (if b then 1 else 0)
-      | CharLit _          -> raise (Prelude.TODO "CharLit")
+      | CharLit c          -> L.const_int i8_t (int_of_char c)
       (* | SFliteral l         -> L.const_float_of_string float_t l *)
-      | StringLit _        -> raise (Prelude.TODO "StringLit")
+      | StringLit s        -> L.build_global_stringptr s "string" builder
       | Noexpr             -> L.const_int i32_t 0
       | Id s               -> L.build_load (lookup s) s builder
       | Binop (e1, op, e2) -> let e1' = expr builder e1
@@ -147,6 +165,18 @@ let translate (globals, dfas, functions) =
                                    ) e' "tmp" builder
       | Assign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
+  (*)    | DFABody (n, a, s, f, delta) ->  let alloc_dfa name sts alpha start fin transitions = 
+                                          let ns = L.const_int i32_t n
+                                          and a = L.build_array_malloc i8_t (Array.of_list alpha) "alpha" builder
+                                          and na = L.array_length a
+                                          and f = L.build_array_malloc i32_t (Array.of_list fin) "fin" builder
+                                          and nf = L.array_length f
+                                          and d = L.build_malloc (L.pointer_type i32_t) "delta" builder in
+                                          let dfa1 = L.build_malloc dfa_t "dfa" builder in
+                                          let dfa_loaded = L.build_load dfa1 "dfa_loaded" builder in
+                                          let dfa_loaded2 = L.build_insertvalue dfa_loaded (i32 10) 0 "dfa_loaded2" builder
+                                            let dfa_struct = L.build_alloca dfa_t "dfa" builder in 
+                                            L.struct_set_body (L.named_struct_type context "dfa") (Array.of_list [ns; a; na; f; nf; d])*)
       | Call ("print",    [e])
       | Call ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
       | Call ("printf",   [e]) -> L.build_call printf_func   [| float_format_str ; (expr builder e) |] "printf"   builder
