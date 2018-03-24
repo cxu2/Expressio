@@ -1,8 +1,9 @@
 # install ocaml from apt
-add-apt-repository ppa:avsm/ppa
-sudo apt-get update
-sudo apt-get install -y ocaml m4 llvm opam
+brew install --with-toolchain llvm
+brew install ocaml
+brew install opam
 opam init
+opam update
+opam upgrade
 opam install llvm ocamlfind
-eval `opam config env`
 
