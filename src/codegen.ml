@@ -37,10 +37,10 @@ let translate (globals, dfas, functions) =
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
-    | A.TChar   -> raise (Prelude.TODO "LLVM Char")
+    | A.TChar   -> i8_t
     | A.TUnit   -> void_t
     | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")
-    | A.TString -> raise (Prelude.TODO "LLVM String")
+    | A.TString -> L.pointer_type i8_t
     | A.TDFA    -> raise (Prelude.TODO "LLVM DFA")
 
   (* Declare each global variable; remember its value in a map *)
@@ -101,9 +101,9 @@ let translate (globals, dfas, functions) =
     let rec expr builder e = match e with
 	      IntLit i          -> L.const_int i32_t i
       | BoolLit b          -> L.const_int i1_t (if b then 1 else 0)
-      | CharLit _          -> raise (Prelude.TODO "CharLit")
+      | CharLit c          -> L.const_int i8_t (int_of_char c)
       (* | SFliteral l         -> L.const_float_of_string float_t l *)
-      | StringLit _        -> raise (Prelude.TODO "StringLit")
+      | StringLit s        -> L.build_global_stringptr s "string" builder
       | Noexpr             -> L.const_int i32_t 0
       | Id s               -> L.build_load (lookup s) s builder
       | Binop (e1, op, e2) -> let e1' = expr builder e1
