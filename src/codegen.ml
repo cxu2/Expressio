@@ -35,18 +35,18 @@ let translate (globals, dfas, functions) =
      generate actual code *)
      and the_module = L.create_module context "Expressio"
 
-  in let rec tree_t = L.struct_type context [| (pointer_t tree_t); i8_t; (pointer_t tree_t) |]
+  in let tree_t = L.struct_type context [| i8_t; (pointer_t i8_t); (pointer_t i8_t) |]
+
+  in let dfa_t =
+      let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type (L.pointer_type i32_t)] in
+      L.struct_type context types
 
 
   (**************************
    * Ast type to LLVM type  *
    **************************)
 
-  (* Convert MicroC types to LLVM types *)
-  in let dfa_t =
-      let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type (L.pointer_type i32_t)] in
-      L.struct_type context types
-
+  
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
