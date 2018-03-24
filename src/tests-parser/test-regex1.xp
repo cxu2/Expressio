@@ -4,13 +4,13 @@ main : -> int {
   regexp x;
   regexp y;
   regexp z;
-  regexp t;
+~~  regexp t;
   string s;
   regexp m;
   x = lit 'c';
   y = x **;
   z = x | y;
-  t = y ^ x;
+  ~~t = y ^ x;
   m = x matches s;
   for i = 0; i < 5; i = i + 1 {
     print(i);
