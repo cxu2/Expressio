@@ -71,8 +71,8 @@ let translate (globals, dfas, functions) =
     let (the_function, _) = StringMap.find fdecl.fname function_decls
     in let builder = L.builder_at_end context (L.entry_block the_function)
 
-    in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder
+    in let int_format_str = L.build_global_stringptr "%s\n" "fmt" builder
+    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -136,21 +136,25 @@ let translate (globals, dfas, functions) =
                                    ) e' "tmp" builder
       | Assign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
-  (*)    | DFABody (n, a, s, f, delta) ->  let alloc_dfa name sts alpha start fin transitions = 
-                                          let ns = L.const_int i32_t n
-                                          and a = L.build_array_malloc i8_t (Array.of_list alpha) "alpha" builder
-                                          and na = L.array_length a
-                                          and f = L.build_array_malloc i32_t (Array.of_list fin) "fin" builder
-                                          and nf = L.array_length f
+      | DFABody (n, a, s, f, delta) ->    let ns = L.const_int i32_t n
+                                          and start = L.const_int i32_t s
+                                          and nsym = L.const_int i32_t (List.length a)
+                                          and nfin = L.const_int i32_t (List.length f) in
+                                          let alpha = L.build_array_malloc i8_t nsym "alpha" builder
+                                          and fin = L.build_array_malloc i32_t nfin "fin" builder
                                           and d = L.build_malloc (L.pointer_type i32_t) "delta" builder in
-                                          let dfa1 = L.build_malloc dfa_t "dfa" builder in
+                                          let dfa1 = L.build_alloca dfa_t "dfa" builder in
                                           let dfa_loaded = L.build_load dfa1 "dfa_loaded" builder in
-                                          let dfa_loaded2 = L.build_insertvalue dfa_loaded (i32 10) 0 "dfa_loaded2" builder
-                                            let dfa_struct = L.build_alloca dfa_t "dfa" builder in 
-                                            L.struct_set_body (L.named_struct_type context "dfa") (Array.of_list [ns; a; na; f; nf; d])*)
+                                          let dfa_loaded2 = L.build_insertvalue dfa_loaded ns 0 "dfa_loaded2" builder in
+                                          let dfa_loaded3 = L.build_insertvalue dfa_loaded2 alpha 1 "dfa_loaded3" builder in
+                                          let dfa_loaded4 = L.build_insertvalue dfa_loaded3 nsym 2 "dfa_loaded4" builder in
+                                          let dfa_loaded5 = L.build_insertvalue dfa_loaded4 start 3 "dfa_loaded5" builder in
+                                          let dfa_loaded6 = L.build_insertvalue dfa_loaded5 fin 4 "dfa_loaded6" builder in
+                                          let dfa_loaded7 = L.build_insertvalue dfa_loaded6 nfin 5 "dfa_loaded7" builder in
+                                          L.build_insertvalue dfa_loaded7 d 6 "dfa_loaded8" builder
       | Call ("print",    [e])
       | Call ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
-      | Call ("printf",   [e]) -> L.build_call printf_func   [| float_format_str ; (expr builder e) |] "printf"   builder
+      | Call ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | Call (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
                                    in let actuals = List.rev (List.map (expr builder) (List.rev act))
                                    in let result = (match fdecl.typ with
