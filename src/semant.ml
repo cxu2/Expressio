@@ -81,8 +81,8 @@ let check (globals, dfas, functions) =
                                               else raise (Failure err)
     (* Build local symbol table of variables for this function *)
     (* TODO use Prelude.fromList *)
-    in let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) StringMap.empty (globals' @ formals' @ locals')
-
+    in let bindings : bind list = (globals' @ formals' @ locals')
+    in let symbols = Prelude.fromList (List.map Prelude.swap bindings)
 
     (* Return a variable from our local symbol table *)
     in let type_of_identifier s =
