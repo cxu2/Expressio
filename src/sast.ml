@@ -108,7 +108,6 @@ let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
                                       SIntLit l            -> string_of_int l
                                     | SRE r                -> RegExp.string_of_re r
-                                    | SDFA _               -> raise (Prelude.TODO "implement SDFA")
                                     | SBoolLit true        -> "true"
                                     | SBoolLit false       -> "false"
                                     | SCharLit c           -> String.make 1 c
