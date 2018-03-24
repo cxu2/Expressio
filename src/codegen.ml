@@ -17,6 +17,7 @@ module L = Llvm
 module A = Ast
 open Ast
 open Prelude
+open Exception
 
  module StringMap = Map.Make(String)
 
