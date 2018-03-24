@@ -96,11 +96,11 @@ let translate (globals, functions) = let context = L.global_context ()
          | A.BLeq         -> L.build_icmp L.Icmp.Sle
          | A.BGreater     -> L.build_icmp L.Icmp.Sgt
          | A.BGeq         -> L.build_icmp L.Icmp.Sge
-         | A.BREUnion     -> raise (Prelude.TODO "implement") (* awaiting LLVM implementation *)
-         | A.BREConcat    -> raise (Prelude.TODO "implement")
-         | A.BREMatches   -> raise (Prelude.TODO "implement")
-         | A.BREIntersect -> raise (Prelude.TODO "implement")
-         | A.BCase        -> raise (Prelude.TODO "implement")
+         | A.BREUnion     -> raise (Prelude.TODO "implement helper BREUnion") (* awaiting LLVM implementation *)
+         | A.BREConcat    -> raise (Prelude.TODO "implement helper BREConcat")
+         | A.BREMatches   -> raise (Prelude.TODO "implement helper BREMatches")
+         | A.BREIntersect -> raise (Prelude.TODO "implement helper BREIntersect")
+         | A.BCase        -> raise (Prelude.TODO "implement helper BCase")
 
     (* Construct code for an expression; return its value *)
     in let rec expr builder (_, e) = match e with
@@ -116,15 +116,15 @@ let translate (globals, functions) = let context = L.global_context ()
       | SUnopPre (A.UNeg, e)     -> L.build_neg (expr builder e) "tmp" builder
       | SUnopPre (A.UNot, e)     -> L.build_not (expr builder e) "tmp" builder
       | SUnopPre (A.UREStar, _)  -> raise Prelude.ABSURD
-      | SUnopPre (A.URELit, _)   -> raise (Prelude.TODO "implement")
-      | SUnopPre (A.UREComp, _)  -> raise (Prelude.TODO "implement")
-      | SUnopPost (_, A.UREStar) -> raise (Prelude.TODO "implement")
+      | SUnopPre (A.URELit, _)   -> raise (Prelude.TODO "implement expr URELit")
+      | SUnopPre (A.UREComp, _)  -> raise (Prelude.TODO "implement expr UREComp")
+      | SUnopPost (_, A.UREStar) -> raise (Prelude.TODO "implement expr UREStar")
       | SUnopPost (_, A.UNeg)    -> raise Prelude.ABSURD
       | SUnopPost (_, A.UNot)    -> raise Prelude.ABSURD
       | SUnopPost (_, A.URELit)  -> raise Prelude.ABSURD
       | SUnopPost (_, A.UREComp) -> raise Prelude.ABSURD
-      | SRE _                    -> raise (Prelude.TODO "implement")
-      | SDFA (_, _, _, _, _)     -> raise (Prelude.TODO "implement")
+      | SRE _                    -> raise (Prelude.TODO "implement expr SRE")
+      | SDFA (_, _, _, _, _)     -> raise (Prelude.TODO "implement expr SDFA")
       | SAssign (s, e)           -> let e' = expr builder e
                                     in let _ = L.build_store e' (lookup s) builder
                                     in e'
