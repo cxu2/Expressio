@@ -1,7 +1,7 @@
 (* Semantically-checked Abstract Syntax Tree and functions for printing it *)
 
 open Ast
-open Prelude
+(* open Prelude *)
 open RegExp
 
 type sexpr = typ * sx
