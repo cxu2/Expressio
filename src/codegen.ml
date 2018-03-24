@@ -158,6 +158,8 @@ let translate (globals, functions) = let context = L.global_context ()
 	      SBlock sl -> List.fold_left stmt builder sl
         (* Generate code for this expression, return resulting builder *)
       | SExpr e   -> let _ = expr builder e in builder
+      | SContinue -> raise (Prelude.TODO "codegen SContinue")
+      | SBreak    -> raise (Prelude.TODO "codegen SBreak")
       | SReturn e -> let _ = match fdecl.styp with
                                 (* Special "return nothing" instr *)
                                 A.TUnit -> L.build_ret_void builder
