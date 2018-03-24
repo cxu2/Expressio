@@ -108,7 +108,7 @@ let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
                                       SIntLit l            -> string_of_int l
                                     | SRE r                -> RegExp.string_of_re r
-                                    | SDFA _               -> raise (Prelude.TODO "implement")
+                                    | SDFA _               -> raise (Prelude.TODO "implement SDFA")
                                     | SBoolLit true        -> "true"
                                     | SBoolLit false       -> "false"
                                     | SCharLit c           -> String.make 1 c
@@ -120,11 +120,11 @@ let rec string_of_sexpr (t, e) =
                                     | SUnopPost (e, o)     -> "(" ^ string_of_sexpr e ^ " " ^ string_of_uop o ^ ")"
                                     | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
                                     | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-                                    | SDFA (a, b, c, d, e) -> "{\n states : " ^ string_of_int a ^
-                                    "\n alphabet : " ^ string_of_clist b ^
-                                    "\n start : " ^ string_of_int c ^
-                                    "\n final : " ^ string_of_intlist d ^
-                                    "\n transitions : " ^ string_of_tlist e ^ "\n }"
+                                    | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
+                                                              "\n alphabet : "    ^ string_of_clist b   ^
+                                                              "\n start : "       ^ string_of_int c     ^
+                                                              "\n final : "       ^ string_of_intlist d ^
+                                                              "\n transitions : " ^ string_of_tlist e   ^ "\n }"
                                     | SNoexpr            -> ""
                                    ) ^ ")"
 
