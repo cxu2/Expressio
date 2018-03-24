@@ -1,0 +1,14 @@
+language: expressio
+
+before_install:
+
+install:
+  - bash -ex travis-ci.sh
+
+script:
+  - cd src
+  - make clean && make
+
+after_script:
+
+sudo: enabled
