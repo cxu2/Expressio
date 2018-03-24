@@ -12,5 +12,3 @@ script:
 after_script:
 
 sudo: enabled
-
-os: osx
