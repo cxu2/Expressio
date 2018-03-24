@@ -13,7 +13,7 @@ open Prelude
 %token COLON ARROW
 %token CASE OF
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR RECAT RESTAR REAND RECOMP
-%token DFA STATES ALPH START FINAL TRANF
+%token DFATOKEN STATES ALPH START FINAL TRANF
 %token <int> INTLIT
 %token <bool> BLIT
 %token <char> CHLIT
@@ -102,7 +102,7 @@ typ:
   | CHAR                                    { TChar   }
   | REGEXP                                  { TRE     }
   | STRING                                  { TString }
-  | DFA                                     { TDFA    }
+  | DFATOKEN                                { TDFA    }
 
 int_opt:
   /* nothing */                             { [] }
