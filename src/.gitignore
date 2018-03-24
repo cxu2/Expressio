@@ -30,3 +30,8 @@ setup.log
 
 # microc test logs
 *.log
+
+# tests
+*.err
+*.ll
+*.diff
