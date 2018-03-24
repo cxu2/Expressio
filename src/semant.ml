@@ -51,7 +51,7 @@ let check (globals, dfas, functions) =
   (* Add function name to symbol table *)
   in let add_func map fd =
     let built_in_err = "function " ^ fd.fname ^ " may not be defined"
-    and dup_err = "duplicate function " ^ fd.fname
+    and dup_err      = "duplicate function " ^ fd.fname
     and make_err er = raise (Failure er)
     and n = fd.fname (* Name of the function *)
     in match fd with (* No duplicate functions or redefinitions of built-ins *)
@@ -72,14 +72,15 @@ let check (globals, dfas, functions) =
 
   in let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
-    let formals' = check_binds "formal" func.formals
-    in let locals' = check_binds "local" func.locals
+    let formals'   = check_binds "formal" func.formals
+    in let locals' = check_binds "local"  func.locals
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
     in let check_assign lvaluet rvaluet err = if lvaluet = rvaluet
                                               then lvaluet
                                               else raise (Failure err)
     (* Build local symbol table of variables for this function *)
+    (* TODO use Prelude.fromList *)
     in let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) StringMap.empty (globals' @ formals' @ locals')
 
 
