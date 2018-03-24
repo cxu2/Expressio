@@ -1,6 +1,7 @@
 (* Top-level of the MicroC compiler: scan & parse the input,
    check the resulting AST and generate an SAST from it, generate LLVM IR,
    and dump the module *)
+open Prelude
 
 type action = Ast | Sast | LLVM_IR | Compile
 
@@ -21,6 +22,7 @@ let () =
   let ast = Parser.program Scanner.token lexbuf in
   match !action with
     Ast -> print_string (Ast.string_of_program ast)
+  | _   -> raise (Prelude.TODO "express.ml")
   (* | _ -> let sast = Semant.check ast in
     match !action with
       Ast     -> ()
