@@ -8,7 +8,7 @@
 
 # Path to the microc compiler.  Usually "./express.native"
 # Try "_build/express.native" if ocamlbuild was unable to create a symbolic link.
-MICROC="./express.native" # To be changed to proper test driver name
+MICROC="./express.native -a" # To be changed to proper test driver name
 #MICROC="_build/microc.native"
 
 # Set time limit for all operations
