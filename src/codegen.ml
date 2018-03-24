@@ -53,13 +53,6 @@ let translate (globals, dfas, functions) =
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
  
- (*) let global_dfa_decls = 
-    let dfa_decl m ddecl =
-      let alloc_dfa sts alpha start fin transitions = 
-        let a = L.const_array i8_t (Array.of_list alpha) 
-        and na = L.array_length a
-        and f = L.const_array i32_t (Array.of_list fin)
-        and *)
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
   in let printf_func = L.declare_function "printf" printf_t the_module
   
@@ -143,6 +136,18 @@ let translate (globals, dfas, functions) =
                                    ) e' "tmp" builder
       | Assign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
+  (*)    | DFABody (n, a, s, f, delta) ->  let alloc_dfa name sts alpha start fin transitions = 
+                                          let ns = L.const_int i32_t n
+                                          and a = L.build_array_malloc i8_t (Array.of_list alpha) "alpha" builder
+                                          and na = L.array_length a
+                                          and f = L.build_array_malloc i32_t (Array.of_list fin) "fin" builder
+                                          and nf = L.array_length f
+                                          and d = L.build_malloc (L.pointer_type i32_t) "delta" builder in
+                                          let dfa1 = L.build_malloc dfa_t "dfa" builder in
+                                          let dfa_loaded = L.build_load dfa1 "dfa_loaded" builder in
+                                          let dfa_loaded2 = L.build_insertvalue dfa_loaded (i32 10) 0 "dfa_loaded2" builder
+                                            let dfa_struct = L.build_alloca dfa_t "dfa" builder in 
+                                            L.struct_set_body (L.named_struct_type context "dfa") (Array.of_list [ns; a; na; f; nf; d])*)
       | Call ("print",    [e])
       | Call ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
       | Call ("printf",   [e]) -> L.build_call printf_func   [| float_format_str ; (expr builder e) |] "printf"   builder
