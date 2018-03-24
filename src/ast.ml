@@ -1,8 +1,7 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-open Prelude
+(* open Prelude *)
 open RegExp
-(* open DFA *)
 
 (* Binary operators *)
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
@@ -130,24 +129,23 @@ let rec string_of_tlist = function
   | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
 
 let rec string_of_expr = function
-    IntLit l          -> string_of_int l
-  | RE r              -> RegExp.string_of_re r
-  | DFA _             -> raise (Prelude.TODO "implement")
-  | BoolLit true      -> "true"
-  | BoolLit false     -> "false"
-  | CharLit c         -> String.make 1 c
-  | StringLit s       -> s
-  | Id s              -> s
-  | Binop (e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
-  | UnopPre (o, e)    -> "(" ^ string_of_uop o ^ " " ^ string_of_expr e ^ ")"
-  | UnopPost (e, o)   -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
-  | Assign (v, e)     -> v ^ " = " ^ string_of_expr e
-  | Call (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | DFA (a,b,c,d,e)   -> "{\n states : " ^ string_of_int a ^
-  "\n alphabet : " ^ string_of_clist b ^
-  "\n start : " ^ string_of_int c ^
-  "\n final : " ^ string_of_intlist d ^
-  "\n transitions : " ^ string_of_tlist e ^ "\n }"
+    IntLit l            -> string_of_int l
+  | RE r                -> RegExp.string_of_re r
+  | BoolLit true        -> "true"
+  | BoolLit false       -> "false"
+  | CharLit c           -> String.make 1 c
+  | StringLit s         -> s
+  | Id s                -> s
+  | Binop (e1, o, e2)   -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
+  | UnopPre (o, e)      -> "(" ^ string_of_uop o ^ " " ^ string_of_expr e ^ ")"
+  | UnopPost (e, o)     -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
+  | Assign (v, e)       -> v ^ " = " ^ string_of_expr e
+  | Call (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | DFA (a, b, c, d, e) -> "{\n states : "      ^ string_of_int a     ^
+                            "\n alphabet : "    ^ string_of_clist b   ^
+                            "\n start : "       ^ string_of_int c     ^
+                            "\n final : "       ^ string_of_intlist d ^
+                            "\n transitions : " ^ string_of_tlist e   ^ "\n }"
   | Noexpr            -> ""
 
 let rec string_of_stmt = function
