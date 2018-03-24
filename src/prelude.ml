@@ -14,6 +14,8 @@ module Prelude = struct
   (* given a function of two arguments, swap the arguments *)
   let flip (f : 'a -> 'b -> 'c) (x : 'b) (y : 'a) : 'c = f y x
 
+  let swap ((x, y) : ('a * 'b)) : ('b * 'a) = (y, x)
+
   let first' (quadruple : 'a * 'b * 'c * 'd) : 'a = match quadruple with
     (a , _ , _ , _) -> a
   let second' (quadruple : 'a * 'b * 'c * 'd) : 'b = match quadruple with
