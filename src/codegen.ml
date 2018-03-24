@@ -24,43 +24,37 @@ open Prelude
    throws an exception if something is wrong. *)
 let translate (globals, dfas, functions) =
   let context    = L.global_context ()
-<<<<<<< HEAD
-
-
-
-  (* Add types to the context so we can use them in our LLVM code *)
-=======
    (* Add types to the context so we can use them in our LLVM code *)
->>>>>>> 887945731123b2a9dd5687d9688861683f454f54
+
   in let i32_t      = L.i32_type    context
      and i8_t       = L.i8_type     context
      and i1_t       = L.i1_type     context
      and void_t     = L.void_type   context
+     and pointer_t  = L.pointer_type
     (* Create an LLVM module -- this is a "container" into which we'll
      generate actual code *)
      and the_module = L.create_module context "Expressio"
-<<<<<<< HEAD
 
+  in let rec tree_t = L.struct_type context [| (pointer_t tree_t); i8_t; (pointer_t tree_t) |]
 
 
   (**************************
    * Ast type to LLVM type  *
    **************************)
-=======
+
   (* Convert MicroC types to LLVM types *)
   in let dfa_t =
       let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type (L.pointer_type i32_t)] in
       L.struct_type context types
->>>>>>> 887945731123b2a9dd5687d9688861683f454f54
+
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
     | A.TChar   -> i8_t
     | A.TUnit   -> void_t
-    | A.TRegexp -> raise (Prelude.TODO "LLVM RegExp")
+    | A.TRegexp -> tree_t
     | A.TString -> L.pointer_type i8_t
     | A.TDFA    -> dfa_t
-
 
   (* Declare each global variable; remember its value in a map *)
   in let global_vars =
@@ -68,7 +62,6 @@ let translate (globals, dfas, functions) =
       let init = L.const_int (ltype_of_typ t) 0
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
-<<<<<<< HEAD
 
 
   (***********************
@@ -78,13 +71,6 @@ let translate (globals, dfas, functions) =
   in let printf_func = L.declare_function "printf" printf_t the_module
 
 
-
-=======
- 
-  let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
-  in let printf_func = L.declare_function "printf" printf_t the_module
-  
->>>>>>> 887945731123b2a9dd5687d9688861683f454f54
   (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
   in let function_decls =
