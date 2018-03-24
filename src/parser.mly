@@ -100,7 +100,7 @@ typ:
   | BOOL                                    { TBool   }
   | UNIT                                    { TUnit   }
   | CHAR                                    { TChar   }
-  | REGEXP                                  { TRegexp }
+  | REGEXP                                  { TRE }
   | STRING                                  { TString }
   | DFA                                     { TDFA    }
 
