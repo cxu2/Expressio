@@ -101,8 +101,29 @@ module StringMap = Map.Make(String)
       | CharLit c             -> (TChar, SCharLit c)
       | StringLit s           -> (TString, SStringLit s)
       | BoolLit l             -> (TBool, SBoolLit l)
-      | DFA (a, b, c, d, e)   -> (* let check = raise (Prelude.TODO "implement any needed checking here")
-                                 in*) (TDFA, SDFA (a, b, c, d, e))
+      | DFA (states, alpha, start, final, tran)   ->
+                                 (* check states is greater than final states *)
+                                 let rec checkFinal maxVal = function
+                                 [] -> false
+                                 | x :: tl -> if maxVal <= x then true else checkFinal maxVal tl in
+
+                                 (* check states is greater than start/final in transition *)
+                                 let rec checkTran maxVal = function
+                                 [] -> false
+                                 | x :: tl -> let (t1,t2,t3) = x in if maxVal <= t1 || maxVal <= t3 then true else checkTran maxVal tl in
+
+                                 (* check transition table has one to one *)
+                                 let rec oneToOne sMap = function
+                                 [] -> false
+                                 | x :: tl -> let (t1,t2,t3) = x in
+                                   let combo = string_of_int t1 ^ String.make 1 t2 in
+                                   let finalState = string_of_int t3 in
+                                   if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl in
+
+                                 (* also check that states is greater than start *)
+                                 if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
+                                 then raise (Failure ("DFA sucks"))
+                                 else (TDFA, SDFA (states,alpha,start,final,tran))
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
