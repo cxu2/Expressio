@@ -151,8 +151,8 @@ module RegExp = struct
     | Plus (a, b) -> Plus (reversal a, reversal b)
     | Mult (a, b) -> Mult (reversal b, reversal a)
     | Star a      -> Star (reversal a)
-    | And (a, b)  -> raise (Prelude.TODO "reversal")
-    | Comp a      -> raise (Prelude.TODO "reversal")
+    | And (_, _)  -> raise (Prelude.TODO "reversal")
+    | Comp _      -> raise (Prelude.TODO "reversal")
 
   let rec string_of_re = function
       Zero         -> "∅"
