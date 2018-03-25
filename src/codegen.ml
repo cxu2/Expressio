@@ -36,7 +36,8 @@ let translate (globals, dfas, functions) =
      generate actual code *)
      and the_module = L.create_module context "Expressio"
 
-  in let tree_t = L.struct_type context [| i8_t; (pointer_t i8_t); (pointer_t i8_t) |]
+  (* Tree named struct definition for regexp *)
+  in let tree_t = L.struct_type context [| i8_t; i8_t; (pointer_t i8_t); (pointer_t i8_t) |]
 
   in let dfa_t =
       let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type (L.pointer_type i32_t)] in
@@ -118,6 +119,46 @@ let translate (globals, dfas, functions) =
                                      with Not_found -> raise(Exceptions.GlobalVarNotFound("unknown variable name: "^n))
     in
 
+    let build_lit character name b =
+      (* TODO alloc or malloc? *)
+      let location_ptr = L.build_alloca tree_t "lit_space" b in
+      let tree_ptr = L.build_bitcast location_ptr (pointer_t tree_t) name b in
+      (* getting pointer to char element of struct tree_t from a tree_t pointer*)
+      let operator_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 0 |] "operator_ptr" b in
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 1 |] "char_ptr" b in
+
+
+      let left_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 2 |] "left_ptr" b in
+      let left_tree_ptr = L.build_bitcast left_ptr (pointer_t tree_t) "left_tree_ptr" b in
+
+      let right_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 3 |] "right_ptr" b in
+      let right_tree_ptr = L.build_bitcast right_ptr (pointer_t tree_t) "right_tree_ptr" b in
+
+      ignore(L.build_store character char_ptr b);
+      tree_ptr
+    in
+
+
+    let build_unop op regexp name b =
+      let location_ptr = L.build_alloca tree_t "lit_space" b in
+      let tree_ptr = L.build_bitcast location_ptr (pointer_t tree_t) name b in
+
+      let operator_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 0 |] "operator_ptr" b in
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 1 |] "char_ptr" b in
+
+
+      let left_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 2 |] "left_ptr" b in
+      let left_tree_ptr = L.build_bitcast left_ptr (pointer_t tree_t) "left_tree_ptr" b in
+
+      let right_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 3 |] "right_ptr" b in
+      let right_tree_ptr = L.build_bitcast right_ptr (pointer_t tree_t) "right_tree_ptr" b in
+
+      ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
+      ignore(L.build_store regexp left_tree_ptr b);
+      tree_ptr
+    in
+
+
     (* Construct code for an expression; return its value *)
     let rec expr builder e = match e with
 	      IntLit i          -> L.const_int i32_t i
@@ -129,18 +170,22 @@ let translate (globals, dfas, functions) =
       | Binop (e1, op, e2) -> let e1' = expr builder e1
                               and e2' = expr builder e2
                                in (match op with
-                                	    A.BAdd     -> L.build_add
-                                	  | A.BSub     -> L.build_sub
-                                	  | A.BMult    -> L.build_mul
-                                    | A.BDiv     -> L.build_sdiv
-                                	  | A.BAnd     -> L.build_and
-                                	  | A.BOr      -> L.build_or
-                                	  | A.BEqual   -> L.build_icmp L.Icmp.Eq
-                                	  | A.BNeq     -> L.build_icmp L.Icmp.Ne
-                                	  | A.BLess    -> L.build_icmp L.Icmp.Slt
-                                	  | A.BLeq     -> L.build_icmp L.Icmp.Sle
-                                	  | A.BGreater -> L.build_icmp L.Icmp.Sgt
-                                	  | A.BGeq     -> L.build_icmp L.Icmp.Sge
+                                	    A.BAdd         -> L.build_add
+                                	  | A.BSub         -> L.build_sub
+                                	  | A.BMult        -> L.build_mul
+                                    | A.BDiv         -> L.build_sdiv
+                                	  | A.BAnd         -> L.build_and
+                                	  | A.BOr          -> L.build_or
+                                	  | A.BEqual       -> L.build_icmp L.Icmp.Eq
+                                	  | A.BNeq         -> L.build_icmp L.Icmp.Ne
+                                	  | A.BLess        -> L.build_icmp L.Icmp.Slt
+                                	  | A.BLeq         -> L.build_icmp L.Icmp.Sle
+                                	  | A.BGreater     -> L.build_icmp L.Icmp.Sgt
+                                	  | A.BGeq         -> L.build_icmp L.Icmp.Sge
+                                    | A.BREUnion     -> build_binop '&'
+                                    | A.BREConcat    -> build_binop '^'
+                                    | A.BREMatches   ->  
+                                    | A.BREIntersect
                                 	  ) e1' e2' "tmp" builder
       | UnopPre (op, e)           -> (* let (t, _) = e *)
                                    let e' = expr builder e
@@ -148,8 +193,9 @@ let translate (globals, dfas, functions) =
               	                          (* A.UNeg when t = A.TFloat -> L.build_fneg *)
               	                          A.UNeg                   -> L.build_neg
                                         | A.UNot                   -> L.build_not
-                                        | A.UStar                  -> raise (Prelude.TODO "implement")
-                                        | A.ULit                   -> raise (Prelude.TODO "implement")
+                                        | A.ULit                   -> build_lit
+                                        | A.UStar                  -> build_unop '*'
+                                        | A.BREComplement          -> build_unop '''
                                    ) e' "tmp" builder
       | Assign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
