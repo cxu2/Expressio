@@ -10,7 +10,8 @@ module StringMap = Map.Make(String)
 
    Check each global variable, then check each function *)
 
-let check (globals, dfas, functions) =
+(* let check (globals, dfas, functions) = *)
+  let check (globals, _, functions) =
 
   (* Check if a certain kind of binding has void type or is a duplicate
      of another, previously checked binding *)
@@ -31,22 +32,26 @@ let check (globals, dfas, functions) =
   (**** Checking Global Variables ****)
 
   in let globals' = check_binds "global" globals
-  in let dfas' = check_binds "dfa" dfas
+  in let dfas' : sdfa_decl list = [] (* check_binds "dfa" dfas *)
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
   in let built_in_decls =
-    let add_bind map (name, ty) = StringMap.add name {
-      typ     = TUnit;
-      fname   = name;
-      formals = [(ty, "x")];
-      locals  = [];
-      body    = []
-      } map
-    in List.fold_left add_bind StringMap.empty [ ("print", TInt);
-			                         ("printb", TBool);
-			                        (* ("printf", TFloat); *)
-			                         ("printbig", TInt) ]
+    let add_bind map (name, ty) = StringMap.add name { typ     = TUnit
+                                                     ; fname   = name
+                                                     ; formals = [(ty, "x")]
+                                                     ; locals  = []
+                                                     ; body    = []
+                                                     } map
+    in List.fold_left add_bind StringMap.empty [ ("print", TInt); ("printb", TBool); ("printbig", TInt)]
+(*
+                                                    { typ     = TUnit
+                                                    ; fname   = "print"
+                                                    ; formals = [(TInt, "x")]
+                                                    ; locals  = []
+                                                    ; body    = []
+                                                    } map
+                                                    *)
 
   (* Add function name to symbol table *)
   in let add_func map fd =
@@ -80,24 +85,45 @@ let check (globals, dfas, functions) =
                                               then lvaluet
                                               else raise (Failure err)
     (* Build local symbol table of variables for this function *)
-    (* TODO use Prelude.fromList *)
-    in let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) StringMap.empty (globals' @ formals' @ locals')
-
+    in let bindings : bind list = (globals' @ formals' @ locals')
+    in let symbols = Prelude.fromList (List.map Prelude.swap bindings)
 
     (* Return a variable from our local symbol table *)
+    (* TODO write a generic map lookup method instead of this silly exception *)
     in let type_of_identifier s =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
 
 
     (* Return a semantically-checked expression, i.e., with a type *)
-    in let rec expr = function
+    in let rec expr ex = match ex with
         IntLit  l             -> (TInt, SIntLit l)
       | CharLit c             -> (TChar, SCharLit c)
       | StringLit s           -> (TString, SStringLit s)
       | BoolLit l             -> (TBool, SBoolLit l)
-      | DFA (a, b, c, d, e)   -> (* let check = raise (Prelude.TODO "implement any needed checking here")
-                                 in*) (TDFA, SDFA (a, b, c, d, e))
+      | DFA (states, alpha, start, final, tran)   ->
+                                 (* check states is greater than final states *)
+                                 let rec checkFinal maxVal = function
+                                 [] -> false
+                                 | x :: tl -> if maxVal <= x then true else checkFinal maxVal tl in
+
+                                 (* check states is greater than start/final in transition *)
+                                 let rec checkTran maxVal = function
+                                 [] -> false
+                                 | x :: tl -> let (t1,t2,t3) = x in if maxVal <= t1 || maxVal <= t3 then true else checkTran maxVal tl in
+
+                                 (* check transition table has one to one *)
+                                 let rec oneToOne sMap = function
+                                 [] -> false
+                                 | x :: tl -> let (t1,t2,t3) = x in
+                                   let combo = string_of_int t1 ^ String.make 1 t2 in
+                                   let finalState = string_of_int t3 in
+                                   if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl in
+
+                                 (* also check that states is greater than start *)
+                                 if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
+                                 then raise (Failure ("DFA sucks"))
+                                 else (TDFA, SDFA (states,alpha,start,final,tran))
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
@@ -157,6 +183,8 @@ let check (globals, dfas, functions) =
 
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
+    (* in let rec check_stmt (x : stmt) : sstmt = match x with *)
+    (* check_stmt : stmt -> sstmt *)
     in let rec check_stmt = function
         Expr e               -> SExpr (expr e)
       | If (p, b1, b2)       -> SIf (check_bool_expr p, check_stmt b1, check_stmt b2)

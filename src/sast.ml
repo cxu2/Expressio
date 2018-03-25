@@ -159,11 +159,11 @@ let string_of_sfdecl fdecl =
 
 let string_of_sddecl dfa =
   dfa.sdfa_name ^
-  "{\n states : " ^ string_of_int dfa.sdfa_states ^
-  "\n alphabet : " ^ string_of_clist dfa.sdfa_alphabet ^
-  "\n start : " ^ string_of_int dfa.sdfa_start ^
-  "\n final : " ^ string_of_intlist dfa.sdfa_final ^
-  "\n transitions : " ^ string_of_tlist dfa.sdfa_tranves ^ "\n }"
+  "{\n states : "     ^ string_of_int dfa.sdfa_states     ^
+  "\n alphabet : "    ^ string_of_clist dfa.sdfa_alphabet ^
+  "\n start : "       ^ string_of_int dfa.sdfa_start      ^
+  "\n final : "       ^ string_of_intlist dfa.sdfa_final  ^
+  "\n transitions : " ^ string_of_tlist dfa.sdfa_tranves  ^ "\n }"
 
   (* let string_of_program (vars, dfas, funcs) =
     String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^

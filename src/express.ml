@@ -25,5 +25,9 @@ let () =
     | Compile ->                                   ()
     (* | Sast    -> let sast = Semant.check ast    in print_string (Sast.string_of_sprogram sast)
     | LLVM_IR ->                                   print_string (Llvm.string_of_llmodule (Codegen.translate sast))
+=======
+    | Sast    -> let sast = Semant.check ast    in print_string (Sast.string_of_sprogram sast)
+    (* | LLVM_IR -> let sast = Semant.check ast    in print_string (Llvm.string_of_llmodule (Codegen.translate sast))
+>>>>>>> deployjenkins
     | Compile -> let m = Codegen.translate sast in Llvm_analysis.assert_valid_module m;
 	                                                 print_string (Llvm.string_of_llmodule m) *)
