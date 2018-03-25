@@ -17,7 +17,7 @@ module L = Llvm
 module A = Ast
 open Ast
 open Prelude
-open Exception
+open Exceptions
 
  module StringMap = Map.Make(String)
 
@@ -68,6 +68,7 @@ let translate (globals, dfas, functions) =
   (***********************
    * Built-in Functions  *
    ***********************)
+
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
   in let printf_func = L.declare_function "printf" printf_t the_module
 
@@ -102,9 +103,9 @@ let translate (globals, dfas, functions) =
 
       (* Allocate space for any locally declared variables and add the
        * resulting registers to our map *)
-      in let add_local m (t, n) =
-	let local_var = L.build_alloca (ltype_of_typ t) n builder
-	in StringMap.add n local_var m
+    in let add_local m (t, n) =
+    	let local_var = L.build_alloca (ltype_of_typ t) n builder
+    	in StringMap.add n local_var m
       in let formals = List.fold_left2 add_formal StringMap.empty fdecl.formals
           (Array.to_list (L.params the_function)) in
       List.fold_left add_local formals fdecl.locals
@@ -113,7 +114,8 @@ let translate (globals, dfas, functions) =
     (* Return the value for a variable or formal argument. First check
      * locals, then globals *)
     let lookup n = try StringMap.find n local_vars
-                   with Not_found -> StringMap.find n global_vars
+                   with Not_found -> try StringMap.find n global_vars
+                                     with Not_found -> raise(Exceptions.GlobalVarNotFound("unknown variable name: "^n))
     in
 
     (* Construct code for an expression; return its value *)
@@ -121,7 +123,6 @@ let translate (globals, dfas, functions) =
 	      IntLit i          -> L.const_int i32_t i
       | BoolLit b          -> L.const_int i1_t (if b then 1 else 0)
       | CharLit c          -> L.const_int i8_t (int_of_char c)
-      (* | SFliteral l         -> L.const_float_of_string float_t l *)
       | StringLit s        -> L.build_global_stringptr s "string" builder
       | Noexpr             -> L.const_int i32_t 0
       | Id s               -> L.build_load (lookup s) s builder
