@@ -1,0 +1,12 @@
+main : -> int {
+dfa even_zeros;
+even_zeros = {
+ states : 2
+ alphabet : ['0', '1', '2']
+ start : 0
+ final : [ 0 ]
+ transitions : [ (0 '0' 1), (1 '0' 0) ]
+};
+
+  return 0;
+}
