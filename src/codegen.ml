@@ -1,3 +1,16 @@
+(*
+ * File: codegen.ml
+ * Date: 2018-03-26
+ *
+ * PLT Spring 2018
+ * Expressio Project
+ * Ian Treyball      <ict2102@columbia.edu>
+ * Lalka Rieger      <ler2161@columbia.edu>
+ * Chengtian Xu      <cx2168@columbia.edu>
+ * David Han         <dth2126@columbia.edu>
+ *)
+
+
 (* Code generation: translate takes a semantically checked AST and
 produces LLVM IR
 
@@ -66,9 +79,12 @@ let translate (globals, dfas, functions) =
     List.fold_left global_var StringMap.empty globals in
 
 
+
   (***********************
    * Built-in Functions  *
    ***********************)
+
+
 
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
   in let printf_func = L.declare_function "printf" printf_t the_module
@@ -114,6 +130,14 @@ let translate (globals, dfas, functions) =
           (Array.to_list (L.params the_function)) in
       List.fold_left add_local formals fdecl.locals
     in
+
+
+
+    (*************************
+     *    Helper Functions   *
+     *************************)
+
+
 
     (* Return the value for a variable or formal argument. First check
      * locals, then globals *)
@@ -165,6 +189,14 @@ let translate (globals, dfas, functions) =
       ignore(L.build_store rregexp right_tree_ptr b);
       tree_ptr
     in
+
+
+
+    (*************************
+     *   Expression Builder  *
+     *************************)
+
+
 
     (* Construct code for an expression; return its value *)
     let rec expr builder e = match e with
@@ -256,6 +288,14 @@ let translate (globals, dfas, functions) =
       match L.block_terminator (L.insertion_block builder) with
 	      Some _ -> ()
       | None   -> ignore (f builder) in
+
+
+
+    (**************************
+     *    Statement Builder   *
+     **************************)
+
+
 
     (* Build the code for the given statement; return the builder for
        the statement's successor (i.e., the next instruction will be built
