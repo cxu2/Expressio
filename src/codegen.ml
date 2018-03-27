@@ -169,6 +169,7 @@ let translate (globals, dfas, functions) =
       let tree_ptr = L.build_alloca tree_t name b in
 
       let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
+
       ignore(L.build_store character char_ptr b);
 
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
@@ -194,15 +195,24 @@ let translate (globals, dfas, functions) =
 
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
 
-      let left_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr" b in
-      let left_tree_ptr = L.build_bitcast left_ptr (pointer_t tree_t) "left_tree_ptr" b in
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      let left_ptr = L.build_load left_ptr_ptr "left_ptr" b in
+      let left_tree_ptr = get_ptr lregexp b in
+      let left_tree_char_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_char_ptr" b in
+      ignore(L.build_store (L.build_load left_tree_char_ptr "tmp" b) left_ptr b);
 
-      let right_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr" b in
-      let right_tree_ptr = L.build_bitcast right_ptr (pointer_t tree_t) "right_tree_ptr" b in
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      let right_ptr = L.build_load right_ptr_ptr "right_ptr" b in
+      let right_tree_ptr = get_ptr rregexp b in
+      let right_tree_char_ptr = L.build_in_bounds_gep right_tree_ptr [| itol 0; itol 0 |] "right_tree_char_ptr" b in
+      ignore(L.build_store (L.build_load right_tree_char_ptr "tmp" b) right_ptr b);
+
+      (* let right_tree_ptr = L.build_bitcast right_ptr (pointer_t tree_t) "right_tree_ptr" b in
+      let right_tree_ptr = L.build_alloca tree_t "rtree_ptr" b in *)
 
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
-      ignore(L.build_store lregexp left_tree_ptr b);
-      ignore(L.build_store rregexp right_tree_ptr b);
+(*       ignore(L.build_store lregexp left_tree_ptr b);
+      ignore(L.build_store rregexp right_tree_ptr b); *)
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
     in
