@@ -1,3 +1,4 @@
 S .
 S _build
 B _build
+PKG llvm
