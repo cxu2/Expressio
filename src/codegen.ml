@@ -89,8 +89,18 @@ let translate (globals, dfas, functions) =
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
   in let printf_func = L.declare_function "printf" printf_t the_module
 
+  in let printr_t = L.function_type i32_t [| L.pointer_type tree_t |]
+  in let printr_func = L.declare_function "printr" printr_t the_module
+
   in let matches_t = L.function_type i1_t [| L.pointer_type i8_t; L.pointer_type tree_t |]
   in let matches_func = L.declare_function "matches" matches_t the_module
+
+
+
+  (**********************
+   *   Build Functions  *
+   **********************)
+
 
 
   (* Define each function (arguments and return type) so we can
@@ -144,43 +154,50 @@ let translate (globals, dfas, functions) =
     let lookup n = try StringMap.find n local_vars
                    with Not_found -> try StringMap.find n global_vars
                                      with Not_found -> raise(Exceptions.GlobalVarNotFound("unknown variable name: "^n))
-    in
+    
 
-    let build_lit character name b =
+    in let itol n = L.const_int i32_t n
+
+    in let get_ptr v b =
+      let val_ptr = L.build_alloca (L.type_of v) "val_ptr" b in
+      ignore(L.build_store v val_ptr b);
+      val_ptr
+
+
+    in let build_lit character name b =
       (* TODO alloc or malloc? *)
       let tree_ptr = L.build_alloca tree_t name b in
 
-      let char_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 1 |] "char_ptr" b in
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
       ignore(L.build_store character char_ptr b);
-      
+
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
-    in
 
 
-    let build_unop op regexp name b =
+    in let build_unop op regexp name b =
       let tree_ptr = L.build_alloca tree_t name b in
 
-      let operator_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 0 |] "operator_ptr" b in
+      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
 
-      let left_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 2 |] "left_ptr" b in
+      let left_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr" b in
       let left_tree_ptr = L.build_bitcast left_ptr (pointer_t tree_t) "left_tree_ptr" b in
 
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
       ignore(L.build_store regexp left_tree_ptr b);
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
-    in
 
-    let build_binop op lregexp rregexp name b =
+
+    in let build_binop op lregexp rregexp name b =
       let tree_ptr = L.build_alloca tree_t "lit_space" b in
 
-      let operator_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 0 |] "operator_ptr" b in
+      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
 
-      let left_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 2 |] "left_ptr" b in
+      let left_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr" b in
       let left_tree_ptr = L.build_bitcast left_ptr (pointer_t tree_t) "left_tree_ptr" b in
 
-      let right_ptr = L.build_in_bounds_gep tree_ptr [| L.const_int i32_t 0; L.const_int i32_t 3 |] "right_ptr" b in
+      let right_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr" b in
       let right_tree_ptr = L.build_bitcast right_ptr (pointer_t tree_t) "right_tree_ptr" b in
 
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
@@ -266,9 +283,10 @@ let translate (globals, dfas, functions) =
                                           let dfa_loaded6 = L.build_insertvalue dfa_loaded5 (fst fin_filled) 4 "dfa_loaded6" builder in
                                           let dfa_loaded7 = L.build_insertvalue dfa_loaded6 nfin 5 "dfa_loaded7" builder in
                                           L.build_insertvalue dfa_loaded7 d 6 "dfa_loaded8" builder
-      | Call ("print",    [e])
+      | Call ("print",    [e]) -> raise (Prelude.TODO "implement")
       | Call ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
       | Call ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
+      | Call ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder |] "printr" builder
       | Call (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
                                    in let actuals = List.rev (List.map (expr builder) (List.rev act))
                                    in let result = (match fdecl.typ with
