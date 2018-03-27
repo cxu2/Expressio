@@ -22,6 +22,6 @@ let () =
     match !action with
       Ast     ->                                   print_string (Ast.string_of_program ast)
     | Sast    -> let sast = Semant.check ast    in print_string (Sast.string_of_sprogram sast)
-    | LLVM_IR -> raise (Prelude.TODO "express.ml LLVM_IR") (* let sast = Semant.check ast    in print_string (Llvm.string_of_llmodule (Codegen.translate sast)) *)
-    | Compile -> raise (Prelude.TODO "express.ml Compile") (* let m = Codegen.translate sast in Llvm_analysis.assert_valid_module m;
-                                                              print_string (Llvm.string_of_llmodule m) *)
+    | LLVM_IR -> let sast = Semant.check ast    in print_string (Llvm.string_of_llmodule (Codegen.translate sast)) 
+    | Compile -> let m = Codegen.translate sast in Llvm_analysis.assert_valid_module m;
+                                                              print_string (Llvm.string_of_llmodule m) 
