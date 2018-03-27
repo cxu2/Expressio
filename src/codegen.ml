@@ -71,6 +71,9 @@ let translate (globals, dfas, functions) =
     | A.TString -> L.pointer_type i8_t
     | A.TDFA    -> dfa_t
 
+  in let arr_ptr a b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t 0|] "arr" b
+        (*L.build_bitcast id_ptr (pointer_t i8_t) "mat_ptr" b*)
+
   (* Declare each global variable; remember its value in a map *)
   in let global_vars =
     let global_var m (t, n) =
@@ -95,6 +98,9 @@ let translate (globals, dfas, functions) =
   in let matches_t = L.function_type i1_t [| L.pointer_type i8_t; L.pointer_type tree_t |]
   in let matches_func = L.declare_function "matches" matches_t the_module
 
+  let printdfa_t = L.function_type i32_t [| dfa_t |] in
+  let printdfa_func = L.declare_function "printdfa" printdfa_t the_module in
+
 
 
   (**********************
@@ -105,7 +111,7 @@ let translate (globals, dfas, functions) =
 
   (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
-  in let function_decls =
+  let function_decls =
     let function_decl m fdecl =
       let name = fdecl.fname
       and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.formals)
@@ -118,8 +124,7 @@ let translate (globals, dfas, functions) =
     let (the_function, _) = StringMap.find fdecl.fname function_decls
     in let builder = L.builder_at_end context (L.entry_block the_function)
 
-    in let int_format_str = L.build_global_stringptr "%s\n" "fmt" builder
-    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
+    in let string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -279,22 +284,23 @@ let translate (globals, dfas, functions) =
                                               and d = L.build_alloca (L.pointer_type i32_t) "delta" builder in
                                                 let ll_of_char c  = L.const_int i8_t (int_of_char c) 
                                                 and ll_of_int fint = L.const_int i32_t fint in
-                                                  let ll_of_a = List.map ll_of_char a 
-                                                  and ll_of_f =  List.map ll_of_int f in
+                                                  let ll_of_char_array = List.map ll_of_char a 
+                                                  and ll_of_int_array =  List.map ll_of_int f in
                                                     let copy_list_to_array (arr, i) value = ((L.build_insertvalue arr value i ("loaded"^(string_of_int i)) builder), i + 1) in
-                                                    let alpha_filled = List.fold_left copy_list_to_array (L.build_load alpha "alpha0" builder , 0) ll_of_a
-                                                    and fin_filled = List.fold_left copy_list_to_array (L.build_load fin "fin0" builder, 0) ll_of_f in
+                                                    let alpha_filled = List.fold_left copy_list_to_array (L.build_load alpha "alpha0" builder , 0) ll_of_char_array
+                                                    and fin_filled = List.fold_left copy_list_to_array (L.build_load fin "fin0" builder, 0) ll_of_int_array in
                                           let dfa1 = L.build_alloca dfa_t "dfa" builder in
                                           let dfa_loaded = L.build_load dfa1 "dfa_loaded" builder in
                                           let dfa_loaded2 = L.build_insertvalue dfa_loaded ns 0 "dfa_loaded2" builder in
-                                          let dfa_loaded3 = L.build_insertvalue dfa_loaded2 (fst alpha_filled) 1 "dfa_loaded3" builder in
+                                          let dfa_loaded3 = L.build_insertvalue dfa_loaded2 (arr_ptr alpha builder) 1 "dfa_loaded3" builder in
                                           let dfa_loaded4 = L.build_insertvalue dfa_loaded3 nsym 2 "dfa_loaded4" builder in
                                           let dfa_loaded5 = L.build_insertvalue dfa_loaded4 start 3 "dfa_loaded5" builder in
-                                          let dfa_loaded6 = L.build_insertvalue dfa_loaded5 (fst fin_filled) 4 "dfa_loaded6" builder in
+                                          let dfa_loaded6 = L.build_insertvalue dfa_loaded5 (arr_ptr fin builder) 4 "dfa_loaded6" builder in
                                           let dfa_loaded7 = L.build_insertvalue dfa_loaded6 nfin 5 "dfa_loaded7" builder in
                                           L.build_insertvalue dfa_loaded7 d 6 "dfa_loaded8" builder
       | Call ("print",    [e]) -> raise (Prelude.TODO "implement")
       | Call ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
+      | Call ("printdfa",   [e]) -> L.build_call printdfa_func   [|(expr builder e) |]   "printf"   builder
       | Call ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | Call ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder |] "printr" builder
       | Call (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls

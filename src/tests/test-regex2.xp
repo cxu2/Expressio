@@ -1,0 +1,34 @@
+~~ comment
+main : -> int {
+ 
+  regexp x;
+<~
+  regexp y;
+  regexp z;
+  regexp t;
+  regexp w;
+~>
+
+
+<~
+  string s;
+  regexp m;
+~>
+
+  x = lit 'c';
+
+<~
+  y = lit 'a';
+  z = x ^ y;
+  t = x | z;
+  w = y & t;
+
+  printf("Hello World");
+~>
+
+
+  printr(x);
+
+  
+  return (0);
+}
