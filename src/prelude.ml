@@ -32,7 +32,9 @@ module Prelude = struct
   let third (triple : 'a * 'b * 'c) : 'c = match triple with
     (_ , _ , c) -> c
 
+  (* An exception to be used in places where scaffolding for unimplemented code is needed *)
   exception TODO of string
+  (* An exception to be used when marking that pattern matching has reached an assumed to be impossible state *)
   exception ABSURD
   module StringMap = Map.Make(String)
   let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
