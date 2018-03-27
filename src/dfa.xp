@@ -8,5 +8,7 @@ even_zeros = {
  transitions : [ (0 '0' 1), (1 '0' 0) ]
 };
 
+printdfa(even_zeros);
+
   return 0;
 }

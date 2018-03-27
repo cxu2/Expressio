@@ -5,14 +5,14 @@
 # Easiest way to build: using ocamlbuild, which in turn uses ocamlfind
 
 .PHONY : all
-all :
+all : express.native printdfa.o
+
+.PHONY : express.native
+express.native :
 	ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 express.native
 	ocamlbuild RegExp.native
 	ocamlbuild DFA.native
 
-.PHONY : express.native
-microc.native :
-	ocamlbuild express.native
 
 .PHONY : RegExp.native
 RegExp.native :
@@ -57,9 +57,8 @@ parser.ml parser.mli : parser.mly
 	ocamlfind ocamlopt -c -package llvm $<
 
 # Testing the "printbig" example
-
-printbig : printbig.c
-	cc -o printbig -DBUILD_TEST printbig.c
+printdfa : printdfa.c
+	cc -o printdfa -DBUILD_TEST printdfa.c
 
 dfa : dfa.c
 	cc -o dfa -DBUILD_TEST dfa.c
