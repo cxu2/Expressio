@@ -11,7 +11,7 @@ module StringMap = Map.Make(String)
    Check each global variable, then check each function *)
 
 (* let check (globals, dfas, functions) = *)
-  let check (globals, _, functions) =
+  let check (globals, dfas, functions) =
 
   (* Check if a certain kind of binding has void type or is a duplicate
      of another, previously checked binding *)
@@ -32,7 +32,52 @@ module StringMap = Map.Make(String)
   (**** Checking Global Variables ****)
 
   in let globals' = check_binds "global" globals
-  in let dfas' : sdfa_decl list = [] (* check_binds "dfa" dfas *)
+
+  (* Add dfa globals to symbol table *)
+  in let add_dfas l dfa =
+    (* (TDFA, dfa.dfa_name) :: l  *)
+    if List.mem (TDFA, dfa.dfa_name) l then raise(Failure("Duplicated DFA"))
+      else (TDFA,dfa.dfa_name) :: l
+
+  in let dfas' = List.fold_left add_dfas [] dfas
+
+  in let sast_dfas dfa =
+    let name = dfa.dfa_name
+    in let states = dfa.dfa_states
+    in let alpha = dfa.dfa_alphabet
+    in let start = dfa.dfa_start
+    in let final = dfa.dfa_final
+    in let tran = dfa.dfa_tranves
+    in let rec checkFinal maxVal = function
+    [] -> false
+    | x :: tl -> if maxVal <= x then true else checkFinal maxVal tl
+
+    (* check states is greater than start/final in transition *)
+    in let rec checkTran maxVal = function
+    [] -> false
+    | x :: tl -> let (t1,t2,t3) = x in if maxVal <= t1 || maxVal <= t3 then true else checkTran maxVal tl
+
+    (* check transition table has one to one *)
+    in let rec oneToOne sMap = function
+    [] -> false
+    | x :: tl -> let (t1,t2,t3) = x in
+     let combo = string_of_int t1 ^ String.make 1 t2 in
+     let finalState = string_of_int t3 in
+     if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl
+
+    (* also check that states is greater than start *)
+    in if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
+    then raise (Failure ("DFA sucks"))
+    else {
+      sdfa_name = name;
+      sdfa_states = states;
+      sdfa_alphabet = alpha;
+      sdfa_start = start;
+      sdfa_final = final;
+      sdfa_tranves = tran;
+    }
+
+   (* check_binds "dfa" dfas *)
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
@@ -85,7 +130,7 @@ module StringMap = Map.Make(String)
                                               then lvaluet
                                               else raise (Failure err)
     (* Build local symbol table of variables for this function *)
-    in let bindings : bind list = (globals' @ formals' @ locals')
+    in let bindings : bind list = (globals' @ dfas' @ formals' @ locals')
     in let symbols = Prelude.fromList (List.map Prelude.swap bindings)
 
     (* Return a variable from our local symbol table *)
@@ -218,4 +263,4 @@ module StringMap = Map.Make(String)
                   | _        -> let err = "internal error: block didn't become a block?"
                                 in raise (Failure err)
     }
-  in (globals', dfas',List.map check_function functions)
+  in (globals',List.map sast_dfas dfas ,List.map check_function functions)
