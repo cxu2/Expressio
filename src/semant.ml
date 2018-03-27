@@ -11,7 +11,7 @@ module StringMap = Map.Make(String)
    Check each global variable, then check each function *)
 
 (* let check (globals, dfas, functions) = *)
-  let check (globals, dfas, functions) =
+  let check (globals, _, functions) =
 
   (* Check if a certain kind of binding has void type or is a duplicate
      of another, previously checked binding *)
@@ -32,52 +32,7 @@ module StringMap = Map.Make(String)
   (**** Checking Global Variables ****)
 
   in let globals' = check_binds "global" globals
-
-  (* Add dfa globals to symbol table *)
-  in let add_dfas l dfa =
-    (* (TDFA, dfa.dfa_name) :: l  *)
-    if List.mem (TDFA, dfa.dfa_name) l then raise(Failure("Duplicated DFA"))
-      else (TDFA,dfa.dfa_name) :: l
-
-  in let dfas' = List.fold_left add_dfas [] dfas
-
-  in let sast_dfas dfa =
-    let name = dfa.dfa_name
-    in let states = dfa.dfa_states
-    in let alpha = dfa.dfa_alphabet
-    in let start = dfa.dfa_start
-    in let final = dfa.dfa_final
-    in let tran = dfa.dfa_tranves
-    in let rec checkFinal maxVal = function
-    [] -> false
-    | x :: tl -> if maxVal <= x then true else checkFinal maxVal tl
-
-    (* check states is greater than start/final in transition *)
-    in let rec checkTran maxVal = function
-    [] -> false
-    | x :: tl -> let (t1,t2,t3) = x in if maxVal <= t1 || maxVal <= t3 then true else checkTran maxVal tl
-
-    (* check transition table has one to one *)
-    in let rec oneToOne sMap = function
-    [] -> false
-    | x :: tl -> let (t1,t2,t3) = x in
-     let combo = string_of_int t1 ^ String.make 1 t2 in
-     let finalState = string_of_int t3 in
-     if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl
-
-    (* also check that states is greater than start *)
-    in if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
-    then raise (Failure ("DFA sucks"))
-    else {
-      sdfa_name = name;
-      sdfa_states = states;
-      sdfa_alphabet = alpha;
-      sdfa_start = start;
-      sdfa_final = final;
-      sdfa_tranves = tran;
-    }
-
-   (* check_binds "dfa" dfas *)
+  in let dfas' : sdfa_decl list = [] (* check_binds "dfa" dfas *)
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
@@ -130,7 +85,7 @@ module StringMap = Map.Make(String)
                                               then lvaluet
                                               else raise (Failure err)
     (* Build local symbol table of variables for this function *)
-    in let bindings : bind list = (globals' @ dfas' @ formals' @ locals')
+    in let bindings : bind list = (globals' @ formals' @ locals')
     in let symbols = Prelude.fromList (List.map Prelude.swap bindings)
 
     (* Return a variable from our local symbol table *)
@@ -149,17 +104,17 @@ module StringMap = Map.Make(String)
       | DFA (states, alpha, start, final, tran)   ->
                                  (* check states is greater than final states *)
                                  let rec checkFinal maxVal = function
-                                 [] -> false
+                                        [] -> false
                                  | x :: tl -> if maxVal <= x then true else checkFinal maxVal tl in
 
                                  (* check states is greater than start/final in transition *)
                                  let rec checkTran maxVal = function
-                                 [] -> false
-                                 | x :: tl -> let (t1,t2,t3) = x in if maxVal <= t1 || maxVal <= t3 then true else checkTran maxVal tl in
+                                        [] -> false
+                                 | x :: tl -> let (t1, _, t3) = x in if maxVal <= t1 || maxVal <= t3 then true else checkTran maxVal tl in
 
                                  (* check transition table has one to one *)
                                  let rec oneToOne sMap = function
-                                 [] -> false
+                                        [] -> false
                                  | x :: tl -> let (t1,t2,t3) = x in
                                    let combo = string_of_int t1 ^ String.make 1 t2 in
                                    let finalState = string_of_int t3 in
@@ -230,37 +185,36 @@ module StringMap = Map.Make(String)
     (* Return a semantically-checked statement i.e. containing sexprs *)
     (* in let rec check_stmt (x : stmt) : sstmt = match x with *)
     (* check_stmt : stmt -> sstmt *)
-    in let rec check_stmt = function
+    in let rec check_stmt (looping : bool) = function
         Expr e               -> SExpr (expr e)
-      | If (p, b1, b2)       -> SIf (check_bool_expr p, check_stmt b1, check_stmt b2)
-      | For (e1, e2, e3, st) -> SFor (expr e1, check_bool_expr e2, expr e3, check_stmt st)
-      | While (p, s)         -> SWhile (check_bool_expr p, check_stmt s)
-      | Infloop (s)          -> SInfloop (check_stmt s)
-      | Continue             -> raise (Prelude.TODO "semant check_stmt Continue")
-      | Break                -> raise (Prelude.TODO "semant check_stmt Break")
+      | If (p, b1, b2)       -> SIf (check_bool_expr p, check_stmt looping b1, check_stmt looping b2)
+      | For (e1, e2, e3, st) -> SFor (expr e1, check_bool_expr e2, expr e3, check_stmt looping st)
+      | While (p, s)         -> SWhile (check_bool_expr p, check_stmt true s)
+      | Infloop (s)          -> SInfloop (check_stmt true s)
+      | Continue             -> if looping then SContinue else raise (Failure "\'continue\' is outside of loop")
+      | Break                -> if looping then SBreak    else raise (Failure "\'break\' is outside of loop")
       | Return e             -> let (t, e') = expr e
                                 in if t = func.typ
                                    then SReturn (t, e')
                                    else raise (Failure ("return gives " ^ string_of_typ t ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e))
 	    (* A block is correct if each statement is correct and nothing
 	       follows any Return statement.  Nested blocks are flattened. *)
-      | Block sl ->
-          let rec check_stmt_list = function
-              [Return _ as s] -> [check_stmt s]
-            | Return _ :: _   -> raise (Failure "nothing may follow a return")
-            | Block sl :: ss  -> check_stmt_list (sl @ ss) (* Flatten blocks *)
-            | s :: ss         -> check_stmt s :: check_stmt_list ss
-            | []              -> []
-          in SBlock (check_stmt_list sl)
+      | Block sl -> let rec check_stmt_list = function
+                        [Return _ as s] -> [check_stmt false s]
+                      | Return _ :: _   -> raise (Failure "nothing may follow a return")
+                      | Block sl :: ss  -> check_stmt_list (sl @ ss) (* Flatten blocks *)
+                      | s :: ss         -> check_stmt false s :: check_stmt_list ss
+                      | []              -> []
+                    in SBlock (check_stmt_list sl)
 
     in (* body of check_function *)
     { styp     = func.typ;
       sfname   = func.fname;
       sformals = formals';
       slocals  = locals';
-      sbody    = match check_stmt (Block func.body) with
+      sbody    = match check_stmt false (Block func.body) with
                 	 SBlock sl -> sl
                   | _        -> let err = "internal error: block didn't become a block?"
                                 in raise (Failure err)
     }
-  in (globals',List.map sast_dfas dfas ,List.map check_function functions)
+  in (globals', dfas', List.map check_function functions)
