@@ -96,10 +96,10 @@ let translate (globals, dfas, functions) =
   in let printr_func = L.declare_function "printr" printr_t the_module
 
   in let matches_t = L.function_type i1_t [| L.pointer_type i8_t; L.pointer_type tree_t |]
-  in let matches_func = L.declare_function "matches" matches_t the_module
+  in let matches_func = L.declare_function "matches" matches_t the_module 
 
-  let printdfa_t = L.function_type i32_t [| dfa_t |] in
-  let printdfa_func = L.declare_function "printdfa" printdfa_t the_module in
+  in let printdfa_t = L.function_type i32_t [| dfa_t |]
+  in let printdfa_func = L.declare_function "printdfa" printdfa_t the_module in
 
 
 
@@ -124,6 +124,7 @@ let translate (globals, dfas, functions) =
     let (the_function, _) = StringMap.find fdecl.fname function_decls
     in let builder = L.builder_at_end context (L.entry_block the_function)
 
+    in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
     in let string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
 
     (* Construct the function's "locals": formal arguments and locally
@@ -300,7 +301,7 @@ let translate (globals, dfas, functions) =
                                           L.build_insertvalue dfa_loaded7 d 6 "dfa_loaded8" builder
       | Call ("print",    [e]) -> raise (Prelude.TODO "implement")
       | Call ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
-      | Call ("printdfa",   [e]) -> L.build_call printdfa_func   [|(expr builder e) |]   "printf"   builder
+      | Call ("printdfa", [e]) -> L.build_call printdfa_func   [|(expr builder e) |]   "printf"   builder
       | Call ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | Call ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder |] "printr" builder
       | Call (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls

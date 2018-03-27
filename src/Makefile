@@ -59,16 +59,9 @@ parser.ml parser.mli : parser.mly
 %.cmx : %.ml
 	ocamlfind ocamlopt -c -package llvm $<
 
-<<<<<<< HEAD
 # Custom C functions
-
-printbig : printbig.c
-	cc -o printbig -DBUILD_TEST printbig.c
-=======
-# Testing the "printbig" example
 printdfa : printdfa.c
 	cc -o printdfa -DBUILD_TEST printdfa.c
->>>>>>> 90c2fb9b025129cbf87809f26bb6f27fa28f37c6
 
 dfa : dfa.c
 	cc -o dfa -DBUILD_TEST dfa.c
