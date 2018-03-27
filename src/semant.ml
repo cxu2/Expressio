@@ -199,9 +199,13 @@ module StringMap = Map.Make(String)
                                    else raise (Failure ("return gives " ^ string_of_typ t ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e))
 	    (* A block is correct if each statement is correct and nothing
         follows any Return statement.  Nested blocks are flattened. *)
-      | Block (Return _ ::  _) -> raise (Failure "nothing may follow a return")
-      | Block (Block sl :: ss) -> check_stmt looping (Block (sl @ ss))           (* Flatten blocks *)
-      | Block              ss  -> SBlock (List.map (check_stmt looping) ss)
+      | Block sl -> let rec check_stmt_list = function
+                 [Return _ as s] -> [check_stmt false s]
+                | Return _ :: _   -> raise (Failure "nothing may follow a return")
+                | Block sl :: ss  -> check_stmt_list (sl @ ss) (* Flatten blocks *)
+                | s :: ss         -> check_stmt false s :: check_stmt_list ss
+                | []              -> []
+              in SBlock (check_stmt_list sl)
 
     in (* body of check_function *)
     { styp     = func.typ;
