@@ -16,6 +16,13 @@ module Prelude = struct
 
   let swap ((x, y) : ('a * 'b)) : ('b * 'a) = (y, x)
 
+  let rec map_accum_left (f : 'acc -> 'x -> ('acc * 'y)) (s : 'acc) (zs : 'x list) : 'acc * ('y list) =
+    match zs with
+      []        -> (s, [])
+    | (x :: xs) ->    let (s',  y ) = f s x
+                   in let (s'', ys) = map_accum_left f s' xs
+                   in (s'', y :: ys)
+
   let first' (quadruple : 'a * 'b * 'c * 'd) : 'a = match quadruple with
     (a , _ , _ , _) -> a
   let second' (quadruple : 'a * 'b * 'c * 'd) : 'b = match quadruple with
