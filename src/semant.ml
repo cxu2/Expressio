@@ -158,6 +158,11 @@ module StringMap = Map.Make(String)
                         | BGeq     when same && t1 = TInt  -> TBool
                         | BAnd
                         | BOr      when same && t1 = TBool -> TBool
+                        | BREUnion
+                        | BREConcat
+                        | BREIntersect when same && t1 = TRE -> TRE
+                        | BREMatches   when t1 = TRE && t2 = TString -> TBool
+                        | BCase        -> raise (Prelude.TODO "implement BCase in semant")
                         | _ -> raise (Failure ("illegal binary operator " ^
                                                string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                                string_of_typ t2 ^ " in " ^ string_of_expr e))
