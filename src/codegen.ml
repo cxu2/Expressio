@@ -255,18 +255,18 @@ let translate (globals, _, functions) =
 
 
       (* copy over the values to the llvm arrays*)
-      let copy_list_to_array (arr, i, localb) value = ((insert_elt arr value i localb); arr, i + 1, localb) in
+      let copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb) in
 
-      List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char;
-      List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int;
+      ignore(List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char);
+      ignore(List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int);
 
       (*Stuff everything in the dfa struct*)
-      L.build_store ns (get_struct_idx dfa_ptr 0 b) b;  
-      L.build_store (arr_ptr alpha_ptr b) (get_struct_idx dfa_ptr 1 b) b;
-      L.build_store nsym (get_struct_idx dfa_ptr 2 b) b;
-      L.build_store start (get_struct_idx dfa_ptr 3 b) b;
-      L.build_store (arr_ptr fin_ptr b) (get_struct_idx dfa_ptr 4 b) b;
-      L.build_store nfin (get_struct_idx dfa_ptr 5 b) b;
+      ignore(L.build_store ns (get_struct_idx dfa_ptr 0 b) b);  
+      ignore(L.build_store (arr_ptr alpha_ptr b) (get_struct_idx dfa_ptr 1 b) b);
+      ignore(L.build_store nsym (get_struct_idx dfa_ptr 2 b) b);
+      ignore(L.build_store start (get_struct_idx dfa_ptr 3 b) b);
+      ignore(L.build_store (arr_ptr fin_ptr b) (get_struct_idx dfa_ptr 4 b) b);
+      ignore(L.build_store nfin (get_struct_idx dfa_ptr 5 b) b);
       L.build_load dfa_ptr "dfa_loaded" b in
 
 
