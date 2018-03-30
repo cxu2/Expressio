@@ -270,9 +270,9 @@ let translate (globals, dfas, functions) =
               	                          (* A.UNeg when t = A.TFloat -> L.build_fneg *)
               	                          A.UNeg                   -> L.build_neg
                                         | A.UNot                   -> L.build_not
-                                        | A.URELit                   -> raise (Prelude.TODO "implement")(*build_lit*)
+                                        | A.URELit                   -> build_lit
                                         (* TODO operator for comp is ambiguous *)
-                                        | A.UREComp          -> raise (Prelude.TODO "implement") (*build_unop '\''*)
+                                        | A.UREComp          -> build_unop '\''
                                         | _                  -> raise(Exceptions.InvalidUnopPreType)
                                    ) e' "tmp" builder
 
@@ -404,7 +404,7 @@ let translate (globals, dfas, functions) =
 	        in let merge_bb      = L.append_block context "merge" the_function
 	        in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
 	        in L.builder_at_end context merge_bb
-      | SInfloop (body) -> stmt builder ( SBlock [SWhile ((SBoolLit(true)), SBlock [body]) ] )
+      | SInfloop (body) -> stmt builder ( SBlock [SWhile ((A.TBool ,SBoolLit(true)), SBlock [body]) ] )
       (* Implement for loops as while loops! *)
       | SFor (e1, e2, e3, body) -> stmt builder ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
       | SContinue               -> raise (Prelude.TODO "implement")
