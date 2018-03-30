@@ -199,7 +199,7 @@ let translate (globals, _, functions) =
       tree_loaded
 
 
-    in let build_binop op lregexp rregexp name b =
+    in let build_binop op lregexp rregexp _ b =
       let tree_ptr = L.build_alloca tree_t "lit_space" b in
 
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
@@ -242,7 +242,7 @@ let translate (globals, _, functions) =
       | SStringLit s        -> L.build_global_stringptr s "string" builder
       | SNoexpr             -> L.const_int i32_t 0
       | SId s                           -> L.build_load (lookup s) s builder
-      | SRE s                           -> raise (Prelude.TODO "implement SRE")
+      | SRE _                           -> raise (Prelude.TODO "implement SRE")
       | SBinop (e1, A.BAdd,         e2) -> L.build_add (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BSub,         e2) -> L.build_sub (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BMult,        e2) -> L.build_mul (expr builder e1) (expr builder e2) "tmp" builder
@@ -255,7 +255,7 @@ let translate (globals, _, functions) =
       | SBinop (e1, A.BLeq,         e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGreater,     e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGeq,         e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BCase,        e2) -> raise (Prelude.TODO "implement")
+      | SBinop (_, A.BCase,        _) -> raise (Prelude.TODO "implement")
       | SBinop (e1, A.BREUnion,     e2) -> build_binop '|' (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BREConcat,    e2) -> build_binop '^' (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BREIntersect, e2) -> build_binop '&' (expr builder e1) (expr builder e2) "tmp" builder
@@ -267,7 +267,7 @@ let translate (globals, _, functions) =
       | SUnop (A.UREStar, e)            -> build_unop '*' (expr builder e) "tmp" builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
-      | SDFA (n, a, s, f, delta) ->    let ns = L.const_int i32_t n
+      | SDFA (n, a, s, f, _(*delta*)) ->    let ns = L.const_int i32_t n
                                           and start = L.const_int i32_t s
                                           and nsym = L.const_int i32_t (List.length a)
                                           and nfin = L.const_int i32_t (List.length f) in
@@ -281,8 +281,8 @@ let translate (globals, _, functions) =
                                                   let ll_of_char_array = List.map ll_of_char a
                                                   and ll_of_int_array =  List.map ll_of_int f in
                                                     let copy_list_to_array (arr, i) value = ((L.build_insertvalue arr value i ("loaded"^(string_of_int i)) builder), i + 1) in
-                                                    let alpha_filled = List.fold_left copy_list_to_array (L.build_load alpha "alpha0" builder , 0) ll_of_char_array
-                                                    and fin_filled = List.fold_left copy_list_to_array (L.build_load fin "fin0" builder, 0) ll_of_int_array in
+                                                    let _ (*alpha_filled*) = List.fold_left copy_list_to_array (L.build_load alpha "alpha0" builder , 0) ll_of_char_array
+                                                    and _(*fin_filled*) = List.fold_left copy_list_to_array (L.build_load fin "fin0" builder, 0) ll_of_int_array in
                                           let dfa1 = L.build_alloca dfa_t "dfa" builder in
                                           let dfa_loaded = L.build_load dfa1 "dfa_loaded" builder in
                                           let dfa_loaded2 = L.build_insertvalue dfa_loaded ns 0 "dfa_loaded2" builder in
