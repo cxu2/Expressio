@@ -234,15 +234,16 @@ let translate (globals, dfas, functions) =
 
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder e = match e with
+    let rec expr builder ((_, e) : sexpr) = match e with
 	      SIntLit i          -> L.const_int i32_t i
       | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
       | SCharLit c          -> L.const_int i8_t (int_of_char c)
       | SStringLit s        -> L.build_global_stringptr s "string" builder
       | SNoexpr             -> L.const_int i32_t 0
       | SId s               -> L.build_load (lookup s) s builder
-      | SBinop (e1, op, e2) -> let (_, e1') = expr builder e1
-                              and (_, e2') = expr builder e2
+      | SBinop (e1, op, e2) ->  let (t, _) = e1
+                              and e1' = expr builder e1
+                              and e2' = expr builder e2
                                in (match op with
                                 	    A.BAdd         -> L.build_add e1' e2' "tmp" builder
                                 	  | A.BSub         -> L.build_sub e1' e2' "tmp" builder
@@ -263,8 +264,8 @@ let translate (globals, dfas, functions) =
                                     | A.BREMatches   -> L.build_call matches_func [| e1'; e2' |] "matches" builder
                                   )
  	  
-      | SUnopPost (op, e)           -> (* let (t, _) = e *)
-                                   let (_, e') = expr builder e
+      | SUnopPost (op, e)           -> let (t, _) = e in
+                                      let e' = expr builder e
                                    in (match op with
               	                          (* A.UNeg when t = A.TFloat -> L.build_fneg *)
               	                          A.UNeg                   -> L.build_neg
