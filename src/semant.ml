@@ -43,7 +43,8 @@ module StringMap = Map.Make(String)
                                                      ; locals  = []
                                                      ; body    = []
                                                      } map
-    in List.fold_left add_bind StringMap.empty [ ("print", TInt); ("printb", TBool); ("printbig", TInt)]
+    in List.fold_left add_bind StringMap.empty [ ("print", TInt); ("printr", TRE); 
+                                            ("printdfa", TDFA); ("printf", TString) ]
 (*
                                                     { typ     = TUnit
                                                     ; fname   = "print"
