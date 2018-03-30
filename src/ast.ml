@@ -22,12 +22,10 @@ type expr =
   | BoolLit   of bool
   | CharLit   of char
   | StringLit of string
-  (* | DFALit    of int DFA.t *)
   | RE        of char RegExp.regexp
   | Id        of string
   | Binop     of expr * bop * expr
-  | UnopPre   of uop * expr
-  | UnopPost  of expr * uop
+  | Unop      of uop * expr
   | Assign    of string * expr
   | Call      of string * expr list
   | DFA       of int * char list * int * int list * tranf list
@@ -104,12 +102,12 @@ let string_of_uop = function
   | UREComp -> "'"
 
 let rec string_of_clist = function
-  []              -> ""
+    []            -> ""
   | [last]        -> "'" ^ String.make 1 last ^ "'"
   | first :: rest -> "'" ^ String.make 1 first ^ "', " ^ string_of_clist rest ^ ""
 
 let rec string_of_intlist = function
-  []              -> ""
+    []            -> ""
   | [last]        -> string_of_int last
   | first :: rest -> string_of_int first ^ ", " ^string_of_intlist rest
 
@@ -118,7 +116,7 @@ let string_of_tranf tranf =
   "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
 
 let rec string_of_tlist = function
-  []              -> ""
+    []            -> ""
   | [last]        -> string_of_tranf last
   | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
 
@@ -131,8 +129,13 @@ let rec string_of_expr = function
   | StringLit s         -> s
   | Id s                -> s
   | Binop (e1, o, e2)   -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
-  | UnopPre (o, e)      -> "(" ^ string_of_uop o ^ " " ^ string_of_expr e ^ ")"
-  | UnopPost (e, o)     -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
+  (* prefix *)
+  | Unop (UNeg,    e)   -> string_of_uop UNeg    ^ string_of_expr e
+  | Unop (UNot,    e)   -> string_of_uop UNot    ^ string_of_expr e
+  | Unop (UREComp, e)   -> string_of_uop UREComp ^ string_of_expr e
+  | Unop (URELit,  e)   -> string_of_uop URELit  ^ string_of_expr e
+  (* postfix *)
+  | Unop (UREStar, e)   -> string_of_expr e      ^ string_of_uop UREStar
   | Assign (v, e)       -> v ^ " = " ^ string_of_expr e
   | Call (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | DFA (a, b, c, d, e) -> "{\n states : "      ^ string_of_int a     ^

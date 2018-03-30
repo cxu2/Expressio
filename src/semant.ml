@@ -43,7 +43,7 @@ module StringMap = Map.Make(String)
                                                      ; locals  = []
                                                      ; body    = []
                                                      } map
-    in List.fold_left add_bind StringMap.empty [ ("print", TInt); ("printr", TRE); 
+    in List.fold_left add_bind StringMap.empty [ ("print", TInt); ("printr", TRE);
                                             ("printdfa", TDFA); ("printf", TString) ]
 (*
                                                     { typ     = TUnit
@@ -133,19 +133,12 @@ module StringMap = Map.Make(String)
                                  and (rt, e') = expr e
                                  in let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ string_of_typ rt ^ " in " ^ string_of_expr ex
                                  in (check_assign lt rt err, SAssign (var, (rt, e')))
-      | UnopPost (e, op)      -> expr (UnopPre (op, e))
-      | UnopPre (op, e) as ex ->
-          let (t, e') = expr e
-          in let ty = match op with
-                        UNeg    when t = TInt  -> TInt
-                      | UNot    when t = TBool -> TBool
-                      | URELit  when t = TRE   -> TRE
-                      | UREStar when t = TRE   -> TRE
-                      | UREComp when t = TRE   -> TRE
-                      | _ -> raise (Failure ("illegal unary operator " ^
-                                             string_of_uop op ^ string_of_typ t ^
-                                             " in " ^ string_of_expr ex))
-          in (ty, SUnopPre (op, (t, e')))
+      | Unop (UNeg,    e) as ex -> let (t, e') = expr e in if t = TInt  then (TInt,  SUnop (UNeg, (t, e')))    else raise (Failure ("illegal unary operator " ^ string_of_uop UNeg ^ string_of_typ t ^ " in " ^ string_of_expr ex))
+      | Unop (UNot,    e) as ex -> let (t, e') = expr e in if t = TBool then (TBool, SUnop (UNot, (t, e')))    else raise (Failure ("illegal unary operator " ^ string_of_uop UNot ^ string_of_typ t ^ " in " ^ string_of_expr ex))
+      | Unop (URELit,  e) as ex -> let (t, e') = expr e in if t = TChar then (TRE,   SUnop (URELit, (t, e')))  else raise (Failure ("illegal unary operator " ^ string_of_uop URELit ^ string_of_typ t ^ " in " ^ string_of_expr ex))
+      | Unop (UREStar, e) as ex -> let (t, e') = expr e in if t = TRE   then (TRE,   SUnop (UREStar, (t, e'))) else raise (Failure ("illegal unary operator " ^ string_of_uop UREStar ^ string_of_typ t ^ " in " ^ string_of_expr ex))
+      | Unop (UREComp, e) as ex -> let (t, e') = expr e in if t = TRE   then (TRE,   SUnop (UREComp, (t, e'))) else raise (Failure ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ t ^ " in " ^ string_of_expr ex))
+
       | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2
@@ -165,6 +158,11 @@ module StringMap = Map.Make(String)
                         | BGeq     when same && t1 = TInt  -> TBool
                         | BAnd
                         | BOr      when same && t1 = TBool -> TBool
+                        | BREUnion
+                        | BREConcat
+                        | BREIntersect when same && t1 = TRE -> TRE
+                        | BREMatches   when t1 = TRE && t2 = TString -> TBool
+                        | BCase        -> raise (Prelude.TODO "implement BCase in semant")
                         | _ -> raise (Failure ("illegal binary operator " ^
                                                string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                                string_of_typ t2 ^ " in " ^ string_of_expr e))
