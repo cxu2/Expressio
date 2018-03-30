@@ -30,14 +30,15 @@ module L = Llvm
 module A = Ast
 open Sast
 open Prelude
-open Exceptions
+(* open Exceptions *)
 
 module StringMap = Map.Make(String)
 
 (* Code Generation from the SAST. Returns an LLVM module if successful,
    throws an exception if something is wrong. *)
 
-let translate (globals, dfas, functions) =
+(* let translate (globals, dfas, functions) = *)
+let translate (globals, _, functions) =
   let context    = L.global_context ()
    (* Add types to the context so we can use them in our LLVM code *)
 
@@ -62,7 +63,7 @@ let translate (globals, dfas, functions) =
    * Ast type to LLVM type  *
    **************************)
 
-  
+
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
@@ -97,7 +98,7 @@ let translate (globals, dfas, functions) =
   in let printr_func = L.declare_function "printr" printr_t the_module
 
   in let matches_t = L.function_type i1_t [| L.pointer_type i8_t; L.pointer_type tree_t |]
-  in let matches_func = L.declare_function "matches" matches_t the_module 
+  in let matches_func = L.declare_function "matches" matches_t the_module
 
   in let printdfa_t = L.function_type i32_t [| dfa_t |]
   in let printdfa_func = L.declare_function "printdfa" printdfa_t the_module in
@@ -163,7 +164,7 @@ let translate (globals, dfas, functions) =
     let lookup n = try StringMap.find n local_vars
                    with Not_found -> try StringMap.find n global_vars
                                      with Not_found -> raise(Exceptions.GlobalVarNotFound("unknown variable name: "^n))
-    
+
     in let itol n = L.const_int i32_t n
 
     in let get_ptr v b =
@@ -240,48 +241,30 @@ let translate (globals, dfas, functions) =
       | SCharLit c          -> L.const_int i8_t (int_of_char c)
       | SStringLit s        -> L.build_global_stringptr s "string" builder
       | SNoexpr             -> L.const_int i32_t 0
-      | SId s               -> L.build_load (lookup s) s builder
-      | SBinop (e1, op, e2) ->  let (t, _) = e1
-                              and e1' = expr builder e1
-                              and e2' = expr builder e2
-                               in (match op with
-                                	    A.BAdd         -> L.build_add e1' e2' "tmp" builder
-                                	  | A.BSub         -> L.build_sub e1' e2' "tmp" builder
-                                	  | A.BMult        -> L.build_mul e1' e2' "tmp" builder
-                                    | A.BDiv         -> L.build_sdiv e1' e2' "tmp" builder
-                                	  | A.BAnd         -> L.build_and e1' e2' "tmp" builder
-                                	  | A.BOr          -> L.build_or e1' e2' "tmp" builder
-                                	  | A.BEqual       -> L.build_icmp L.Icmp.Eq e1' e2' "tmp" builder
-                                	  | A.BNeq         -> L.build_icmp L.Icmp.Ne e1' e2' "tmp" builder
-                                	  | A.BLess        -> L.build_icmp L.Icmp.Slt e1' e2' "tmp" builder
-                                	  | A.BLeq         -> L.build_icmp L.Icmp.Sle e1' e2' "tmp" builder
-                                	  | A.BGreater     -> L.build_icmp L.Icmp.Sgt e1' e2' "tmp" builder
-                                	  | A.BGeq         -> L.build_icmp L.Icmp.Sge e1' e2' "tmp" builder
-                                    | A.BCase        -> raise (Prelude.TODO "implement")
-                                    | A.BREUnion     -> build_binop '|' e1' e2' "tmp" builder
-                                    | A.BREConcat    -> build_binop '^' e1' e2' "tmp" builder
-                                    | A.BREIntersect -> build_binop '&' e1' e2' "tmp" builder
-                                    | A.BREMatches   -> L.build_call matches_func [| e1'; e2' |] "matches" builder
-                                  )
- 	  
-      | SUnopPre (op, e)           -> let (t, _) = e in
-                                       let e' = expr builder e
-                                   in (match op with
-              	                          (* A.UNeg when t = A.TFloat -> L.build_fneg *)
-              	                          A.UNeg                   -> L.build_neg
-                                        | A.UNot                   -> L.build_not
-                                        | A.URELit                   -> build_lit
-                                        (* TODO operator for comp is ambiguous *)
-                                        | A.UREComp          -> build_unop '\''
-                                        | _                  -> raise(Exceptions.InvalidUnopPreType)
-                                   ) e' "tmp" builder
-
-      | SUnopPost (e, op)       -> let (t, _) = e in
-                                  let e' = expr builder e
-                                  in (match op with
-                                      A.UREStar                  -> build_unop '*'
-                                      | _                        -> raise(Exceptions.InvalidUnopPostType)
-                                  ) e' "tmp" builder
+      | SId s                           -> L.build_load (lookup s) s builder
+      | SRE s                           -> raise (Prelude.TODO "implement SRE")
+      | SBinop (e1, A.BAdd,         e2) -> L.build_add (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BSub,         e2) -> L.build_sub (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BMult,        e2) -> L.build_mul (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BDiv,         e2) -> L.build_sdiv (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BAnd,         e2) -> L.build_and (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BOr,          e2) -> L.build_or (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BEqual,       e2) -> L.build_icmp L.Icmp.Eq (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BNeq,         e2) -> L.build_icmp L.Icmp.Ne (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BLess,        e2) -> L.build_icmp L.Icmp.Slt (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BLeq,         e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BGreater,     e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BGeq,         e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BCase,        e2) -> raise (Prelude.TODO "implement")
+      | SBinop (e1, A.BREUnion,     e2) -> build_binop '|' (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BREConcat,    e2) -> build_binop '^' (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BREIntersect, e2) -> build_binop '&' (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BREMatches,   e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
+      | SUnop (A.UNeg,    e)            -> L.build_neg (expr builder e) "tmp" builder
+      | SUnop (A.UNot,    e)            -> L.build_not (expr builder e) "tmp" builder
+      | SUnop (A.URELit,  e)            -> build_lit (expr builder e) "tmp" builder
+      | SUnop (A.UREComp, e)            -> build_unop '\\' (expr builder e)  "tmp" builder
+      | SUnop (A.UREStar, e)            -> build_unop '*' (expr builder e) "tmp" builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
       | SDFA (n, a, s, f, delta) ->    let ns = L.const_int i32_t n
@@ -293,9 +276,9 @@ let translate (globals, dfas, functions) =
                                               let alpha = L.build_array_alloca alpha_t nsym "alpha" builder
                                               and fin = L.build_array_alloca fin_t nfin "fin" builder
                                               and d = L.build_alloca (L.pointer_type i32_t) "delta" builder in
-                                                let ll_of_char c  = L.const_int i8_t (int_of_char c) 
+                                                let ll_of_char c  = L.const_int i8_t (int_of_char c)
                                                 and ll_of_int fint = L.const_int i32_t fint in
-                                                  let ll_of_char_array = List.map ll_of_char a 
+                                                  let ll_of_char_array = List.map ll_of_char a
                                                   and ll_of_int_array =  List.map ll_of_int f in
                                                     let copy_list_to_array (arr, i) value = ((L.build_insertvalue arr value i ("loaded"^(string_of_int i)) builder), i + 1) in
                                                     let alpha_filled = List.fold_left copy_list_to_array (L.build_load alpha "alpha0" builder , 0) ll_of_char_array

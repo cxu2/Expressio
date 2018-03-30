@@ -13,9 +13,7 @@ and sx =
   | SBoolLit   of bool
   | SId        of string
   | SBinop     of sexpr * bop * sexpr
-  | SUnopPre   of uop * sexpr
-  | SUnopPost  of sexpr * uop
-  (* | SDFA       of int DFA.t *)
+  | SUnop      of uop * sexpr
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
   | SDFA       of int * char list * int * int list * tranf list
@@ -114,9 +112,13 @@ let rec string_of_sexpr (t, e) =
                                     | SStringLit s         -> s
                                     | SId s                -> s
                                     | SBinop (e1, o, e2)   -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
-                                    (* | SUnop (o, e)       -> string_of_uop o ^ string_of_sexpr e *)
-                                    | SUnopPre (o, e)      -> "(" ^ string_of_uop o ^ " " ^ string_of_sexpr e ^ ")"
-                                    | SUnopPost (e, o)     -> "(" ^ string_of_sexpr e ^ " " ^ string_of_uop o ^ ")"
+                                    (* prefix *)
+                                    | SUnop (UNeg,    e)   -> string_of_uop UNeg    ^ string_of_sexpr e
+                                    | SUnop (UNot,    e)   -> string_of_uop UNot    ^ string_of_sexpr e
+                                    | SUnop (UREComp, e)   -> string_of_uop UREComp ^ string_of_sexpr e
+                                    | SUnop (URELit,  e)   -> string_of_uop URELit  ^ string_of_sexpr e
+                                    (* postfix *)
+                                    | SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
                                     | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
                                     | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
                                     | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
