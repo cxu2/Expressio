@@ -1,10 +1,12 @@
 ~~ comment
 main : -> int {
  
+
   regexp x;
 <~
   regexp y;
   regexp z;
+
   regexp t;
   regexp w;
 ~>
@@ -16,10 +18,10 @@ main : -> int {
 ~>
 
   x = lit 'c';
-
 <~
   y = lit 'a';
   z = x ^ y;
+
   t = x | z;
   w = y & t;
 
