@@ -137,8 +137,9 @@ module StringMap = Map.Make(String)
       | UnopPre (op, e) as ex ->
           let (t, e') = expr e
           in let ty = match op with
-                        UNeg when t = TInt  -> t
-                      | UNot when t = TBool -> TBool
+                        UNeg   when t = TInt  -> t
+                      | UNot   when t = TBool -> TBool
+                      | URELit when t = TRE   -> TRE
                       | _ -> raise (Failure ("illegal unary operator " ^
                                              string_of_uop op ^ string_of_typ t ^
                                              " in " ^ string_of_expr ex))
