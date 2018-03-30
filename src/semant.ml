@@ -139,7 +139,7 @@ module StringMap = Map.Make(String)
           in let ty = match op with
                         UNeg    when t = TInt  -> TInt
                       | UNot    when t = TBool -> TBool
-                      | URELit  when t = TRE   -> TRE
+                      | URELit  when t = TChar -> TRE
                       | UREStar when t = TRE   -> TRE
                       | UREComp when t = TRE   -> TRE
                       | _ -> raise (Failure ("illegal unary operator " ^
