@@ -22,7 +22,7 @@ setup.data
 setup.log
 
 # Merlin configuring file for Vim and Emacs
-.merlin
+# .merlin
 
 # bison output files
 *.output
@@ -30,3 +30,8 @@ setup.log
 
 # microc test logs
 *.log
+
+# tests
+*.err
+*.ll
+*.diff

@@ -50,7 +50,8 @@ exception IllegalMatrixBinop
 exception IllegalVectorBinop
 exception IncMustBeCalledOnID
 exception InvalidMatrixDimension
-exception InvalidUnopType
+exception InvalidUnopPreType
+exception InvalidUnopPostType
 exception InvalidVectorDimension
 exception UnsupportedBinopType
 exception UnsupportedMatrixType

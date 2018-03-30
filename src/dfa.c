@@ -34,7 +34,6 @@ struct dfa_t{
 
 //DFA functions
 
-
 int ** makeDelta(int len, char * sym, int nsym){
   int ** sts = malloc(len*(sizeof(int *)));
   for(int i = 0; i < len; i++){
@@ -118,6 +117,13 @@ int link(struct dfa_t dfa, int from, int to, char sym){
   return 0;
 }
 
+int link(struct dfa_t dfa, int from, int to, char sym){
+  if(hasState(dfa, from) && hasState(dfa, to) && hasSymbol(dfa, sym)){
+    return linkStruct(dfa, hasState(dfa, from), hasState(dfa, to), sym);
+  }
+  return 0;
+}
+
 // follows transition from s on input
 // returns a pointer to the resulting state
 // returns -1 when no transition exists
@@ -147,6 +153,7 @@ int evaluate(struct dfa_t dfa, char *input){
 //Simluates input on dfa
 //returns 1 if accepted
 //0 if not accepted
+
 int accepts(struct dfa_t dfa, char *input){
   int check = evaluate(dfa, input);
   for(int i = 0; i < dfa.nfin; i++){
@@ -156,6 +163,7 @@ int accepts(struct dfa_t dfa, char *input){
   }
   return 0;    
 }
+
 
 int printdfa(struct dfa_t d){
   printf("States: ");
@@ -174,6 +182,7 @@ int printdfa(struct dfa_t d){
   return 0;
 }
 
+
 int main(){
 
   printf("Test3---------\n");
@@ -182,13 +191,13 @@ int main(){
   struct dfa_t test3 = construct(6, ASCII, ASCII_LEN, 1, F, 2);
 
   assert(test3.delta[0][0] == -1);
-
   printf("Links...\n");
   assert(link(test3, 1, 2, 'e') != 0);
   assert(link(test3, 2, 3, 'l') != 0);
   assert (link(test3, 3, 4, 's') != 0);
   assert (link(test3, 4, 5, 'e') != 0);
   assert (link(test3, 5, 5, '$') != 0);
+
   assert (link(test3, 5, 5, 126) != 0);
   printf("PASS\n");
 
@@ -217,3 +226,4 @@ int main(){
   
   return 0;
 }
+#endif

@@ -2,7 +2,7 @@ module Prelude = struct
   (* sum types *)
   type ('a, 'b) either = Left of 'a | Right of 'b
   (* the constant function *)
-  let const (x : 'a) (y : 'b) : 'a = x
+  let const (x : 'a) (_ : 'b) : 'a = x
   (* the identity function *)
   let id (x : 'a) = x
   (* function composition "f after g" *)
@@ -13,6 +13,15 @@ module Prelude = struct
   let uncurry (f : 'a -> 'b -> 'c) (p : ('a * 'b)) : 'c = f (fst p) (snd p)
   (* given a function of two arguments, swap the arguments *)
   let flip (f : 'a -> 'b -> 'c) (x : 'b) (y : 'a) : 'c = f y x
+
+  let swap ((x, y) : ('a * 'b)) : ('b * 'a) = (y, x)
+
+  let rec map_accum_left (f : 'acc -> 'x -> ('acc * 'y)) (s : 'acc) (zs : 'x list) : 'acc * ('y list) =
+    match zs with
+      []        -> (s, [])
+    | (x :: xs) ->    let (s',  y ) = f s x
+                   in let (s'', ys) = map_accum_left f s' xs
+                   in (s'', y :: ys)
 
   let first' (quadruple : 'a * 'b * 'c * 'd) : 'a = match quadruple with
     (a , _ , _ , _) -> a
@@ -30,8 +39,12 @@ module Prelude = struct
   let third (triple : 'a * 'b * 'c) : 'c = match triple with
     (_ , _ , c) -> c
 
+  (* An exception to be used in places where scaffolding for unimplemented code is needed *)
   exception TODO of string
+  (* An exception to be used when marking that pattern matching has reached an assumed to be impossible state *)
+  exception ABSURD
   module StringMap = Map.Make(String)
+  let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
 
   (* Implement the Natural numbers Peano style *)
   type nat = Zero | Succ of nat
@@ -40,9 +53,9 @@ module Prelude = struct
     | Succ n -> 1 + (nat_to_int n)
   let rec int_to_nat (i : int) : nat option = match i with
         0 -> Some Zero
-      | n -> if (i < 0)
+      | n -> if (n < 0)
              then None
-             else match int_to_nat (i - 1) with
+             else match int_to_nat (n - 1) with
                     None   -> None
                   | Some a -> Some (Succ a)
 end

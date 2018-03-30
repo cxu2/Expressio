@@ -28,14 +28,15 @@ http://llvm.moe/ocaml/
 (* We'll refer to Llvm and Ast constructs with module names *)
 module L = Llvm
 module A = Ast
-open Ast
+open Sast
 open Prelude
 open Exceptions
 
- module StringMap = Map.Make(String)
+module StringMap = Map.Make(String)
 
 (* Code Generation from the SAST. Returns an LLVM module if successful,
    throws an exception if something is wrong. *)
+
 let translate (globals, dfas, functions) =
   let context    = L.global_context ()
    (* Add types to the context so we can use them in our LLVM code *)
@@ -67,7 +68,7 @@ let translate (globals, dfas, functions) =
     | A.TBool   -> i1_t
     | A.TChar   -> i8_t
     | A.TUnit   -> void_t
-    | A.TRegexp -> tree_t
+    | A.TRE -> tree_t
     | A.TString -> L.pointer_type i8_t
     | A.TDFA    -> dfa_t
 
@@ -109,17 +110,18 @@ let translate (globals, dfas, functions) =
 
   (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
+
   let function_decls =
     let function_decl m fdecl =
-      let name = fdecl.fname
-      and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.formals)
-      in let ftype = L.function_type (ltype_of_typ fdecl.typ) formal_types in
+      let name = fdecl.sfname
+      and formal_types = Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.sformals)
+      in let ftype = L.function_type (ltype_of_typ fdecl.styp) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
 
   (* Fill in the body of the given function *)
   let build_function_body fdecl =
-    let (the_function, _) = StringMap.find fdecl.fname function_decls
+    let (the_function, _) = StringMap.find fdecl.sfname function_decls
     in let builder = L.builder_at_end context (L.entry_block the_function)
 
     in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
@@ -140,9 +142,9 @@ let translate (globals, dfas, functions) =
     in let add_local m (t, n) =
     	let local_var = L.build_alloca (ltype_of_typ t) n builder
     	in StringMap.add n local_var m
-      in let formals = List.fold_left2 add_formal StringMap.empty fdecl.formals
+      in let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
           (Array.to_list (L.params the_function)) in
-      List.fold_left add_local formals fdecl.locals
+      List.fold_left add_local formals fdecl.slocals
     in
 
 
@@ -155,11 +157,11 @@ let translate (globals, dfas, functions) =
 
     (* Return the value for a variable or formal argument. First check
      * locals, then globals *)
+
     let lookup n = try StringMap.find n local_vars
                    with Not_found -> try StringMap.find n global_vars
                                      with Not_found -> raise(Exceptions.GlobalVarNotFound("unknown variable name: "^n))
     
-
     in let itol n = L.const_int i32_t n
 
     in let get_ptr v b =
@@ -275,14 +277,15 @@ let translate (globals, dfas, functions) =
 
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder e = match e with
-	      IntLit i          -> L.const_int i32_t i
-      | BoolLit b          -> L.const_int i1_t (if b then 1 else 0)
-      | CharLit c          -> L.const_int i8_t (int_of_char c)
-      | StringLit s        -> L.build_global_stringptr s "string" builder
-      | Noexpr             -> L.const_int i32_t 0
-      | Id s               -> L.build_load (lookup s) s builder
-      | Binop (e1, op, e2) -> let e1' = expr builder e1
+    let rec expr builder ((_, e) : sexpr) = match e with
+	      SIntLit i          -> L.const_int i32_t i
+      | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
+      | SCharLit c          -> L.const_int i8_t (int_of_char c)
+      | SStringLit s        -> L.build_global_stringptr s "string" builder
+      | SNoexpr             -> L.const_int i32_t 0
+      | SId s               -> L.build_load (lookup s) s builder
+      | SBinop (e1, op, e2) ->  let (t, _) = e1
+                              and e1' = expr builder e1
                               and e2' = expr builder e2
                                in (match op with
                                 	    A.BAdd         -> L.build_add e1' e2' "tmp" builder
@@ -304,18 +307,25 @@ let translate (globals, dfas, functions) =
                                     | A.BREMatches   -> L.build_call matches_func [| e1'; e2' |] "matches" builder
                                   )
  	  
-      | UnopPre (op, e)           -> (* let (t, _) = e *)
-                                   let e' = expr builder e
+      | SUnopPre (op, e)           -> let (t, _) = e in
+                                       let e' = expr builder e
                                    in (match op with
               	                          (* A.UNeg when t = A.TFloat -> L.build_fneg *)
               	                          A.UNeg                   -> L.build_neg
                                         | A.UNot                   -> L.build_not
-                                        | A.ULit                   -> build_lit
-                                        | A.UStar                  -> build_unop '*'
+                                        | A.URELit                   -> build_lit
                                         (* TODO operator for comp is ambiguous *)
-                                        | A.BREComplement          -> build_unop '\''
+                                        | A.UREComp          -> build_unop '\''
+                                        | _                  -> raise(Exceptions.InvalidUnopPreType)
                                    ) e' "tmp" builder
-      | Assign (s, e)          -> let e' = expr builder e in
+
+      | SUnopPost (e, op)       -> let (t, _) = e in
+                                  let e' = expr builder e
+                                  in (match op with
+                                      A.UREStar                  -> build_unop '*'
+                                      | _                        -> raise(Exceptions.InvalidUnopPostType)
+                                  ) e' "tmp" builder
+      | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
       | DFABody (n, a, s, f, delta) ->    build_dfa n a s f delta builder
       | Call ("print",    [e]) -> raise (Prelude.TODO "implement")
@@ -325,7 +335,7 @@ let translate (globals, dfas, functions) =
       | Call ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder |] "printr" builder
       | Call (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
                                    in let actuals = List.rev (List.map (expr builder) (List.rev act))
-                                   in let result = (match fdecl.typ with
+                                   in let result = (match fdecl.styp with
                                                       A.TUnit -> ""
                                                     | _       -> f ^ "_result")
                                    in L.build_call fdef (Array.of_list actuals) result builder
@@ -356,10 +366,10 @@ let translate (globals, dfas, functions) =
        after the one generated by this call) *)
     (* Imperative nature of statement processing entails imperative OCaml *)
     let rec stmt builder = function
-	      Block sl -> List.fold_left stmt builder sl
+	      SBlock sl -> List.fold_left stmt builder sl
         (* Generate code for this expression, return resulting builder *)
-      | Expr e   -> let _ = expr builder e in builder
-      | Return e -> let _ = match fdecl.typ with
+      | SExpr e   -> let _ = expr builder e in builder
+      | SReturn e -> let _ = match fdecl.styp with
                                 (* Special "return nothing" instr *)
                                 A.TUnit -> L.build_ret_void builder
                                 (* Build return statement *)
@@ -370,7 +380,7 @@ let translate (globals, dfas, functions) =
       are the build_br functions used at the end of the then and else blocks (if
       they don't already have a terminator) and the build_cond_br function at
       the end, which adds jump instructions to the "then" and "else" basic blocks *)
-      | If (predicate, then_stmt, else_stmt) ->
+      | SIf (predicate, then_stmt, else_stmt) ->
          let bool_val        = expr builder predicate
          (* Add "merge" basic block to our function's list of blocks *)
 	       in let merge_bb     = L.append_block context "merge" the_function
@@ -394,7 +404,7 @@ let translate (globals, dfas, functions) =
          (* Move to the merge block for further instruction building *)
 	       in L.builder_at_end context merge_bb
 
-      | While (predicate, body) ->
+      | SWhile (predicate, body) ->
           (* First create basic block for condition instructions -- this will
           serve as destination in the case of a loop *)
 	        let pred_bb          = L.append_block context "while" the_function
@@ -413,15 +423,15 @@ let translate (globals, dfas, functions) =
 	        in let merge_bb      = L.append_block context "merge" the_function
 	        in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
 	        in L.builder_at_end context merge_bb
-      | Infloop (body) -> stmt builder ( Block [While ((BoolLit(true)), Block [body]) ] )
+      | SInfloop (body) -> stmt builder ( SBlock [SWhile ((A.TBool ,SBoolLit(true)), SBlock [body]) ] )
       (* Implement for loops as while loops! *)
-      | For (e1, e2, e3, body) -> stmt builder ( Block [Expr e1 ; While (e2, Block [body ; Expr e3]) ] )
-      | Continue               -> raise (Prelude.TODO "implement")
-      | Break                  -> raise (Prelude.TODO "implement")
+      | SFor (e1, e2, e3, body) -> stmt builder ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
+      | SContinue               -> raise (Prelude.TODO "implement")
+      | SBreak                  -> raise (Prelude.TODO "implement")
     (* Build the code for each statement in the function *)
-    in let builder = stmt builder (Block fdecl.body)
+    in let builder = stmt builder (SBlock fdecl.sbody)
     (* Add a return if the last block falls off the end *)
-    in add_terminal builder (match fdecl.typ with
+    in add_terminal builder (match fdecl.styp with
         A.TUnit -> L.build_ret_void
       | t       -> L.build_ret (L.const_int (ltype_of_typ t) 0))
   in List.iter build_function_body functions;

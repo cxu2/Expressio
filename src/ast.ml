@@ -1,15 +1,17 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-open Prelude
+(* open Prelude *)
 open RegExp
-open DFA
 
+(* Binary operators *)
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
-           BAnd | BOr  | BREUnion | BREConcat | BREMatches | BCase | BREIntersect 
+           BAnd | BOr  | BCase | BREUnion | BREConcat | BREMatches | BREIntersect
 
-type uop = UNeg | UNot | ULit | UStar | BREComplement
+(* Unary operators *)
+type uop = UNeg | UNot | URELit | UREStar | UREComp
 
-type typ = TInt | TBool | TChar | TUnit | TRegexp | TString | TDFA
+(* Types within the Expressio language *)
+type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE
 
 type bind = typ * string
 
@@ -20,15 +22,15 @@ type expr =
   | BoolLit   of bool
   | CharLit   of char
   | StringLit of string
-  | DFALit    of int DFA.t
-  | Regex     of char RegExp.regexp
+  (* | DFALit    of int DFA.t *)
+  | RE        of char RegExp.regexp
   | Id        of string
   | Binop     of expr * bop * expr
   | UnopPre   of uop * expr
   | UnopPost  of expr * uop
   | Assign    of string * expr
   | Call      of string * expr list
-  | DFABody   of int * char list * int * int list * tranf list
+  | DFA       of int * char list * int * int list * tranf list
   | Noexpr
 
 type stmt =
@@ -76,30 +78,30 @@ let rec string_of_re = function
   *)
 
 let string_of_op = function
-    BAdd       -> "+"
-  | BSub       -> "-"
-  | BMult      -> "*"
-  | BDiv       -> "/"
-  | BEqual     -> "=="
-  | BNeq       -> "!="
-  | BLess      -> "<"
-  | BLeq       -> "<="
-  | BGreater   -> ">"
-  | BGeq       -> ">="
-  | BAnd       -> "&&"
-  | BOr        -> "||"
-  | BREUnion   -> "|"
-  | BREConcat  -> "^"
-  | BREMatches -> "matches"
-  | BCase      -> "case"
+    BAdd         -> "+"
+  | BSub         -> "-"
+  | BMult        -> "*"
+  | BDiv         -> "/"
+  | BEqual       -> "=="
+  | BNeq         -> "!="
+  | BLess        -> "<"
+  | BLeq         -> "<="
+  | BGreater     -> ">"
+  | BGeq         -> ">="
+  | BAnd         -> "&&"
+  | BOr          -> "||"
+  | BREUnion     -> "|"
+  | BREConcat    -> "^"
+  | BREMatches   -> "matches"
+  | BCase        -> "case"
   | BREIntersect -> "&"
 
 let string_of_uop = function
-    UNeg  -> "-"
-  | UNot  -> "!"
-  | ULit  -> "lit"
-  | UStar -> "**"
-  | BREComplement -> "'" 
+    UNeg    -> "-"
+  | UNot    -> "!"
+  | URELit  -> "lit"
+  | UREStar -> "**"
+  | UREComp -> "'"
 
 let rec string_of_clist = function
   []              -> ""
@@ -121,24 +123,23 @@ let rec string_of_tlist = function
   | first :: rest -> string_of_tranf first ^ ", " ^ string_of_tlist rest
 
 let rec string_of_expr = function
-    IntLit l          -> string_of_int l
-  | Regex r           -> RegExp.string_of_re r
-  | DFALit _          -> raise (Prelude.TODO "DFALit")
-  | BoolLit true      -> "true"
-  | BoolLit false     -> "false"
-  | CharLit c         -> String.make 1 c
-  | StringLit s       -> s
-  | Id s              -> s
-  | Binop (e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
-  | UnopPre (o, e)    -> "(" ^ string_of_uop o ^ " " ^ string_of_expr e ^ ")"
-  | UnopPost (e, o)   -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
-  | Assign (v, e)     -> v ^ " = " ^ string_of_expr e
-  | Call (f, el)      -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | DFABody(a,b,c,d,e) -> "{\n states : " ^ string_of_int a ^
-  "\n alphabet : " ^ string_of_clist b ^
-  "\n start : " ^ string_of_int c ^
-  "\n final : " ^ string_of_intlist d ^
-  "\n transitions : " ^ string_of_tlist e ^ "\n }"
+    IntLit l            -> string_of_int l
+  | RE r                -> RegExp.string_of_re r
+  | BoolLit true        -> "true"
+  | BoolLit false       -> "false"
+  | CharLit c           -> String.make 1 c
+  | StringLit s         -> s
+  | Id s                -> s
+  | Binop (e1, o, e2)   -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
+  | UnopPre (o, e)      -> "(" ^ string_of_uop o ^ " " ^ string_of_expr e ^ ")"
+  | UnopPost (e, o)     -> "(" ^ string_of_expr e ^ " " ^ string_of_uop o ^ ")"
+  | Assign (v, e)       -> v ^ " = " ^ string_of_expr e
+  | Call (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | DFA (a, b, c, d, e) -> "{\n states : "      ^ string_of_int a     ^
+                            "\n alphabet : "    ^ string_of_clist b   ^
+                            "\n start : "       ^ string_of_int c     ^
+                            "\n final : "       ^ string_of_intlist d ^
+                            "\n transitions : " ^ string_of_tlist e   ^ "\n }"
   | Noexpr            -> ""
 
 let rec string_of_stmt = function
@@ -158,7 +159,7 @@ let string_of_typ = function
   | TBool   -> "bool"
   | TChar   -> "char"
   | TUnit   -> "unit"
-  | TRegexp -> "regexp"
+  | TRE     -> "regexp"
   | TString -> "string"
   | TDFA    -> "dfa"
 
