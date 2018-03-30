@@ -96,7 +96,7 @@ let translate (globals, dfas, functions) =
   in let matches_t = L.function_type i1_t [| L.pointer_type i8_t; L.pointer_type tree_t |]
   in let matches_func = L.declare_function "matches" matches_t the_module 
 
-  in let printdfa_t = L.function_type i32_t [| dfa_t |]
+  in let printdfa_t = L.function_type i32_t [| L.pointer_type dfa_t |]
   in let printdfa_func = L.declare_function "printdfa" printdfa_t the_module in
 
 
@@ -168,7 +168,7 @@ let translate (globals, dfas, functions) =
       val_ptr
 
     in let arr_ptr a b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t 0|] "arr" b
-    in let get_arr_idx a i b = L.build_in_bounds_gep a [| L.const_int i32_t i;  L.const_int i32_t 0|] "arr" b
+    in let get_arr_idx a i b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t i|] "arr" b
     in let insert_elt a v i b = L.build_store v (get_arr_idx a i b) b
 
     in let get_struct_idx s i b = L.build_struct_gep s i "structelt" b
@@ -254,9 +254,9 @@ let translate (globals, dfas, functions) =
       (* copy over the values to the llvm arrays*)
       let copy_list_to_array (arr, i, localb) value = ((insert_elt arr value i localb); arr, i + 1, localb) in
 
+      List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char;
+      List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int;
 
-      let alpha_filled = List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char
-      and fin_filled = List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int in
       (*Stuff everything in the dfa struct*)
       L.build_store ns (get_struct_idx dfa_ptr 0 b) b;  
       L.build_store (arr_ptr alpha_ptr b) (get_struct_idx dfa_ptr 1 b) b;
@@ -318,34 +318,9 @@ let translate (globals, dfas, functions) =
       | Assign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
       | DFABody (n, a, s, f, delta) ->    build_dfa n a s f delta builder
-      (*let ns = L.const_int i32_t n
-                                          and start = L.const_int i32_t s
-                                          and nsym = L.const_int i32_t (List.length a)
-                                          and nfin = L.const_int i32_t (List.length f) in
-                                            let alpha_t = L.array_type i8_t (List.length a)
-                                            and fin_t = L.array_type i32_t (List.length f) in
-                                              let alpha = L.build_array_alloca alpha_t nsym "alpha" builder
-                                              and fin = L.build_array_alloca fin_t nfin "fin" builder
-                                              and d = L.build_alloca (L.pointer_type i32_t) "delta" builder in
-                                                let ll_of_char c  = L.const_int i8_t (int_of_char c) 
-                                                and ll_of_int fint = L.const_int i32_t fint in
-                                                  let ll_of_char_array = List.map ll_of_char a 
-                                                  and ll_of_int_array =  List.map ll_of_int f in
-                                                    let copy_list_to_array (arr, i) value = ((L.build_insertvalue arr value i ("loaded"^(string_of_int i)) builder), i + 1) in
-                                                    let alpha_filled = List.fold_left copy_list_to_array (L.build_load alpha "alpha0" builder , 0) ll_of_char_array
-                                                    and fin_filled = List.fold_left copy_list_to_array (L.build_load fin "fin0" builder, 0) ll_of_int_array in
-                                          let dfa1 = L.build_alloca dfa_t "dfa" builder in
-                                          let dfa_loaded = L.build_load dfa1 "dfa_loaded" builder in
-                                          let dfa_loaded2 = L.build_insertvalue dfa_loaded ns 0 "dfa_loaded2" builder in
-                                          let dfa_loaded3 = L.build_insertvalue dfa_loaded2 (arr_ptr alpha builder) 1 "dfa_loaded3" builder in
-                                          let dfa_loaded4 = L.build_insertvalue dfa_loaded3 nsym 2 "dfa_loaded4" builder in
-                                          let dfa_loaded5 = L.build_insertvalue dfa_loaded4 start 3 "dfa_loaded5" builder in
-                                          let dfa_loaded6 = L.build_insertvalue dfa_loaded5 (arr_ptr fin builder) 4 "dfa_loaded6" builder in
-                                          let dfa_loaded7 = L.build_insertvalue dfa_loaded6 nfin 5 "dfa_loaded7" builder in
-                                          L.build_insertvalue dfa_loaded7 d 6 "dfa_loaded8" builder*)
       | Call ("print",    [e]) -> raise (Prelude.TODO "implement")
       | Call ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
-      | Call ("printdfa", [e]) -> L.build_call printdfa_func   [|(expr builder e) |]   "printf"   builder
+      | Call ("printdfa", [e]) -> L.build_call printdfa_func   [|get_ptr (expr builder e) builder |]   "printf"   builder
       | Call ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | Call ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder |] "printr" builder
       | Call (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls

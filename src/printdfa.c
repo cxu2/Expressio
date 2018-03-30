@@ -22,23 +22,28 @@ struct dfa_t{
 
 
 //DFA functions
-int printdfa(struct dfa_t d){
+int printdfa(struct dfa_t * d){
   //hacking for insight
-  int * finbytes = (int *) &d.final;
-  int * alphabytes = (int *) &d.alphabet;
-  int * deltabytes = (int *) &d.delta;
 
-  printf("\nnsts: %i", d.nstates);
-  printf("\naplha: %i", *alphabytes);
-  printf("\nnsym: %i", d.nsym);
-  printf("\n start: %i", d.init);
-  printf("\n fin: %i", *finbytes);
-  printf("\nfin: %i", d.nfin);
-  printf("\ndelta: %i\n", *deltabytes);
+  printf("\nnstates:  %i", d->nstates);
+  printf("\nalphabet: ");
+  for(int i = 0; i < d->nsym; i++){
+    printf("%c ", d->alphabet[i]);
+  }
+  printf("\nnsym:     %i", d->nsym);
+  printf("\nstart:    %i", d->init);
+  printf("\nfin:      ");
+  for(int i = 0; i < d->nfin; i++){
+    printf("%i ", d->final[i]);
+  }
+  printf("\nnfin:     %i", d->nfin);
+  printf("\ndelta:    %p\n", d->delta);
 
-  int * ptrhack = &d.nsym;
-  int * firstint = (int *) ptrhack;
-  printf("\nfirst int: %i", *firstint);
+  /*  int * ptrhack = (int *) d;
+  for(int i = 0; i < 20; i++){
+    printf("int:   %i            %p\n", *ptrhack, ptrhack);
+    ptrhack++;
+    }*/
 
   return 0;
 }
