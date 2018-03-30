@@ -309,7 +309,6 @@ let translate (globals, dfas, functions) =
                                           let dfa_loaded6 = L.build_insertvalue dfa_loaded5 (arr_ptr fin builder) 4 "dfa_loaded6" builder in
                                           let dfa_loaded7 = L.build_insertvalue dfa_loaded6 nfin 5 "dfa_loaded7" builder in
                                           L.build_insertvalue dfa_loaded7 d 6 "dfa_loaded8" builder
-      | SCall ("print",    [e]) -> raise (Prelude.TODO "implement")
       | SCall ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
       | SCall ("printdfa", [e]) -> L.build_call printdfa_func   [|(expr builder e) |]   "printf"   builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
