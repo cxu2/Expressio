@@ -264,18 +264,22 @@ let translate (globals, dfas, functions) =
                                     | A.BREMatches   -> L.build_call matches_func [| e1'; e2' |] "matches" builder
                                   )
  	  
-      | SUnopPost (op, e)           -> let (t, _) = e in
-                                      let e' = expr builder e
+      | SUnopPre (op, e)           -> let (t, _) = e in
+                                       let e' = expr builder e
                                    in (match op with
               	                          (* A.UNeg when t = A.TFloat -> L.build_fneg *)
               	                          A.UNeg                   -> L.build_neg
                                         | A.UNot                   -> L.build_not
-                                        | A.ULit                   -> build_lit
-                                        | A.UStar                  -> build_unop '*'
+                                        | A.URELit                   -> raise (Prelude.TODO "implement")(*build_lit*)
                                         (* TODO operator for comp is ambiguous *)
-                                        | A.BREComplement          -> build_unop '\''
+                                        | A.UREComp          -> raise (Prelude.TODO "implement") (*build_unop '\''*)
                                    ) e' "tmp" builder
-      | SUnopPre (e, op)       -> raise (Prelude.TODO "implement")
+
+      | SUnopPost (e, op)       -> let (t, _) = e in
+                                  let e' = expr builder e
+                                  in (match op with
+                                      | A.UREStar                  -> build_unop '*'
+                                  ) e' "tmp" builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
       | SDFA (n, a, s, f, delta) ->    let ns = L.const_int i32_t n
@@ -398,13 +402,13 @@ let translate (globals, dfas, functions) =
 	        in let merge_bb      = L.append_block context "merge" the_function
 	        in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
 	        in L.builder_at_end context merge_bb
-      | SInfloop (body) -> stmt builder ( Block [While ((BoolLit(true)), Block [body]) ] )
+      | SInfloop (body) -> stmt builder ( SBlock [SWhile ((SBoolLit(true)), SBlock [body]) ] )
       (* Implement for loops as while loops! *)
-      | SFor (e1, e2, e3, body) -> stmt builder ( Block [Expr e1 ; While (e2, Block [body ; Expr e3]) ] )
+      | SFor (e1, e2, e3, body) -> stmt builder ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
       | SContinue               -> raise (Prelude.TODO "implement")
       | SBreak                  -> raise (Prelude.TODO "implement")
     (* Build the code for each statement in the function *)
-    in let builder = stmt builder (Block fdecl.sbody)
+    in let builder = stmt builder (SBlock fdecl.sbody)
     (* Add a return if the last block falls off the end *)
     in add_terminal builder (match fdecl.styp with
         A.TUnit -> L.build_ret_void
