@@ -273,12 +273,14 @@ let translate (globals, dfas, functions) =
                                         | A.URELit                   -> raise (Prelude.TODO "implement")(*build_lit*)
                                         (* TODO operator for comp is ambiguous *)
                                         | A.UREComp          -> raise (Prelude.TODO "implement") (*build_unop '\''*)
+                                        | _                  -> raise(Exceptions.InvalidUnopPreType)
                                    ) e' "tmp" builder
 
       | SUnopPost (e, op)       -> let (t, _) = e in
                                   let e' = expr builder e
                                   in (match op with
-                                      | A.UREStar                  -> build_unop '*'
+                                      A.UREStar                  -> build_unop '*'
+                                      | _                        -> raise(Exceptions.InvalidUnopPostType)
                                   ) e' "tmp" builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
