@@ -1,0 +1,18 @@
+language : c
+sudo : required
+os:
+  - linux
+env :
+  - OCAML_VERSION =4.02
+before_install :
+  - wget https :// raw. githubusercontent .com/ ocaml /ocaml -ci - scripts /
+master /. travis - ocaml .sh
+install :
+  - bash -ex .travis - ocaml .sh
+  - bash -ex install - llvm .sh
+  - bash -ex install -sdl -gfx.sh
+before_script :
+  - eval `opam config env `
+script :
+  - cd src
+  - make clean && make
