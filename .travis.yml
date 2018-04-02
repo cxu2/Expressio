@@ -7,6 +7,7 @@ env :
 before_install :
   - wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
 install :
+  - export OCAML_VERSION=4.06
   - bash -ex .travis-ocaml.sh
   - bash -ex install-llvm.sh
 before_script :
