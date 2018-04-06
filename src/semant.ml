@@ -97,11 +97,12 @@ module StringMap = Map.Make(String)
 
 
     (* Return a semantically-checked expression, i.e., with a type *)
-    in let rec expr ex = match ex with
-        IntLit  l             -> (TInt, SIntLit l)
-      | CharLit c             -> (TChar, SCharLit c)
-      | StringLit s           -> (TString, SStringLit s)
-      | BoolLit l             -> (TBool, SBoolLit l)
+    (* in let rec expr = function *)
+    in let rec expr (ex : expr) : sexpr = match ex with
+        IntLit  l                                 -> (TInt, SIntLit l)
+      | CharLit c                                 -> (TChar, SCharLit c)
+      | StringLit s                               -> (TString, SStringLit s)
+      | BoolLit l                                 -> (TBool, SBoolLit l)
       | DFA (states, alpha, start, final, tran)   ->
                                  (* check states is greater than final states *)
                                  let rec checkFinal maxVal = function
@@ -116,7 +117,7 @@ module StringMap = Map.Make(String)
                                  (* check transition table has one to one *)
                                  let rec oneToOne sMap = function
                                         [] -> false
-                                 | x :: tl -> let (t1,t2,t3) = x in
+                                 | x :: tl -> let (t1, t2, t3) = x in
                                    let combo = string_of_int t1 ^ String.make 1 t2 in
                                    let finalState = string_of_int t3 in
                                    if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl in
@@ -124,7 +125,7 @@ module StringMap = Map.Make(String)
                                  (* also check that states is greater than start *)
                                  if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
                                  then raise (Failure ("DFA sucks"))
-                                 else (TDFA, SDFA (states,alpha,start,final,tran))
+                                 else (TDFA, SDFA (states, alpha, start, final, tran))
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
@@ -133,12 +134,16 @@ module StringMap = Map.Make(String)
                                  and (rt, e') = expr e
                                  in let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ string_of_typ rt ^ " in " ^ string_of_expr ex
                                  in (check_assign lt rt err, SAssign (var, (rt, e')))
-      | Unop (UNeg,    e) as ex -> let (t, e') = expr e in if t = TInt  then (TInt,  SUnop (UNeg, (t, e')))    else raise (Failure ("illegal unary operator " ^ string_of_uop UNeg ^ string_of_typ t ^ " in " ^ string_of_expr ex))
-      | Unop (UNot,    e) as ex -> let (t, e') = expr e in if t = TBool then (TBool, SUnop (UNot, (t, e')))    else raise (Failure ("illegal unary operator " ^ string_of_uop UNot ^ string_of_typ t ^ " in " ^ string_of_expr ex))
-      | Unop (URELit,  e) as ex -> let (t, e') = expr e in if t = TChar then (TRE,   SUnop (URELit, (t, e')))  else raise (Failure ("illegal unary operator " ^ string_of_uop URELit ^ string_of_typ t ^ " in " ^ string_of_expr ex))
-      | Unop (UREStar, e) as ex -> let (t, e') = expr e in if t = TRE   then (TRE,   SUnop (UREStar, (t, e'))) else raise (Failure ("illegal unary operator " ^ string_of_uop UREStar ^ string_of_typ t ^ " in " ^ string_of_expr ex))
-      | Unop (UREComp, e) as ex -> let (t, e') = expr e in if t = TRE   then (TRE,   SUnop (UREComp, (t, e'))) else raise (Failure ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ t ^ " in " ^ string_of_expr ex))
-
+      | Unop (UNeg,    e) when fst (expr e) = TInt  -> (TInt,  SUnop (UNeg, expr e))
+      | Unop (UNeg,    e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop UNeg    ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (UNot,    e) when fst (expr e) = TBool -> (TBool, SUnop (UNot,    expr e))
+      | Unop (UNot,    e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop UNot    ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (URELit,  e) when fst (expr e) = TChar -> (TRE,   SUnop (URELit,  expr e))
+      | Unop (URELit,  e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop URELit  ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (UREStar, e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREStar, expr e))
+      | Unop (UREStar, e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop UREStar ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (UREComp, e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
+      | Unop (UREComp, e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
       | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2
@@ -168,7 +173,7 @@ module StringMap = Map.Make(String)
                                                string_of_typ t2 ^ " in " ^ string_of_expr e))
         in (ty, SBinop ((t1, e1'), op, (t2, e2')))
       | Call (fname, args) as call ->
-          let fd           = find_func fname
+          let fd              = find_func fname
           in let param_length = List.length fd.formals
           in if List.length args != param_length
              then raise (Failure ("expecting " ^ string_of_int param_length ^ " arguments in " ^ string_of_expr call))
@@ -182,39 +187,30 @@ module StringMap = Map.Make(String)
                                in if t' != TBool
                                   then raise (Failure err)
                                   else (t', e')
-
-
     (* Return a semantically-checked statement i.e. containing sexprs *)
-    (* in let rec check_stmt (x : stmt) : sstmt = match x with *)
-    (* check_stmt : stmt -> sstmt *)
-    in let rec check_stmt (looping : bool) = function
-        Expr e               -> SExpr (expr e)
-      | If (p, b1, b2)       -> SIf (check_bool_expr p, check_stmt looping b1, check_stmt looping b2)
-      | For (e1, e2, e3, st) -> SFor (expr e1, check_bool_expr e2, expr e3, check_stmt looping st)
-      | While (p, s)         -> SWhile (check_bool_expr p, check_stmt true s)
-      | Infloop (s)          -> SInfloop (check_stmt true s)
-      | Continue             -> if looping then SContinue else raise (Failure "\'continue\' is outside of loop")
-      | Break                -> if looping then SBreak    else raise (Failure "\'break\' is outside of loop")
-      | Return e             -> let (t, e') = expr e
-                                in if t = func.typ
-                                   then SReturn (t, e')
-                                   else raise (Failure ("return gives " ^ string_of_typ t ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e))
-	    (* A block is correct if each statement is correct and nothing
-        follows any Return statement.  Nested blocks are flattened. *)
-      | Block sl -> let rec check_stmt_list = function
-                 [Return _ as s] -> [check_stmt false s]
-                | Return _ :: _   -> raise (Failure "nothing may follow a return")
-                | Block sl :: ss  -> check_stmt_list (sl @ ss) (* Flatten blocks *)
-                | s :: ss         -> check_stmt false s :: check_stmt_list ss
-                | []              -> []
-              in SBlock (check_stmt_list sl)
-
+    in let rec check_statement (x : bool * stmt) : sstmt = match x with
+      | (false,   Break)                                   -> raise (Failure "\'break\' is outside of loop")
+      | (false,   Continue)                                -> raise (Failure "\'continue\' is outside of loop")
+      | (true,    Break)                                   -> SBreak
+      | (true,    Continue)                                -> SContinue
+      | (_,       Expr e)                                  -> SExpr (expr e)
+      | (looping, If (p, b1, b2))                          -> SIf (check_bool_expr p, check_statement (looping, b1), check_statement (looping, b2))
+      | (_,       For (e1, e2, e3, s))                     -> SFor (expr e1, check_bool_expr e2, expr e3, check_statement (true, s))
+      | (_,       While (p, s))                            -> SWhile (check_bool_expr p, check_statement (true, s))
+      | (_,       Infloop s)                               -> SInfloop (check_statement (true, s))
+      | (_,       Return e) when (fst (expr e) = func.typ) -> SReturn (expr e)
+      | (_,       Return e)                                -> raise (Failure ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e))
+      | (_,       Block (Return _ ::  _))                  -> raise (Failure "nothing may follow a return")
+      | (looping, Block (Block sl :: ss))                  -> check_statement (looping, (Block (sl @ ss)))           (* Flatten blocks *)
+      | (_,       Block              [])                   -> SBlock []
+      | (looping, Block              ss)                   -> let ss' = Prelude.map_accum_left (fun loop statement -> (loop, check_statement (loop, statement))) looping ss
+                                                              in  SBlock (snd ss')
     in (* body of check_function *)
     { styp     = func.typ;
       sfname   = func.fname;
       sformals = formals';
       slocals  = locals';
-      sbody    = match check_stmt false (Block func.body) with
+      sbody    = match (check_statement (false, (Block func.body))) with
                 	 SBlock sl -> sl
                   | _        -> let err = "internal error: block didn't become a block?"
                                 in raise (Failure err)

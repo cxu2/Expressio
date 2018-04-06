@@ -149,8 +149,8 @@ let rec string_of_sstmt = function
   | SFor (e1, e2, e3, s)  -> "for " ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
   | SWhile (e, s)         -> "for " ^ string_of_sexpr e ^ " " ^ string_of_sstmt s
   | SInfloop (s)          -> "for " ^ string_of_sstmt s
-  | SBreak                 -> "break;"
-  | SContinue              -> "continue;"
+  | SBreak                -> "break;"
+  | SContinue             -> "continue;"
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.styp ^ " " ^
