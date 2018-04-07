@@ -93,7 +93,7 @@ module RegExp = struct
       | Mult (a, b) -> (finite' a) && (finite' b)
       | Star _      -> false
       | And  _      -> raise (Prelude.TODO "intersection")
-      | Comp _      -> raise (Prelude.TODO "finite'")
+      | Comp a      -> not (finite' a)
     in finite' (normalize r)
   let infinite (r : 'a regexp) : bool = not (finite r)
   (* Brzozowski derivative with respect to s ∈ Σ *)
