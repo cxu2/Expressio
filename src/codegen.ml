@@ -209,7 +209,7 @@ let translate (globals, _, functions) =
       tree_loaded
 
 
-    in let build_binop op lregexp rregexp name b =
+    in let build_binop op lregexp rregexp _ b =
       let tree_ptr = L.build_alloca tree_t "tree_space" b in
 
       (* storing the operator *)
@@ -232,7 +232,7 @@ let translate (globals, _, functions) =
       tree_loaded
     
     
-    in let build_dfa n a s f d b =
+    in let build_dfa n a s f _ b =
       (*Getting our llvm values for array sizes, which we need for our c lib*)
       let ns = L.const_int i32_t n
       and start = L.const_int i32_t s
@@ -258,18 +258,19 @@ let translate (globals, _, functions) =
 
 
       (* copy over the values to the llvm arrays*)
-      let copy_list_to_array (arr, i, localb) value = ((insert_elt arr value i localb); arr, i + 1, localb) in
+      let copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb) in
 
-      List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char;
-      List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int;
+      ignore(List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char);
+      ignore(List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int);
 
       (*Stuff everything in the dfa struct*)
-      L.build_store ns (get_struct_idx dfa_ptr 0 b) b;  
-      L.build_store (arr_ptr alpha_ptr b) (get_struct_idx dfa_ptr 1 b) b;
-      L.build_store nsym (get_struct_idx dfa_ptr 2 b) b;
-      L.build_store start (get_struct_idx dfa_ptr 3 b) b;
-      L.build_store (arr_ptr fin_ptr b) (get_struct_idx dfa_ptr 4 b) b;
-      L.build_store nfin (get_struct_idx dfa_ptr 5 b) b;
+      ignore(L.build_store ns (get_struct_idx dfa_ptr 0 b) b);  
+      ignore(L.build_store (arr_ptr alpha_ptr b) (get_struct_idx dfa_ptr 1 b) b);
+      ignore(L.build_store nsym (get_struct_idx dfa_ptr 2 b) b);
+      ignore(L.build_store start (get_struct_idx dfa_ptr 3 b) b);
+      ignore(L.build_store (arr_ptr fin_ptr b) (get_struct_idx dfa_ptr 4 b) b);
+      ignore(L.build_store nfin (get_struct_idx dfa_ptr 5 b) b);
+      ignore(L.build_store delta_ptr (get_struct_idx dfa_ptr 6 b) b);
       L.build_load dfa_ptr "dfa_loaded" b in
 
 
@@ -288,12 +289,7 @@ let translate (globals, _, functions) =
       | SStringLit s        -> L.build_global_stringptr s "string" builder
       | SNoexpr             -> L.const_int i32_t 0
       | SId s                           -> L.build_load (lookup s) s builder
-      (* | SRE (Lit c)                     -> L.build_load (lookup s) s builder
-      | SRE s                           -> L.build_load (lookup s) s builder
-      | SRE s                           -> L.build_load (lookup s) s builder
-      | SRE s                           -> L.build_load (lookup s) s builder
-      | SRE s                           -> L.build_load (lookup s) s builder *)
-
+      | SRE _(*s*)                           -> raise (Prelude.TODO "implement SRE")
       | SBinop (e1, A.BAdd,         e2) -> L.build_add (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BSub,         e2) -> L.build_sub (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BMult,        e2) -> L.build_mul (expr builder e1) (expr builder e2) "tmp" builder
@@ -306,7 +302,7 @@ let translate (globals, _, functions) =
       | SBinop (e1, A.BLeq,         e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGreater,     e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGeq,         e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BCase,        e2) -> raise (Prelude.TODO "implement")
+      | SBinop (_, A.BCase,        _) -> raise (Prelude.TODO "implement")
       | SBinop (e1, A.BREUnion,     e2) -> build_binop '|' (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BREConcat,    e2) -> build_binop '^' (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BREIntersect, e2) -> build_binop '&' (expr builder e1) (expr builder e2) "tmp" builder
