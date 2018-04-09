@@ -177,8 +177,8 @@ let translate (globals, _, functions) =
 
     in let get_struct_idx s i b = L.build_struct_gep s i "structelt" b
 
-    in let build_lit op character name b =
-      let tree_ptr = L.build_alloca tree_t name b in
+    in let build_lit op character b =
+      let tree_ptr = L.build_alloca tree_t "tree_space" b in
 
       (* storing leaf node identifier operator l for lit *)
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
@@ -192,8 +192,8 @@ let translate (globals, _, functions) =
       tree_loaded
 
 
-    in let build_unop op regexp name b =
-      let tree_ptr = L.build_alloca tree_t name b in
+    in let build_unop op regexp b =
+      let tree_ptr = L.build_alloca tree_t "tree_space" b in
 
       (* storing the operator *)
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
@@ -209,7 +209,7 @@ let translate (globals, _, functions) =
       tree_loaded
 
 
-    in let build_binop op lregexp rregexp _ b =
+    in let build_binop op lregexp rregexp b =
       let tree_ptr = L.build_alloca tree_t "tree_space" b in
 
       (* storing the operator *)
@@ -302,19 +302,19 @@ let translate (globals, _, functions) =
       | SBinop (e1, A.BLeq,         e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGreater,     e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGeq,         e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (_, A.BCase,        _) -> raise (Prelude.TODO "implement")
-      | SBinop (e1, A.BREUnion,     e2) -> build_binop '|' (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BREConcat,    e2) -> build_binop '^' (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BREIntersect, e2) -> build_binop '&' (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (_, A.BCase,          _) -> raise (Prelude.TODO "implement")
+      | SBinop (e1, A.BREUnion,     e2) -> build_binop '|' (expr builder e1) (expr builder e2) builder
+      | SBinop (e1, A.BREConcat,    e2) -> build_binop '^' (expr builder e1) (expr builder e2) builder
+      | SBinop (e1, A.BREIntersect, e2) -> build_binop '&' (expr builder e1) (expr builder e2) builder
       | SBinop (e1, A.BREMatches,   e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
       | SUnop (A.UNeg,    e)            -> L.build_neg (expr builder e) "tmp" builder
       | SUnop (A.UNot,    e)            -> L.build_not (expr builder e) "tmp" builder
-      | SUnop (A.URELit,  e)            -> build_lit 'l' (expr builder e) "tmp" builder
-      | SUnop (A.UREComp, e)            -> build_unop '\\' (expr builder e)  "tmp" builder
-      | SUnop (A.UREStar, e)            -> build_unop '*' (expr builder e) "tmp" builder
+      | SUnop (A.URELit,  e)            -> build_lit 'l' (expr builder e)  builder
+      | SUnop (A.UREComp, e)            -> build_unop '\\' (expr builder e) builder
+      | SUnop (A.UREStar, e)            -> build_unop '*' (expr builder e) builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
-      | SDFA (n, a, s, f, delta) ->    build_dfa n a s f delta builder
+      | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
       | SCall ("print",    [e]) -> raise (Prelude.TODO "implement")
       | SCall ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
       | SCall ("printdfa", [e]) -> L.build_call printdfa_func   [|get_ptr (expr builder e) builder |]   "printf"   builder
