@@ -2,13 +2,11 @@
 main : -> int {
  
   regexp x;
-<~
   regexp y;
   regexp z;
   regexp t;
   regexp w;
-~>
-
+  regexp s;
 
 <~
   string s;
@@ -16,18 +14,23 @@ main : -> int {
 ~>
 
   x = lit 'c';
-
-<~
   y = lit 'a';
   z = x ^ y;
   t = x | z;
   w = y & t;
+  s = w **;
 
-  printf("Hello World");
+<~
+  printr(x);
+  printr(y);
 ~>
 
+  printr(s);
 
-  printr(x);
+  x = lit 'b';
+
+~~ testing if w gets modified as well
+~~ printr(s);
 
   
   return (0);
