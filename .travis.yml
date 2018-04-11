@@ -9,7 +9,7 @@ before_install :
 install :
   - export OCAML_VERSION=4.06
   - bash -ex .travis-ocaml.sh
-  - opam install ocamlfind menhir
+  - opam install ocamlfind menhir -y
   - opam install llvm.3.8
   - export PATH=/usr/lib/llvm-3.8/bin:$PATH
 before_script :
