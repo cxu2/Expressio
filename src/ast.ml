@@ -4,8 +4,10 @@
 open RegExp
 
 (* Binary operators *)
-type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq |
-           BAnd | BOr  | BCase | BREUnion | BREConcat | BREMatches | BREIntersect
+type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq | BAnd | BOr
+         | BCase
+         | BREUnion  | BREConcat  | BREMatches  | BREIntersect
+         | BDFAUnion | BDFAConcat | BDFAAccepts | BDFASimulates
 
 (* Unary operators *)
 type uop = UNeg | UNot | URELit | UREStar | UREComp
@@ -15,6 +17,7 @@ type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE
 
 type bind = typ * string
 
+(* transition function *)
 type tranf = int * char * int
 
 type expr =
@@ -76,23 +79,27 @@ let rec string_of_re = function
   *)
 
 let string_of_op = function
-    BAdd         -> "+"
-  | BSub         -> "-"
-  | BMult        -> "*"
-  | BDiv         -> "/"
-  | BEqual       -> "=="
-  | BNeq         -> "!="
-  | BLess        -> "<"
-  | BLeq         -> "<="
-  | BGreater     -> ">"
-  | BGeq         -> ">="
-  | BAnd         -> "&&"
-  | BOr          -> "||"
-  | BREUnion     -> "|"
-  | BREConcat    -> "^"
-  | BREMatches   -> "matches"
-  | BCase        -> "case"
-  | BREIntersect -> "&"
+    BAdd          -> "+"
+  | BSub          -> "-"
+  | BMult         -> "*"
+  | BDiv          -> "/"
+  | BEqual        -> "=="
+  | BNeq          -> "!="
+  | BLess         -> "<"
+  | BLeq          -> "<="
+  | BGreater      -> ">"
+  | BGeq          -> ">="
+  | BAnd          -> "&&"
+  | BOr           -> "||"
+  | BREUnion      -> "|"
+  | BREConcat     -> "^"
+  | BREMatches    -> "matches"
+  | BCase         -> "case"
+  | BREIntersect  -> "&"
+  | BDFAUnion     -> "" (* FIXME *)
+  | BDFAConcat    -> "" (* FIXME *)
+  | BDFAAccepts   -> "accepts"
+  | BDFASimulates -> "simulates"
 
 let string_of_uop = function
     UNeg    -> "-"

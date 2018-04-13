@@ -284,48 +284,57 @@ let translate (globals, _, functions) =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) : L.llvalue = match e with
-	      SIntLit i                       -> L.const_int i32_t i
-      | SBoolLit b                      -> L.const_int i1_t (if b then 1 else 0)
-      | SCharLit c                      -> L.const_int i8_t (int_of_char c)
-      | SStringLit s                    -> L.build_global_stringptr s "string" builder
-      | SNoexpr                         -> L.const_int i32_t 0
-      | SId s                           -> L.build_load (lookup s) s builder
+	      SIntLit i                        -> L.const_int i32_t i
+      | SBoolLit b                       -> L.const_int i1_t (if b then 1 else 0)
+      | SCharLit c                       -> L.const_int i8_t (int_of_char c)
+      | SStringLit s                     -> L.build_global_stringptr s "string" builder
+      | SNoexpr                          -> L.const_int i32_t 0
+      | SId s                            -> L.build_load (lookup s) s builder
       (* TODO decide if it's better to keep this or do a nullary op constructor instead *)
       (* Convert SRE to its expression constituents *)
-      | SRE Zero                        -> raise (Prelude.TODO "implement SRE Zero")
-      | SRE One                         -> raise (Prelude.TODO "implement SRE One")
-      | SRE (Lit c)                     -> expr builder (TRE, SUnop  (A.URELit,  (TRE, SRE (Lit c))))
-      | SRE (Comp r)                    -> expr builder (TRE, SUnop  (A.UREComp, (TRE, SRE (Comp r))))
-      | SRE (Star r)                    -> expr builder (TRE, SUnop  (A.UREStar, (TRE, SRE (Star r))))
-      | SRE (Mult (a, b))               -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREConcat,    (TRE, SRE b)))
-      | SRE (And  (a, b))               -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREIntersect, (TRE, SRE b)))
-      | SRE (Plus (a, b))               -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREUnion,     (TRE, SRE b)))
-      | SBinop (_,  A.BCase,         _) -> raise (Prelude.TODO "implement")
-      | SBinop (e1, A.BREMatches,   e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
-      | SBinop (e1, A.BREUnion,     e2) -> build_binop '|'         (expr builder e1) (expr builder e2)       builder
-      | SBinop (e1, A.BREConcat,    e2) -> build_binop '^'         (expr builder e1) (expr builder e2)       builder
-      | SBinop (e1, A.BREIntersect, e2) -> build_binop '&'         (expr builder e1) (expr builder e2)       builder
-      | SBinop (e1, A.BAdd,         e2) -> L.build_add             (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BSub,         e2) -> L.build_sub             (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BMult,        e2) -> L.build_mul             (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BDiv,         e2) -> L.build_sdiv            (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BAnd,         e2) -> L.build_and             (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BOr,          e2) -> L.build_or              (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BEqual,       e2) -> L.build_icmp L.Icmp.Eq  (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BNeq,         e2) -> L.build_icmp L.Icmp.Ne  (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BLess,        e2) -> L.build_icmp L.Icmp.Slt (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BLeq,         e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BGreater,     e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BGeq,         e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
-      | SUnop (A.UNeg,    e)            -> L.build_neg             (expr builder e)                    "tmp" builder
-      | SUnop (A.UNot,    e)            -> L.build_not             (expr builder e)                    "tmp" builder
-      | SUnop (A.URELit,  e)            -> build_lit 'l'           (expr builder e)                          builder
-      | SUnop (A.UREComp, e)            -> build_unop '\\'         (expr builder e)                          builder
-      | SUnop (A.UREStar, e)            -> build_unop '*'          (expr builder e)                          builder
+      | SRE Zero                         -> raise (Prelude.TODO "implement SRE Zero")
+      | SRE One                          -> raise (Prelude.TODO "implement SRE One")
+      | SRE (Lit c)                      -> expr builder (TRE, SUnop  (A.URELit,  (TRE, SRE (Lit c))))
+      | SRE (Comp r)                     -> expr builder (TRE, SUnop  (A.UREComp, (TRE, SRE (Comp r))))
+      | SRE (Star r)                     -> expr builder (TRE, SUnop  (A.UREStar, (TRE, SRE (Star r))))
+      | SRE (Mult (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREConcat,    (TRE, SRE b)))
+      | SRE (And  (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREIntersect, (TRE, SRE b)))
+      | SRE (Plus (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREUnion,     (TRE, SRE b)))
+      | SBinop (_,  A.BCase,          _) -> raise (Prelude.TODO "implement codegen")
+      | SBinop (e1, A.BDFAUnion,     e2) -> raise (Prelude.TODO "implement codegen")
+      | SBinop (e1, A.BDFAConcat,    e2) -> raise (Prelude.TODO "implement codegen")
+      | SBinop (e1, A.BDFAAccepts,   e2) -> raise (Prelude.TODO "implement codegen")
+      | SBinop (e1, A.BDFASimulates, e2) -> raise (Prelude.TODO "implement codegen")
+      | SBinop (e1, A.BREMatches,    e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
+      | SBinop (e1, A.BREUnion,      e2) -> build_binop '|'         (expr builder e1) (expr builder e2)       builder
+      | SBinop (e1, A.BREConcat,     e2) -> build_binop '^'         (expr builder e1) (expr builder e2)       builder
+      | SBinop (e1, A.BREIntersect,  e2) -> build_binop '&'         (expr builder e1) (expr builder e2)       builder
+      | SBinop (e1, A.BAdd,          e2) -> L.build_add             (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BSub,          e2) -> L.build_sub             (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BMult,         e2) -> L.build_mul             (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BDiv,          e2) -> L.build_sdiv            (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BAnd,          e2) -> L.build_and             (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BOr,           e2) -> L.build_or              (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BEqual,        e2) -> L.build_icmp L.Icmp.Eq  (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BNeq,          e2) -> L.build_icmp L.Icmp.Ne  (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BLess,         e2) -> L.build_icmp L.Icmp.Slt (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BLeq,          e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BGreater,      e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BGeq,          e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
+      | SUnop (A.UNeg,    e)             -> L.build_neg             (expr builder e)                    "tmp" builder
+      | SUnop (A.UNot,    e)             -> L.build_not             (expr builder e)                    "tmp" builder
+      | SUnop (A.URELit,  e)             -> build_lit 'l'           (expr builder e)                          builder
+      | SUnop (A.UREComp, e)             -> build_unop '\\'         (expr builder e)                          builder
+      | SUnop (A.UREStar, e)             -> build_unop '*'          (expr builder e)                          builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
       | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
+<<<<<<< Updated upstream
       | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
+=======
+      | SCall ("print",    _(*[e]*)) -> raise (Prelude.TODO "implement")
+      | SCall ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
+>>>>>>> Stashed changes
       | SCall ("printdfa", [e]) -> L.build_call printdfa_func   [|get_ptr (expr builder e) builder |]   "printf"   builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder |] "printr" builder
