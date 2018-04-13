@@ -268,10 +268,8 @@ let translate (globals, _, functions) =
 
       (*Now, to copy the delta function*)
       (*First, we obtain a mapping of characters to the appropriate index*)
-      let rec get_char_index c (elts, idx) = match elts with
-        c::rest -> idx
-        | _::rest ->  get_char_index c (rest, idx+1)
-        | [] -> raise (Prelude.TODO "semantic check on transitions") in
+      let rec get_char_index c (elts, idx) = 
+        if (List.hd elts) = c then idx else get_char_index c ((List.tl elts), idx+1) in
 
       (*fill the table with special value -1 to indicate no transition*)
       let rec build_memset len arr fill = match len with
