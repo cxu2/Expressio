@@ -143,9 +143,10 @@ let translate (globals, _, functions) =
     in let add_local m (t, n) =
     	let local_var = L.build_alloca (ltype_of_typ t) n builder
     	in StringMap.add n local_var m
-      in let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
-          (Array.to_list (L.params the_function)) in
-      List.fold_left add_local formals fdecl.slocals
+
+    in let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
+        (Array.to_list (L.params the_function)) in
+    List.fold_left add_local formals fdecl.slocals
     in
 
 
@@ -176,55 +177,57 @@ let translate (globals, _, functions) =
 
     in let get_struct_idx s i b = L.build_struct_gep s i "structelt" b
 
-    in let build_lit character name b =
-      (* TODO alloc or malloc? *)
-      let tree_ptr = L.build_alloca tree_t name b in
+    in let build_lit op character b =
+      let tree_ptr = L.build_alloca tree_t "tree_space" b in
 
+      (* storing leaf node identifier operator l for lit *)
+      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
+      ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
+
+      (* storing the character *)
       let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
-
       ignore(L.build_store character char_ptr b);
 
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
 
 
-    in let build_unop op regexp name b =
-      let tree_ptr = L.build_alloca tree_t name b in
+    in let build_unop op regexp b =
+      let tree_ptr = L.build_alloca tree_t "tree_space" b in
 
+      (* storing the operator *)
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
-
-      let left_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr" b in
-      let left_tree_ptr = L.build_bitcast left_ptr (pointer_t tree_t) "left_tree_ptr" b in
-
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
-      ignore(L.build_store regexp left_tree_ptr b);
+
+      (* storing left tree *)
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      let left_tree_ptr = get_ptr regexp b in
+      let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b in
+      ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
+
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
 
 
-    in let build_binop op lregexp rregexp _(*name*) b =
-      let tree_ptr = L.build_alloca tree_t "lit_space" b in
+    in let build_binop op lregexp rregexp b =
+      let tree_ptr = L.build_alloca tree_t "tree_space" b in
 
+      (* storing the operator *)
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
-
-      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
-      let left_ptr = L.build_load left_ptr_ptr "left_ptr" b in
-      let left_tree_ptr = get_ptr lregexp b in
-      let left_tree_char_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_char_ptr" b in
-      ignore(L.build_store (L.build_load left_tree_char_ptr "tmp" b) left_ptr b);
-
-      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
-      let right_ptr = L.build_load right_ptr_ptr "right_ptr" b in
-      let right_tree_ptr = get_ptr rregexp b in
-      let right_tree_char_ptr = L.build_in_bounds_gep right_tree_ptr [| itol 0; itol 0 |] "right_tree_char_ptr" b in
-      ignore(L.build_store (L.build_load right_tree_char_ptr "tmp" b) right_ptr b);
-
-      (* let right_tree_ptr = L.build_bitcast right_ptr (pointer_t tree_t) "right_tree_ptr" b in
-      let right_tree_ptr = L.build_alloca tree_t "rtree_ptr" b in *)
-
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
-(*       ignore(L.build_store lregexp left_tree_ptr b);
-      ignore(L.build_store rregexp right_tree_ptr b); *)
+
+      (* storing left tree *)
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      let left_tree_ptr = get_ptr lregexp b in
+      let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b in
+      ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
+
+      (* storing right tree *)
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      let right_tree_ptr = get_ptr rregexp b in
+      let right_tree_op_ptr = L.build_in_bounds_gep right_tree_ptr [| itol 0; itol 0 |] "right_tree_op_ptr" b in
+      ignore(L.build_store right_tree_op_ptr right_ptr_ptr b);
+
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
     
@@ -309,21 +312,22 @@ let translate (globals, _, functions) =
       | SBinop (e1, A.BLeq,         e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGreater,     e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGeq,         e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (_, A.BCase,        _) -> raise (Prelude.TODO "implement")
-      | SBinop (e1, A.BREUnion,     e2) -> build_binop '|' (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BREConcat,    e2) -> build_binop '^' (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BREIntersect, e2) -> build_binop '&' (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (_, A.BCase,          _) -> raise (Prelude.TODO "implement")
+      | SBinop (e1, A.BREUnion,     e2) -> build_binop '|' (expr builder e1) (expr builder e2) builder
+      | SBinop (e1, A.BREConcat,    e2) -> build_binop '^' (expr builder e1) (expr builder e2) builder
+      | SBinop (e1, A.BREIntersect, e2) -> build_binop '&' (expr builder e1) (expr builder e2) builder
       | SBinop (e1, A.BREMatches,   e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
       | SUnop (A.UNeg,    e)            -> L.build_neg (expr builder e) "tmp" builder
       | SUnop (A.UNot,    e)            -> L.build_not (expr builder e) "tmp" builder
-      | SUnop (A.URELit,  e)            -> build_lit (expr builder e) "tmp" builder
-      | SUnop (A.UREComp, e)            -> build_unop '\\' (expr builder e)  "tmp" builder
-      | SUnop (A.UREStar, e)            -> build_unop '*' (expr builder e) "tmp" builder
+      | SUnop (A.URELit,  e)            -> build_lit 'l' (expr builder e)  builder
+      | SUnop (A.UREComp, e)            -> build_unop '\\' (expr builder e) builder
+      | SUnop (A.UREStar, e)            -> build_unop '*' (expr builder e) builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
-      | SDFA (n, a, s, f, delta) ->    build_dfa n a s f delta builder
-      | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "print"   builder
-      | SCall ("printdfa", [e]) -> L.build_call printdfa_func   [|get_ptr (expr builder e) builder |]   "printdfa"   builder
+      | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
+      | SCall ("print",    [e]) -> raise (Prelude.TODO "implement")
+      | SCall ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
+      | SCall ("printdfa", [e]) -> L.build_call printdfa_func   [|get_ptr (expr builder e) builder |]   "printf"   builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder |] "printr" builder
       | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
