@@ -4,10 +4,11 @@ module RegExp = struct
     | Zero                              (* The empty language             L(Zero)  = ∅              *)
     | One                               (* The empty string, epsilon      L(One)   = {ε}            *)
     | Lit  of 'a                        (* Literal, single symbol         L(σ)     = {σ}, for σ ∈ Σ *)
-    | Plus of ('a regexp) * ('a regexp) (* Multiplication, Concatenation  L(α · β) = L(α) · L(β)    *)
-    | Mult of ('a regexp) * ('a regexp) (* Plus, union, or                L(α | β) = L(α) ∪ L(β)    *)
+    | Plus of ('a regexp) * ('a regexp) (* Plus, union, or                L(α | β) = L(α) ∪ L(β)    *)
+    | Mult of ('a regexp) * ('a regexp) (* Multiplication, Concatenation  L(α · β) = L(α) · L(β)    *)
     | Star of ('a regexp)               (* Kleene star, repetition        L(α⋆)    = L(α)⋆          *)
     (* TODO better name? *)
+    (* FIXME I've implemented a lot of the And/Comp stuff in the functions below without first proving anything about And/Comp (shame on me), need to check these :) *)
     | And  of ('a regexp) * ('a regexp) (* Intersection (logical and)     L(α & β) = L(α) ∩ L(β)    *)
     | Comp of ('a regexp)               (* complement ¬                   L(¬α)    = Σ⋆ \ L(α)      *)
 
@@ -66,8 +67,8 @@ module RegExp = struct
     | Plus (a, b) -> plus (normalize a) (normalize b)
     | Mult (a, b) -> mult (normalize a) (normalize b)
     | Star a      -> star (normalize a)
-    | And (_, _)  -> raise (Prelude.TODO "") (* intersect (normalize a) (normalize b) *)
-    | Comp _      -> raise (Prelude.TODO "") (* comp (normalize a) *) (* should be, `comp (normalize a)` but I'll double check first *)
+    | And (a, b)  -> intersect (normalize a) (normalize b)
+    | Comp a      -> comp (normalize a)
 
   (* Does the language of this RE contain the empty string? *)
   let rec nullable = function
@@ -77,8 +78,8 @@ module RegExp = struct
     | Plus (a, b) -> (nullable a) || (nullable b)
     | Mult (a, b) -> (nullable a) && (nullable b)
     | Star _      -> true
-    | And _       -> raise (Prelude.TODO "")
-    | Comp _      -> raise (Prelude.TODO "")
+    | And (a, b)  -> (nullable a) || (nullable b)
+    | Comp a      -> not (nullable a)
   let constant (r : 'a regexp) : 'a regexp = if nullable r then One else Zero
   (* Check if the the regular expression, r, produces a finite language.
      This is accomplished by finding the normal form of r
@@ -92,7 +93,7 @@ module RegExp = struct
       | Plus (a, b) -> (finite' a) && (finite' b)
       | Mult (a, b) -> (finite' a) && (finite' b)
       | Star _      -> false
-      | And  _      -> raise (Prelude.TODO "intersection")
+      | And  (a, b) -> (finite' a) || (finite' b)
       | Comp a      -> not (finite' a)
     in finite' (normalize r)
   let infinite (r : 'a regexp) : bool = not (finite r)
@@ -123,8 +124,8 @@ module RegExp = struct
       | Plus (a, b) -> (isZero' a) && (isZero' b)
       | Mult (a, b) -> (isZero' a) || (isZero' b)
       | Star _      -> false
-      | And (_, _)  -> raise (Prelude.TODO "isZero")
-      | Comp _      -> raise (Prelude.TODO "isZero")
+      | And (a, b)  -> (isZero' a) || (isZero' b)
+      | Comp a      -> not (isZero' a)
     in isZero' (normalize r)
   let rec matches (r : 'a regexp) (word : 'a list) = match r with
       Zero -> false
@@ -151,8 +152,8 @@ module RegExp = struct
     | Plus (a, b) -> Plus (reversal a, reversal b)
     | Mult (a, b) -> Mult (reversal b, reversal a)
     | Star a      -> Star (reversal a)
-    | And (_, _)  -> raise (Prelude.TODO "reversal")
-    | Comp _      -> raise (Prelude.TODO "reversal")
+    | And (a, b)  -> And  (reversal a, reversal b)
+    | Comp a      -> Comp (reversal a)
 
   let rec string_of_re = function
       Zero         -> "∅"
