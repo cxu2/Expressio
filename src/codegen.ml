@@ -238,13 +238,23 @@ let translate (globals, _, functions) =
 
       (*Define llvm "array types"*)
       let alpha_t = L.array_type i8_t (List.length a)
-      and fin_t = L.array_type i32_t (List.length f) in
+      and fin_t = L.array_type i32_t (List.length f)
+      and delta_row_t = L.array_type i32_t (List.length a) in
+      let delta_t = L.array_type (L.pointer_type delta_row_t) n in
 
       (*Allocating space and getting pointers*)
       let dfa_ptr = L.build_alloca dfa_t "dfa" b in  
       let alpha_ptr = L.build_array_alloca alpha_t nsym "alpha" b in
       let fin_ptr = L.build_array_alloca fin_t nfin "fin" b in
-      let delta_ptr = L.build_alloca (L.pointer_type i32_t) "delta" b in
+      let delta_ptr = L.build_array_alloca delta_t ns "delta" b in
+
+      (*Fill transition table*)
+      let rec build_states l num_states = match num_states with
+        0 -> l
+        | _ -> build_states ((num_states-1)::l) (num_states-1) in
+      let states = (build_states [] n) in
+
+      (*let row_ptrs = List.fold_left funz (seed) a in*)
 
       (*preprocess our Ocaml lists so we can insert them into llvm arrays*)
       let ll_of_char c  = L.const_int i8_t (int_of_char c) in
@@ -267,7 +277,7 @@ let translate (globals, _, functions) =
       ignore(L.build_store start (get_struct_idx dfa_ptr 3 b) b);
       ignore(L.build_store (arr_ptr fin_ptr b) (get_struct_idx dfa_ptr 4 b) b);
       ignore(L.build_store nfin (get_struct_idx dfa_ptr 5 b) b);
-      ignore(L.build_store delta_ptr (get_struct_idx dfa_ptr 6 b) b);
+      (*ignore(L.build_store delta_ptr (get_struct_idx dfa_ptr 6 b) b);*)
       L.build_load dfa_ptr "dfa_loaded" b in
 
 
@@ -312,9 +322,8 @@ let translate (globals, _, functions) =
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
       | SDFA (n, a, s, f, delta) ->    build_dfa n a s f delta builder
-      | SCall ("print",    [e]) -> raise (Prelude.TODO "implement")
-      | SCall ("printb",   [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "printf"   builder
-      | SCall ("printdfa", [e]) -> L.build_call printdfa_func   [|get_ptr (expr builder e) builder |]   "printf"   builder
+      | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e) |]   "print"   builder
+      | SCall ("printdfa", [e]) -> L.build_call printdfa_func   [|get_ptr (expr builder e) builder |]   "printdfa"   builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder |] "printr" builder
       | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
