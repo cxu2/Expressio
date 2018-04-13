@@ -22,18 +22,24 @@ typedef struct {
 } tree_t;
 
 int printr(tree_t* regex_ptr) {
-	if (regex_ptr == NULL) {
-		return 0;
+	if (regex_ptr -> operator == 'l') {
+    printf("%c", regex_ptr -> character);
+  } else if (regex_ptr -> operator == '*' || regex_ptr -> operator == '\\') {
+    printr((tree_t *)(regex_ptr -> left));
+    printf(" %c ", regex_ptr -> operator); 
+  } else {
+    printf("( ");
+    printr((tree_t *)(regex_ptr -> left));
+    printf(" %c ", regex_ptr -> operator);  
+    printr((tree_t *)(regex_ptr -> right));
+    printf(" )");
   }
  
-	printf("( ");
-  printr((tree_t *)(regex_ptr -> left));
-
-  printf("%c", regex_ptr -> character);
-  printf("%c", regex_ptr -> operator);  
-
-  printr((tree_t *)(regex_ptr -> right));
-  printf(" )");
-
-  return 0;
+	return 0;
+  // printf("tree: %p\n", regex_ptr);
+  // printf("operator: %c\n", regex_ptr -> operator);
+  // printf("left: %p\n", regex_ptr -> left);
+  // printf("right: %p\n", regex_ptr -> right);
+  // printf("left character: %c\n", ((tree_t *)(regex_ptr -> left)) -> character);
+  // printf("right character: %c\n", ((tree_t *)(regex_ptr -> right)) -> character);
 }

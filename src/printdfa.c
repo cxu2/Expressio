@@ -22,12 +22,28 @@ struct dfa_t{
 
 
 //DFA functions
-int printdfa(struct dfa_t d){
-  printf("\nnsym: %i", d.nsym);
-  //  printf("\n 0: %c", d.alphabet[0]);
-  printf("\nnsts: %i", d.nstates);
-  printf("\nfin: %i", d.nfin);
-  //printf("\n 0: %c", d.final[0]);
+int printdfa(struct dfa_t * d){
+  //hacking for insight
+
+  printf("\nnstates:  %i", d->nstates);
+  printf("\nalphabet: ");
+  for(int i = 0; i < d->nsym; i++){
+    printf("%c ", d->alphabet[i]);
+  }
+  printf("\nnsym:     %i", d->nsym);
+  printf("\nstart:    %i", d->init);
+  printf("\nfin:      ");
+  for(int i = 0; i < d->nfin; i++){
+    printf("%i ", d->final[i]);
+  }
+  printf("\nnfin:     %i", d->nfin);
+  printf("\ndelta:    %p\n", d->delta);
+
+  /*  int * ptrhack = (int *) d;
+  for(int i = 0; i < 20; i++){
+    printf("int:   %i            %p\n", *ptrhack, ptrhack);
+    ptrhack++;
+    }*/
 
   return 0;
 }
