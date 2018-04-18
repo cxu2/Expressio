@@ -1,0 +1,14 @@
+main : -> int {
+dfa help;
+help  = {
+ states : 7
+ alphabet : ['0', '1', '2', '3', '4', '5']
+ start : 4
+ final : [5, 2]
+ transitions : [ (0 '0' 4), (1 '0' 3) ] 
+};
+
+printdfa(help);
+
+  return 0;
+}

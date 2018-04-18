@@ -1,0 +1,13 @@
+~~ test semantic checking for `continue;`
+~~ ./express.native -s ./tests/test-continue.xp
+main : -> int {
+  int a;
+  int b;
+  a = 3;
+  b = 4;
+  for ;a < b; {
+    a = 4;
+    continue;
+  }
+  return 0;
+}

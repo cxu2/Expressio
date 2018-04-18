@@ -28,25 +28,27 @@ struct dfa_t{
   int init;//by state id
   int *final;//by state id
   int nfin;
-  int ** delta;
+  int * delta;
 };
 
 
 //DFA functions
 
-int ** makeDelta(int len, char * sym, int nsym){
-  int ** sts = malloc(len*(sizeof(int *)));
+int idx(int i, int j, int nsym) {
+  return (i*nsym+j);
+}
+
+int * makeDelta(int len, char * sym, int nsym){
+  int * sts = malloc(len*nsym*(sizeof(int)));
   for(int i = 0; i < len; i++){
-    sts[i] = malloc(nsym*sizeof(int));
     for(int j = 0; j < nsym; j++){
-      sts[i][j] = -1;
+      sts[idx(i, j, nsym)] = -1;
     }
   }
   return sts;
 }
 
 //constructor
-//TODO: check final and init are in states
 struct dfa_t construct(int nstates, char * alphabet, int nsym, int init, int *final, int nfin){
   struct dfa_t self;
   self.nstates = nstates;
@@ -71,9 +73,6 @@ struct dfa_t construct(int nstates, char * alphabet, int nsym, int init, int *fi
 // free memory associated with DFA
 // assume final and alphabet were malloc'd
 void destruct(struct dfa_t d){
-  for(int i = 0; i < d.nstates; i++){
-    free(d.delta[i]);
-  }
   if(d.delta) {
     free(d.delta);
   }
@@ -111,18 +110,19 @@ int link(struct dfa_t dfa, int from, int to, char sym){
   int sym_pos = IntOfSymbol(dfa, sym);
   if(hasState(dfa, from) && hasState(dfa, to) && (sym_pos != -1)){
     printf("Linkng (%i, %c) -> %i || %i\n", from, sym, to, sym-1);
-    dfa.delta[from][sym_pos]=to;
+    dfa.delta[idx(from, sym_pos, dfa.nsym)]=to;
     return 1;
   }
   return 0;
 }
 
+/*
 int link(struct dfa_t dfa, int from, int to, char sym){
   if(hasState(dfa, from) && hasState(dfa, to) && hasSymbol(dfa, sym)){
     return linkStruct(dfa, hasState(dfa, from), hasState(dfa, to), sym);
   }
   return 0;
-}
+}*/
 
 // follows transition from s on input
 // returns a pointer to the resulting state
@@ -130,14 +130,13 @@ int link(struct dfa_t dfa, int from, int to, char sym){
 int transition(struct dfa_t d, int curr_state, char input){
   int sym_pos = IntOfSymbol(d, input);
   if(hasState(d, curr_state && (sym_pos != -1))){
-    return d.delta[curr_state][sym_pos];
+    return d.delta[idx(curr_state, sym_pos, d.nsym)];
   }
   return -1;
 }
 
 //takes list of characters and returns a result state
 int evaluate(struct dfa_t dfa, char *input){
-
   int nxt = dfa.init;
   for(int i = 0; i < strlen(input); i++){
     if(nxt != -1) {
@@ -165,32 +164,36 @@ int accepts(struct dfa_t dfa, char *input){
 }
 
 
-int printdfa(struct dfa_t d){
-  printf("States: ");
-  for(int i = 0; i < d.nstates; i++){
-    printf("%i, ", i);
+int printdfa_compact(struct dfa_t * d){
+  // print states
+  printf("\nnstates:  %i", d->nstates);
+  // alphabet 
+  printf("\nalphabet: ");
+  for(int i = 0; i < d->nsym; i++){
+    printf("%c ", d->alphabet[i]);
   }
-  printf("\nSym: ");
-  for(int i = 0; i < d.nsym; i++){
-    printf("%c, ", d.alphabet[i]);
+  printf("\nnsym:     %i", d->nsym);
+  // start state
+  printf("\nstart:    %i", d->init);
+  // accept states
+  printf("\nfin:      ");
+  for(int i = 0; i < d->nfin; i++){
+    printf("%i ", d->final[i]);
   }
-  printf("\nFin: ");
-  for(int i = 0; i < d.nfin; i++){
-    printf("%i, ", d.final[i]);
-  }
+  printf("\nnfin:     %i", d->nfin);
   printf("\n");
+
   return 0;
 }
 
 
+#ifdef BUILD_TEST
 int main(){
-
   printf("Test3---------\n");
   int Q [] = {0,1,2,3,4,5};
   int F [] = {4,5};
   struct dfa_t test3 = construct(6, ASCII, ASCII_LEN, 1, F, 2);
 
-  assert(test3.delta[0][0] == -1);
   printf("Links...\n");
   assert(link(test3, 1, 2, 'e') != 0);
   assert(link(test3, 2, 3, 'l') != 0);
@@ -220,7 +223,7 @@ int main(){
   assert(!accepts(test3, "elsf"));
   printf("Pass\n");
 
-  printdfa(test3);
+  printdfa_compact(&test3);
 
   destruct(test3);
   
