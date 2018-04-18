@@ -2,7 +2,7 @@
 
 open Ast
 open Sast
-open Prelude
+open Prelude.Prelude
 
 module StringMap = Map.Make(String)
 (* Semantic checking of the AST. Returns an SAST if successful,
@@ -78,8 +78,8 @@ module StringMap = Map.Make(String)
 
   in let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
-    let formals'   = check_binds "formal" func.formals
-    in let locals' = check_binds "local"  func.locals
+    let    formals' = check_binds "formal" func.formals
+    in let locals'  = check_binds "local"  func.locals
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
     in let check_assign lvaluet rvaluet err = if lvaluet = rvaluet
@@ -87,7 +87,7 @@ module StringMap = Map.Make(String)
                                               else raise (Failure err)
     (* Build local symbol table of variables for this function *)
     in let bindings : bind list = (globals' @ formals' @ locals')
-    in let symbols = Prelude.fromList (List.map Prelude.swap bindings)
+    in let symbols = fromList (List.map swap bindings)
 
     (* Return a variable from our local symbol table *)
     (* TODO write a generic map lookup method instead of this silly exception *)
@@ -99,10 +99,10 @@ module StringMap = Map.Make(String)
     (* Return a semantically-checked expression, i.e., with a type *)
     (* in let rec expr = function *)
     in let rec expr (ex : expr) : sexpr = match ex with
-        IntLit  l                                 -> (TInt, SIntLit l)
-      | CharLit c                                 -> (TChar, SCharLit c)
+        IntLit  l                                 -> (TInt,    SIntLit l)
+      | CharLit c                                 -> (TChar,   SCharLit c)
       | StringLit s                               -> (TString, SStringLit s)
-      | BoolLit l                                 -> (TBool, SBoolLit l)
+      | BoolLit l                                 -> (TBool,   SBoolLit l)
       | DFA (states, alpha, start, final, tran)   ->
                                  (* check states is greater than final states *)
                                  let rec checkFinal maxVal = function
@@ -167,7 +167,7 @@ module StringMap = Map.Make(String)
                         | BREConcat
                         | BREIntersect when same && t1 = TRE -> TRE
                         | BREMatches   when t1 = TRE && t2 = TString -> TBool
-                        | BCase        -> raise (Prelude.TODO "implement BCase in semant")
+                        | BCase        -> raise (TODO "implement BCase in semant")
                         | _ -> raise (Failure ("illegal binary operator " ^
                                                string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                                string_of_typ t2 ^ " in " ^ string_of_expr e))
@@ -188,29 +188,36 @@ module StringMap = Map.Make(String)
                                   then raise (Failure err)
                                   else (t', e')
     (* Return a semantically-checked statement i.e. containing sexprs *)
-    in let rec check_statement (x : bool * stmt) : sstmt = match x with
+    (* this function was originally a simple `stmt -> sstmt` but with adding continue/break statements it is
+       not possible to take any arbitrary `stmt` without more context to determine if said statement is semantically correct,
+       so here we pass along some context/state, namely a boolean value which is true if we're in a loop
+       false otherwise. *)
+    in let rec check_statement (x : (bool * stmt)) : (bool * sstmt) = match x with
       | (false,   Break)                                   -> raise (Failure "\'break\' is outside of loop")
       | (false,   Continue)                                -> raise (Failure "\'continue\' is outside of loop")
-      | (true,    Break)                                   -> SBreak
-      | (true,    Continue)                                -> SContinue
-      | (_,       Expr e)                                  -> SExpr (expr e)
-      | (looping, If (p, b1, b2))                          -> SIf (check_bool_expr p, check_statement (looping, b1), check_statement (looping, b2))
-      | (_,       For (e1, e2, e3, s))                     -> SFor (expr e1, check_bool_expr e2, expr e3, check_statement (true, s))
-      | (_,       While (p, s))                            -> SWhile (check_bool_expr p, check_statement (true, s))
-      | (_,       Infloop s)                               -> SInfloop (check_statement (true, s))
-      | (_,       Return e) when (fst (expr e) = func.typ) -> SReturn (expr e)
+      | (true,    Break)                                   -> (true,    SBreak)
+      | (true,    Continue)                                -> (true,    SContinue)
+      | (looping, Expr e)                                  -> (looping, SExpr (expr e))
+      | (looping, If (p, b1, b2))                          -> (looping, SIf (check_bool_expr p, snd (check_statement (looping, b1)), snd (check_statement (looping, b2))))
+      | (looping, For (e1, e2, e3, s))                     -> (looping, SFor     (expr e1, check_bool_expr e2, expr e3, snd (check_statement (true, s))))
+      | (looping, While (p, s))                            -> (looping, SWhile   (         check_bool_expr p,           snd (check_statement (true, s))))
+      | (_,       Infloop s)                               -> (true,    SInfloop (                                      snd (check_statement (true, s))))
+      | (looping, Return e) when (fst (expr e) = func.typ) -> (looping, SReturn (expr e))
       | (_,       Return e)                                -> raise (Failure ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e))
       | (_,       Block (Return _ ::  _))                  -> raise (Failure "nothing may follow a return")
-      | (looping, Block (Block sl :: ss))                  -> check_statement (looping, (Block (sl @ ss)))           (* Flatten blocks *)
-      | (_,       Block              [])                   -> SBlock []
-      | (looping, Block              ss)                   -> let ss' = Prelude.map_accum_left (fun loop statement -> (loop, check_statement (loop, statement))) looping ss
-                                                              in  SBlock (snd ss')
+      | (looping, Block (Block sl :: ss))                  -> (looping, snd (check_statement (looping, (Block (sl @ ss)))))           (* Flatten blocks *)
+      | (looping, Block              [])                   -> (looping, SBlock [])
+      (* | (looping, Block              ss)                   -> let ss' : sstmt list = snd (Prelude.map_accum_left (fun loop statement -> (loop, snd (check_statement (loop, statement)))) looping ss) *)
+      (* | (looping, Block              ss)                   -> let ss' : sstmt list = snd (Prelude.map_accum_left (fun loop statement -> let (loop', statement') = check_statement (loop, statement) in (loop', statement')) looping ss) *)
+      (* | (looping, Block              ss)                   -> let ss' : sstmt list = snd (Prelude.map_accum_left (fun loop statement -> check_statement (loop, statement)) looping ss) *)
+      | (looping, Block              ss)                   -> let ss' : sstmt list = snd (map_accum_left (curry check_statement) looping ss)
+                                                              in  (looping, SBlock (ss'))
     in (* body of check_function *)
     { styp     = func.typ;
       sfname   = func.fname;
       sformals = formals';
       slocals  = locals';
-      sbody    = match (check_statement (false, (Block func.body))) with
+      sbody    = match (snd (check_statement (false, (Block func.body)))) with
                 	 SBlock sl -> sl
                   | _        -> let err = "internal error: block didn't become a block?"
                                 in raise (Failure err)
