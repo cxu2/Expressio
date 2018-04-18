@@ -96,8 +96,8 @@ let string_of_op = function
   | BREMatches    -> "matches"
   | BCase         -> "case"
   | BREIntersect  -> "&"
-  | BDFAUnion     -> "" (* FIXME *)
-  | BDFAConcat    -> "" (* FIXME *)
+  | BDFAUnion     -> "union"
+  | BDFAConcat    -> "concat"
   | BDFAAccepts   -> "accepts"
   | BDFASimulates -> "simulates"
 
