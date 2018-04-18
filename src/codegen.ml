@@ -31,6 +31,7 @@ module A = Ast
 open Ast
 open Sast
 open Prelude
+open RegExp.RegExp
 (* open Exceptions *)
 
 module StringMap = Map.Make(String)
@@ -231,8 +232,8 @@ let translate (globals, _, functions) =
 
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
-    
-    
+
+
     in let build_dfa n a s f d b =
       (*Getting our llvm values for array sizes, which we need for our c lib*)
       let ns = L.const_int i32_t n
@@ -269,7 +270,7 @@ let translate (globals, _, functions) =
 
       (*Now, to copy the delta function*)
       (*First, we obtain a mapping of characters to the appropriate index*)
-      let rec get_char_index c (elts, idx) = 
+      let rec get_char_index c (elts, idx) =
         if (List.hd elts) = c then idx else get_char_index c ((List.tl elts), idx+1) in
 
       (*fill the table with special value -1 to indicate no transition*)
@@ -280,8 +281,8 @@ let translate (globals, _, functions) =
       let filler = (build_memset (n*len_a) [-1] (-1)) in
       let llvm_filler = List.map ll_of_int filler in
       ignore(List.fold_left copy_list_to_array (delta_ptr, 0, b) llvm_filler);
-      
-      let copy_by_index (arr, lst, localb) (from_s, ch, to_s) = 
+
+      let copy_by_index (arr, lst, localb) (from_s, ch, to_s) =
         (ignore(insert_elt arr (L.const_int i32_t to_s) (from_s*len_a + (get_char_index ch (lst, 0))) localb); arr, lst, localb) in
       ignore(List.fold_left copy_by_index (delta_ptr, a, b) d);
 

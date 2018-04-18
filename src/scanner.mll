@@ -25,6 +25,10 @@ rule token = parse
 | '&'           { REAND }                    (* RegExp operator for ANDing regular expression~A *)
 | "regexp"      { REGEXP }                   (* RegExp keyword for declaring a RegExp *)
 | "matches"     { REMATCH }                  (* RegExp operator for pattern matching an RE against a string *)
+| "accepts"     { DFAACCEPTS }
+| "simulates"   { DFASIM }
+| "concat"      { DFACONCAT }
+| "union"       { DFAOR }
 | "dfa"         { DFATOKEN }
 (* TODO we may need this later
 | "nfa"     { NFA }
