@@ -28,6 +28,7 @@ http://llvm.moe/ocaml/
 (* We'll refer to Llvm and Ast constructs with module names *)
 module L = Llvm
 module A = Ast
+open Ast
 open Sast
 open Prelude
 (* open Exceptions *)
@@ -55,7 +56,7 @@ let translate (globals, _, functions) =
   in let tree_t = L.struct_type context [| i8_t; i8_t; (pointer_t i8_t); (pointer_t i8_t) |]
 
   in let dfa_t =
-      let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type (L.pointer_type i32_t)] in
+      let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type i32_t] in
       L.struct_type context types
 
 
@@ -69,7 +70,7 @@ let translate (globals, _, functions) =
     | A.TBool   -> i1_t
     | A.TChar   -> i8_t
     | A.TUnit   -> void_t
-    | A.TRE -> tree_t
+    | A.TRE     -> tree_t
     | A.TString -> L.pointer_type i8_t
     | A.TDFA    -> dfa_t
 
@@ -232,22 +233,26 @@ let translate (globals, _, functions) =
       tree_loaded
     
     
-    in let build_dfa n a s f _ b =
+    in let build_dfa n a s f d b =
       (*Getting our llvm values for array sizes, which we need for our c lib*)
       let ns = L.const_int i32_t n
+      and len_a = List.length a in
+      let delta_len = L.const_int i32_t (n*len_a)
       and start = L.const_int i32_t s
-      and nsym = L.const_int i32_t (List.length a)
+      and nsym = L.const_int i32_t len_a
       and nfin = L.const_int i32_t (List.length f) in
 
       (*Define llvm "array types"*)
-      let alpha_t = L.array_type i8_t (List.length a)
+      let alpha_t = L.array_type i8_t len_a
       and fin_t = L.array_type i32_t (List.length f) in
+      (*and delta_row_t = L.array_type i32_t (List.length a) in*)
+      let delta_t = L.array_type i32_t (n*len_a) in
 
       (*Allocating space and getting pointers*)
-      let dfa_ptr = L.build_alloca dfa_t "dfa" b in  
+      let dfa_ptr = L.build_alloca dfa_t "dfa" b in
       let alpha_ptr = L.build_array_alloca alpha_t nsym "alpha" b in
       let fin_ptr = L.build_array_alloca fin_t nfin "fin" b in
-      let delta_ptr = L.build_alloca (L.pointer_type i32_t) "delta" b in
+      let delta_ptr = L.build_array_alloca delta_t delta_len "delta" b in
 
       (*preprocess our Ocaml lists so we can insert them into llvm arrays*)
       let ll_of_char c  = L.const_int i8_t (int_of_char c) in
@@ -256,21 +261,38 @@ let translate (globals, _, functions) =
       let ll_of_int fint = L.const_int i32_t fint in
       let list_of_llvm_int =  List.map ll_of_int f in
 
-
       (* copy over the values to the llvm arrays*)
       let copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb) in
 
       ignore(List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char);
       ignore(List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int);
 
+      (*Now, to copy the delta function*)
+      (*First, we obtain a mapping of characters to the appropriate index*)
+      let rec get_char_index c (elts, idx) = 
+        if (List.hd elts) = c then idx else get_char_index c ((List.tl elts), idx+1) in
+
+      (*fill the table with special value -1 to indicate no transition*)
+      let rec build_memset len arr fill = match len with
+        0 -> arr
+        | _ -> build_memset (len-1) (fill::arr) fill in
+
+      let filler = (build_memset (n*len_a) [-1] (-1)) in
+      let llvm_filler = List.map ll_of_int filler in
+      ignore(List.fold_left copy_list_to_array (delta_ptr, 0, b) llvm_filler);
+      
+      let copy_by_index (arr, lst, localb) (from_s, ch, to_s) = 
+        (ignore(insert_elt arr (L.const_int i32_t to_s) (from_s*len_a + (get_char_index ch (lst, 0))) localb); arr, lst, localb) in
+      ignore(List.fold_left copy_by_index (delta_ptr, a, b) d);
+
       (*Stuff everything in the dfa struct*)
-      ignore(L.build_store ns (get_struct_idx dfa_ptr 0 b) b);  
+      ignore(L.build_store ns (get_struct_idx dfa_ptr 0 b) b);
       ignore(L.build_store (arr_ptr alpha_ptr b) (get_struct_idx dfa_ptr 1 b) b);
       ignore(L.build_store nsym (get_struct_idx dfa_ptr 2 b) b);
       ignore(L.build_store start (get_struct_idx dfa_ptr 3 b) b);
       ignore(L.build_store (arr_ptr fin_ptr b) (get_struct_idx dfa_ptr 4 b) b);
       ignore(L.build_store nfin (get_struct_idx dfa_ptr 5 b) b);
-      ignore(L.build_store delta_ptr (get_struct_idx dfa_ptr 6 b) b);
+      ignore(L.build_store (arr_ptr delta_ptr b) (get_struct_idx dfa_ptr 6 b) b);
       L.build_load dfa_ptr "dfa_loaded" b in
 
 
@@ -282,36 +304,45 @@ let translate (globals, _, functions) =
 
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder ((_, e) : sexpr) = match e with
-	      SIntLit i          -> L.const_int i32_t i
-      | SBoolLit b          -> L.const_int i1_t (if b then 1 else 0)
-      | SCharLit c          -> L.const_int i8_t (int_of_char c)
-      | SStringLit s        -> L.build_global_stringptr s "string" builder
-      | SNoexpr             -> L.const_int i32_t 0
+    let rec expr builder ((_, e) : sexpr) : L.llvalue = match e with
+	      SIntLit i                       -> L.const_int i32_t i
+      | SBoolLit b                      -> L.const_int i1_t (if b then 1 else 0)
+      | SCharLit c                      -> L.const_int i8_t (int_of_char c)
+      | SStringLit s                    -> L.build_global_stringptr s "string" builder
+      | SNoexpr                         -> L.const_int i32_t 0
       | SId s                           -> L.build_load (lookup s) s builder
-      | SRE _(*s*)                           -> raise (Prelude.TODO "implement SRE")
-      | SBinop (e1, A.BAdd,         e2) -> L.build_add (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BSub,         e2) -> L.build_sub (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BMult,        e2) -> L.build_mul (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BDiv,         e2) -> L.build_sdiv (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BAnd,         e2) -> L.build_and (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BOr,          e2) -> L.build_or (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BEqual,       e2) -> L.build_icmp L.Icmp.Eq (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (e1, A.BNeq,         e2) -> L.build_icmp L.Icmp.Ne (expr builder e1) (expr builder e2) "tmp" builder
+      (* TODO decide if it's better to keep this or do a nullary op constructor instead *)
+      (* Convert SRE to its expression constituents *)
+      | SRE Zero                        -> raise (Prelude.TODO "implement SRE Zero")
+      | SRE One                         -> raise (Prelude.TODO "implement SRE One")
+      | SRE (Lit c)                     -> expr builder (TRE, SUnop  (A.URELit,  (TRE, SRE (Lit c))))
+      | SRE (Comp r)                    -> expr builder (TRE, SUnop  (A.UREComp, (TRE, SRE (Comp r))))
+      | SRE (Star r)                    -> expr builder (TRE, SUnop  (A.UREStar, (TRE, SRE (Star r))))
+      | SRE (Mult (a, b))               -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREConcat,    (TRE, SRE b)))
+      | SRE (And  (a, b))               -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREIntersect, (TRE, SRE b)))
+      | SRE (Plus (a, b))               -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREUnion,     (TRE, SRE b)))
+      | SBinop (_,  A.BCase,         _) -> raise (Prelude.TODO "implement")
+      | SBinop (e1, A.BREMatches,   e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
+      | SBinop (e1, A.BREUnion,     e2) -> build_binop '|'         (expr builder e1) (expr builder e2)       builder
+      | SBinop (e1, A.BREConcat,    e2) -> build_binop '^'         (expr builder e1) (expr builder e2)       builder
+      | SBinop (e1, A.BREIntersect, e2) -> build_binop '&'         (expr builder e1) (expr builder e2)       builder
+      | SBinop (e1, A.BAdd,         e2) -> L.build_add             (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BSub,         e2) -> L.build_sub             (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BMult,        e2) -> L.build_mul             (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BDiv,         e2) -> L.build_sdiv            (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BAnd,         e2) -> L.build_and             (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BOr,          e2) -> L.build_or              (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BEqual,       e2) -> L.build_icmp L.Icmp.Eq  (expr builder e1) (expr builder e2) "tmp" builder
+      | SBinop (e1, A.BNeq,         e2) -> L.build_icmp L.Icmp.Ne  (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BLess,        e2) -> L.build_icmp L.Icmp.Slt (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BLeq,         e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGreater,     e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGeq,         e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
-      | SBinop (_, A.BCase,          _) -> raise (Prelude.TODO "implement")
-      | SBinop (e1, A.BREUnion,     e2) -> build_binop '|' (expr builder e1) (expr builder e2) builder
-      | SBinop (e1, A.BREConcat,    e2) -> build_binop '^' (expr builder e1) (expr builder e2) builder
-      | SBinop (e1, A.BREIntersect, e2) -> build_binop '&' (expr builder e1) (expr builder e2) builder
-      | SBinop (e1, A.BREMatches,   e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
-      | SUnop (A.UNeg,    e)            -> L.build_neg (expr builder e) "tmp" builder
-      | SUnop (A.UNot,    e)            -> L.build_not (expr builder e) "tmp" builder
-      | SUnop (A.URELit,  e)            -> build_lit 'l' (expr builder e)  builder
-      | SUnop (A.UREComp, e)            -> build_unop '\\' (expr builder e) builder
-      | SUnop (A.UREStar, e)            -> build_unop '*' (expr builder e) builder
+      | SUnop (A.UNeg,    e)            -> L.build_neg             (expr builder e)                    "tmp" builder
+      | SUnop (A.UNot,    e)            -> L.build_not             (expr builder e)                    "tmp" builder
+      | SUnop (A.URELit,  e)            -> build_lit 'l'           (expr builder e)                          builder
+      | SUnop (A.UREComp, e)            -> build_unop '\\'         (expr builder e)                          builder
+      | SUnop (A.UREStar, e)            -> build_unop '*'          (expr builder e)                          builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
       | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
@@ -410,9 +441,9 @@ let translate (globals, _, functions) =
 	        in let merge_bb      = L.append_block context "merge" the_function
 	        in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
 	        in L.builder_at_end context merge_bb
-      | SInfloop (body) -> stmt builder ( SBlock [SWhile ((A.TBool ,SBoolLit(true)), SBlock [body]) ] )
+      | SInfloop (body)         -> stmt builder (SBlock [SWhile ((A.TBool, SBoolLit(true)), SBlock [body]) ])
       (* Implement for loops as while loops! *)
-      | SFor (e1, e2, e3, body) -> stmt builder ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
+      | SFor (e1, e2, e3, body) -> stmt builder (SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ])
       | SContinue               -> raise (Prelude.TODO "implement")
       | SBreak                  -> raise (Prelude.TODO "implement")
     (* Build the code for each statement in the function *)
