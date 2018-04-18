@@ -399,14 +399,12 @@ let translate (globals, _, functions) =
 	       in let _            = L.build_cond_br bool_val then_bb else_bb builder
          (* Move to the merge block for further instruction building *)
 	       in (L.builder_at_end context merge_bb,callStack)
-
-      | SWhile (predicate, body) ->
+      | SWhile (lastInstr, predicate, body) ->
           (* Get the last instruction and revise body *)
-          let lastInstr = List.hd body
-          in let body = List.tl body
+
           (* First create basic block for condition instructions -- this will
           serve as destination in the case of a loop *)
-          in let pred_bb          = L.append_block context "while" the_function
+          let pred_bb          = L.append_block context "while" the_function
           (* In current block, branch to predicate to execute the condition *)
           in let _             = L.build_br pred_bb builder
           in let int_bb        = L.append_block context "int_bb" the_function
@@ -419,8 +417,10 @@ let translate (globals, _, functions) =
 
           (* in let int_bb        = L.append_block context "int_bb" the_function  *)
           in let ()            = add_terminal while_builder (L.build_br int_bb)
-          in let (int_builder,_) = stmt ((L.builder_at_end context int_bb),callStack) lastInstr
-          in let ()            = add_terminal while_builder (L.build_br pred_bb)
+          in let int_builder = L.builder_at_end context int_bb
+          (* in let i3         = expr int_builder lastInstr *)
+          in let (int_builder2,_) = stmt (int_builder,callStack) lastInstr
+          in let ()            = add_terminal int_builder2 (L.build_br pred_bb)
           (* Generate the predicate code in the predicate block *)
           in let pred_builder  = L.builder_at_end context pred_bb
           in let bool_val      = expr pred_builder predicate
@@ -428,9 +428,9 @@ let translate (globals, _, functions) =
           in let merge_bb      = L.append_block context "merge" the_function
           in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
           in (L.builder_at_end context merge_bb,callStack)
-      | SInfloop (body) -> stmt (builder,callStack) ( SBlock [SWhile ((A.TBool ,SBoolLit(true)), SBlock [body]) ] )
+      | SInfloop (body) -> stmt (builder,callStack) ( SBlock [SWhile (SNostmt, (A.TBool ,SBoolLit(true)), SBlock [body]) ] )
       (* Implement for loops as while loops! *)
-      | SFor (e1, e2, e3, body) -> stmt (builder,callStack) ( SBlock [SExpr e1 ; SWhile (e2, SBlock [SExpr e3 ; body]) ] )
+      | SFor (e1, e2, e3, body) -> stmt (builder,callStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
       | SContinue               ->
           if List.length callStack = 0 then (builder,callStack)
           else

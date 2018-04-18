@@ -25,10 +25,11 @@ type sstmt =
   | SReturn  of sexpr
   | SIf      of sexpr * sstmt * sstmt
   | SFor     of sexpr * sexpr * sexpr * sstmt
-  | SWhile   of sexpr * sstmt
+  | SWhile   of sstmt * sexpr * sstmt
   | SInfloop of sstmt
   | SContinue
   | SBreak
+  | SNostmt 
 
   (* type stmt =
       Block   of stmt list
@@ -147,7 +148,7 @@ let rec string_of_sstmt = function
   | SIf (e, s, SBlock []) -> "if " ^ string_of_sexpr e ^ "\n" ^ string_of_sstmt s
   | SIf (e, s1, s2)       -> "if " ^ string_of_sexpr e ^ "\n" ^ string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2
   | SFor (e1, e2, e3, s)  -> "for " ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
-  | SWhile (e, s)         -> "for " ^ string_of_sexpr e ^ " " ^ string_of_sstmt s
+  | SWhile (_, e, s)      -> "for " ^ string_of_sexpr e ^ " " ^ string_of_sstmt s
   | SInfloop (s)          -> "for " ^ string_of_sstmt s
   | SBreak                -> "break;"
   | SContinue             -> "continue;"
