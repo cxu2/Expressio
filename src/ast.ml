@@ -150,7 +150,7 @@ let rec string_of_expr = function
                             "\n start : "       ^ string_of_int c     ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
-  | Noexpr            -> ""
+  | Noexpr              -> ""
 
 let rec string_of_stmt = function
     Block stmts         -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"

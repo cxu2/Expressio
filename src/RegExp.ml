@@ -1,4 +1,4 @@
-open Prelude
+(* open Prelude *)
 module RegExp = struct
   type 'a regexp =
     | Zero                              (* The empty language             L(Zero)  = ∅              *)
@@ -64,11 +64,11 @@ module RegExp = struct
       Zero        -> Zero
     | One         -> One
     | Lit  c      -> Lit c
-    | Plus (a, b) -> plus (normalize a) (normalize b)
-    | Mult (a, b) -> mult (normalize a) (normalize b)
-    | Star a      -> star (normalize a)
+    | Plus (a, b) -> plus      (normalize a) (normalize b)
+    | Mult (a, b) -> mult      (normalize a) (normalize b)
     | And (a, b)  -> intersect (normalize a) (normalize b)
-    | Comp a      -> comp (normalize a)
+    | Star a      -> star      (normalize a)
+    | Comp a      -> comp      (normalize a)
 
   (* Does the language of this RE contain the empty string? *)
   let rec nullable = function
