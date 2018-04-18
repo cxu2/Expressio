@@ -21,17 +21,18 @@ typedef struct {
   char * right;
 } tree_t;
 
-int printr(tree_t* regex_ptr) {
+
+int printr_helper(tree_t* regex_ptr) {
 	if (regex_ptr -> operator == 'l') {
     printf("%c", regex_ptr -> character);
   } else if (regex_ptr -> operator == '*' || regex_ptr -> operator == '\\') {
-    printr((tree_t *)(regex_ptr -> left));
+    printr_helper((tree_t *)(regex_ptr -> left));
     printf(" %c ", regex_ptr -> operator); 
   } else {
     printf("( ");
-    printr((tree_t *)(regex_ptr -> left));
+    printr_helper((tree_t *)(regex_ptr -> left));
     printf(" %c ", regex_ptr -> operator);  
-    printr((tree_t *)(regex_ptr -> right));
+    printr_helper((tree_t *)(regex_ptr -> right));
     printf(" )");
   }
  
@@ -43,6 +44,14 @@ int printr(tree_t* regex_ptr) {
   // printf("left character: %c\n", ((tree_t *)(regex_ptr -> left)) -> character);
   // printf("right character: %c\n", ((tree_t *)(regex_ptr -> right)) -> character);
 }
+
+
+int printr(tree_t* regex_ptr) {
+  printr_helper(regex_ptr);
+  printf("\n");
+  return 0;
+}
+
 
 tree_t* clone(tree_t* regex_ptr) {
   tree_t* t = (tree_t*)malloc(sizeof(tree_t));
