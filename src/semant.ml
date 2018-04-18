@@ -62,8 +62,8 @@ module StringMap = Map.Make(String)
     and n = fd.fname (* Name of the function *)
     in match fd with (* No duplicate functions or redefinitions of built-ins *)
          _ when StringMap.mem n built_in_decls -> make_err built_in_err
-       | _ when StringMap.mem n map -> make_err dup_err
-       | _ ->  StringMap.add n fd map
+       | _ when StringMap.mem n map            -> make_err dup_err
+       | _                                     -> StringMap.add n fd map
 
   (* Collect all other function names into one symbol table *)
   in let function_decls = List.fold_left add_func built_in_decls functions
@@ -106,21 +106,24 @@ module StringMap = Map.Make(String)
       | DFA (states, alpha, start, final, tran)   ->
                                  (* check states is greater than final states *)
                                  let rec checkFinal maxVal = function
-                                        [] -> false
-                                 | x :: tl -> if maxVal <= x then true else checkFinal maxVal tl in
+                                   []                       -> false
+                                 | x :: _  when maxVal <= x -> true
+                                 | _ :: tl                  -> checkFinal maxVal tl
 
                                  (* check states is greater than start/final in transition *)
-                                 let rec checkTran maxVal = function
-                                        [] -> false
-                                 | x :: tl -> let (t1, _, t3) = x in if maxVal <= t1 || maxVal <= t3 then true else checkTran maxVal tl in
+                                 in let rec checkTran maxVal = function
+                                   []                                  -> false
+                                 | (t1, _,  _) :: _  when maxVal <= t1 -> true
+                                 | (_,  _, t3) :: _  when maxVal <= t3 -> true
+                                 | (_,  _,  _) :: tl                   -> checkTran maxVal tl in
 
                                  (* check transition table has one to one *)
                                  let rec oneToOne sMap = function
-                                        [] -> false
-                                 | x :: tl -> let (t1, t2, t3) = x in
-                                   let combo = string_of_int t1 ^ String.make 1 t2 in
-                                   let finalState = string_of_int t3 in
-                                   if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl in
+                                   []                 -> false
+                                 | (t1, t2, t3) :: tl -> let    combo      = string_of_int t1 ^ String.make 1 t2
+                                                         in let finalState = string_of_int t3
+                                                         in
+                                                         if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl in
 
                                  (* also check that states is greater than start *)
                                  if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
@@ -214,7 +217,7 @@ module StringMap = Map.Make(String)
       sfname   = func.fname;
       sformals = formals';
       slocals  = locals';
-      sbody    = match (snd (check_statement (false, (Block func.body)))) with
+      sbody    = match (snd (check_statement (false, (Block func.body)))) with (* if we ever decide to support nested functions we should update check_function to pass a boolean variable to indicate the state of looping and include it here instead of `false` *)
                 	 SBlock sl -> sl
                   | _        -> let err = "internal error: block didn't become a block?"
                                 in raise (Failure err)
