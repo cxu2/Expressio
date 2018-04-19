@@ -1,6 +1,6 @@
 ~~ test semantic checking for `dfa`
 ~~ ./express.native -s ./tests/test-dfa.xp
-~~ gives: Fatal error: exception Failure("'dfa' transition table is not valid")
+~~ gives: Fatal error: exception Failure("DFA invalid") due to invalid transition table
 
 main : -> int {
 dfa bad_one;
