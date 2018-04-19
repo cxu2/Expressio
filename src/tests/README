@@ -1,7 +1,7 @@
-For this deliverable, we have 7 positive tests and 3 semantically negative
+For this deliverable, we have 8 positive tests and 3 semantically negative
 integration tests.
 
-The 7 positive tests include:
+The 8 positive tests include:
   1. test-hello.xp
     - Test for printing a string. This test prints:
 
@@ -76,6 +76,12 @@ The 7 positive tests include:
 
       ( a & ( c | ( c ^ a ) ) ) *
 
+    8. test-if1.xp
+      - Testing an if statement. In this test, we start with an integer a = 1,
+      and testing if a is greater than or equal to 0. If the test is true,
+      it prints 42. This test prints:
+
+      42
 
 The 3 semantically negative integration tests include:
   1. fail-break.xp
