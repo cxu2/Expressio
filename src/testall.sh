@@ -128,7 +128,7 @@ CheckFail() {
 
     generatedfiles="$generatedfiles ${basename}.err ${basename}.diff" &&
     RunFail "$express" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
-    # Compare ${basename}.err ${reffile}.err ${basename}.diff
+    Compare ${basename}.err ${reffile}.err ${basename}.diff
 
     # Report the status and clean up the generated files
 
