@@ -1,0 +1,18 @@
+~~ Test user-define function call
+
+gcd : (a : int) (b : int) -> int {
+  for ;a != b; {
+    if (a > b) {
+      a = a - b;
+    } else {
+      b = b - a;
+    }
+  }
+  return a;
+}
+
+main : -> int {
+  int res;
+  res = gcd(2);
+  print(res);
+}
