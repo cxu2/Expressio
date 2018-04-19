@@ -1,0 +1,12 @@
+~~ test "while" loop (N.B. Expressio does not have "while" keyword)
+~~ ./express.native ./tests/test-while.xp
+main : -> int {
+  int a;
+  int b;
+  a = 3;
+  b = 4;
+  for ;a < b; {
+    a = 4;
+  }
+  return 0;
+}
