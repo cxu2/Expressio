@@ -1,0 +1,9 @@
+~~ test if statement
+main: -> int {
+  int a;
+  a = 1;
+  if (a >= 0) {
+    print(42);
+  }
+  return 0;
+}

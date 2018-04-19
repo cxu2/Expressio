@@ -96,7 +96,7 @@ Check() {
     Run "$LLC" "${basename}.ll" ">" "${basename}.s" &&
     Run "$CC" "-o" "${basename}.exe" "${basename}.s" "printdfa.o" "builtin.o"&&
     Run "./${basename}.exe" > "${basename}.out" &&
-    # Compare ${basename}.out ${reffile}.out ${basename}.diff
+    Compare ${basename}.out ${reffile}.out ${basename}.diff
 
     # Report the status and clean up the generated files
 
