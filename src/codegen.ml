@@ -101,9 +101,13 @@ let translate (globals, _, functions) =
   in let matches_func = L.declare_function "matches" matches_t the_module
 
   in let printdfa_t = L.function_type i32_t [| L.pointer_type dfa_t |]
-  in let printdfa_func = L.declare_function "printdfa" printdfa_t the_module in
+  in let printdfa_func = L.declare_function "printdfa" printdfa_t the_module
 
+  in let accepts_t = L.function_type i1_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
+  in let accepts_func = L.declare_function "accepts" accepts_t the_module
 
+  in let simulates_t = L.function_type i32_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
+  in let simulates_func = L.declare_function "simulates" simulates_t the_module in
 
   (**********************
    *   Build Functions  *
@@ -325,8 +329,8 @@ let translate (globals, _, functions) =
       | SBinop (_,  A.BCase,          _) -> raise (Prelude.TODO "implement codegen")
       | SBinop (_, A.BDFAUnion,     _) -> raise (Prelude.TODO "implement codegen")
       | SBinop (_, A.BDFAConcat,    _) -> raise (Prelude.TODO "implement codegen")
-      | SBinop (_, A.BDFAAccepts,   _) -> raise (Prelude.TODO "implement codegen")
-      | SBinop (_, A.BDFASimulates, _) -> raise (Prelude.TODO "implement codegen")
+      | SBinop (e1, A.BDFAAccepts,   e2) -> L.build_call accepts_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
+      | SBinop (e1, A.BDFASimulates, e2) -> L.build_call simulates_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
       | SBinop (e1, A.BREMatches,    e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
       | SBinop (e1, A.BREUnion,      e2) -> build_binop '|'         (expr builder e1) (expr builder e2)       builder
       | SBinop (e1, A.BREConcat,     e2) -> build_binop '^'         (expr builder e1) (expr builder e2)       builder

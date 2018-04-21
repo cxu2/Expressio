@@ -4,7 +4,7 @@
 
 # Easiest way to build: using ocamlbuild, which in turn uses ocamlfind
 
-all: express.native builtin.o printdfa.o builtin.o
+all: express.native builtin.o printdfa.o builtin.o dfa.o
 
 .PHONY : express.native
 express.native :
