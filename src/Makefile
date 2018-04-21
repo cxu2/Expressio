@@ -4,7 +4,7 @@
 
 # Easiest way to build: using ocamlbuild, which in turn uses ocamlfind
 
-all: express.native builtin.o printdfa.o builtin.o dfa.o
+all: express.native builtin.o builtin.o dfa.o
 
 .PHONY : express.native
 express.native :
@@ -56,8 +56,6 @@ parser.ml parser.mli : parser.mly
 	ocamlfind ocamlopt -c -package llvm $<
 
 # Custom C functions
-printdfa : printdfa.c
-	cc -o printdfa -DBUILD_TEST printdfa.c
 
 dfa : dfa.c
 	cc -o dfa -DBUILD_TEST dfa.c

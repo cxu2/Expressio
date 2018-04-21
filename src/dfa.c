@@ -186,6 +186,51 @@ int printdfa_compact(struct dfa_t * d){
   return 0;
 }
 
+int printdfa(struct dfa_t * d){
+
+  // print states
+  printf("\nnstates:  %i", d->nstates);
+
+  // alphabet 
+  printf("\nalphabet: ");
+  for(int i = 0; i < d->nsym; i++){
+    printf("%c ", d->alphabet[i]);
+  }
+  printf("\nnsym:     %i", d->nsym);
+
+  // start state
+  printf("\nstart:    %i", d->init);
+
+  // accept states
+  printf("\nfin:      ");
+  for(int i = 0; i < d->nfin; i++){
+    printf("%i ", d->final[i]);
+  }
+  printf("\nnfin:     %i", d->nfin);
+
+  // delta function displayed in funciton table
+  printf("\ndelta:    \n");
+  printf("        ");
+  for(int i = 0; i < d->nsym; i++){
+    printf("|%4c ", d->alphabet[i]);
+  }
+  printf("\n    ----");
+  for(int i = 0; i < d->nsym; i++){
+    printf("|-----");
+  }
+  for(int i = 0; i < d->nstates; i++){
+     printf("\n    %4i|", i);
+    for(int j = 0; j < d->nsym; j++){
+      printf("%4i  ", d->delta[i*d->nsym+j]);
+    }
+  }
+
+  printf("\n");
+
+  return 0;
+}
+
+
 
 #ifdef BUILD_TEST
 int main(){
