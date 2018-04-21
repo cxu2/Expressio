@@ -1,19 +1,14 @@
-language : c
-sudo : required
-os:
-  - linux
-env :
-  - OCAML_VERSION =4.02
-before_install :
-  - wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
-install :
-  - export OCAML_VERSION=4.06
-  - bash -ex .travis-ocaml.sh
-  - opam install ocamlfind menhir -y
-  - opam install llvm.3.8 -y
-  - export PATH=/usr/lib/llvm-3.8/bin:$PATH
-before_script :
-  - eval `opam config env `
-script :
-  - cd src
-  - make clean && make
+language: expressio
+
+before_install: 
+
+install:
+    - bash -ex travis-ci.sh
+
+script: 
+    - cd src
+    - make clean && make
+
+after_script: 
+
+sudo: required
