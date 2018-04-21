@@ -1,0 +1,18 @@
+~~ test semantic checking for `continue;`
+~~ ./express.native -s ./tests/test-break.xp
+~~ will print from 0-10, but break at 7, then prints(0,100,200) and -1 finally
+main : -> int {
+  int i;
+  int j;
+  for i = 0; i < 10; i = i + 1 {
+    if(i==7){
+      break;
+    }
+    print(i);
+  }
+  for j = 0;j<3;j=j+1{
+    print(j*100);
+  }
+  print(-1);
+  return 0;
+}
