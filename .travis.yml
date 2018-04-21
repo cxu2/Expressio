@@ -1,14 +1,10 @@
 language: expressio
-
-before_install: 
-
-install:
-    - bash -ex travis-ci.sh
-
-script: 
+sudo: required
+install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+before_script: bash -ex .travis-opam.sh
+script: bash -ex travis-ci.sh 
+after_script: 
     - cd src
     - make clean && make
-
-after_script: 
-
-sudo: required
+env:
+  - OCAML_VERSION=4.06
