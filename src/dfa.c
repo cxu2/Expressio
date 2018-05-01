@@ -70,6 +70,7 @@ struct dfa_t construct(int nstates, char * alphabet, int nsym, int init, int *fi
   return self;
 }
 
+
 // free memory associated with DFA
 // assume final and alphabet were malloc'd
 void destruct(struct dfa_t d){
@@ -230,7 +231,68 @@ int printdfa(struct dfa_t * d){
   return 0;
 }
 
+int reindex(int i, int j, int n1, int n2){
+  if(i == -1){
+    if(j == -1){
+      return (n1+1)*(n2+1) -1;
+    } else {
+      return n1*(n2+1) + j;
+    }
+  }
+  if(j == -1){
+    return n2*n1+i;
+  }
 
+  return i*n2+j;
+}
+
+int search(int * list, int len, int key){
+  for(int i = 0; i < len; i++){
+    if(list[i] == key){
+      return 1;
+    }
+  }
+  return 0;
+}
+
+int dfaunion(struct dfa_t * d1, struct dfa_t * d2, struct dfa_t * result){
+  int n1 = d1->nstates;
+  int n2 = d2->nstates;
+  //copy alphabet
+  for(int i = 0; i < result->nsym; i++){
+    result->alphabet[i] = d2->alphabet[i];
+  }
+
+  //set the final states
+  int fin_index = 0;
+  result->init = reindex(d1->init, d2->init,n1, n2);
+  for(int i =0; i < d1->nfin; i++){
+    for(int j=0; j < n2; j++){
+      result->final[fin_index] = reindex(d1->final[i],j,n1, n2);
+      fin_index++;
+    }
+    result->final[fin_index] = reindex(d1->final[i],-1,n1, n2);
+    fin_index++;
+  }
+  for(int i =0; i < d2->nfin; i++){
+    for(int j=0; j < n1; j++){
+      if(!search(d1->final, d1->nfin, j)){
+        result->final[fin_index] = reindex(j,d2->final[i],n1, n2);
+        fin_index++;
+      }
+    }
+    result->final[fin_index] = reindex(-1,d2->final[i],n1, n2);
+    fin_index++;
+  }
+
+  /*build the transition function
+  for(int i = 0; i < n1; i++){
+    for(int j =0; j < n2; j++){
+
+    }
+  }*/
+  return 0;
+}
 
 #ifdef BUILD_TEST
 int main(){
