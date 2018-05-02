@@ -30,6 +30,8 @@ rule token = parse
 | "concat"      { DFACONCAT }
 | "union"       { DFAOR }
 | "dfa"         { DFATOKEN }
+| "nfa"			{ NFATOKEN }
+| "temp_fa" {TEMPTOKEN}
 (* TODO we may need this later
 | "nfa"     { NFA }
 *)

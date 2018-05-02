@@ -1,5 +1,7 @@
 main : -> int {
+int i;
 dfa help;
+i = 7;
 help  = {
  states : 7
  alphabet : ['0', '1', '2', '3', '4', '5']

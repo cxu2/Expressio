@@ -14,7 +14,7 @@ open Prelude
 %token CASE OF
 %token REGEXP REMATCH REEMPTY REEPS RELIT REOR RECAT RESTAR REAND RECOMP
 %token DFAOR DFACONCAT DFASIM DFAACCEPTS
-%token DFATOKEN STATES ALPH START FINAL TRANF
+%token TEMPTOKEN NFATOKEN DFATOKEN STATES ALPH START FINAL TRANF
 %token <int> INTLIT
 %token <bool> BLIT
 %token <char> CHLIT
@@ -109,6 +109,8 @@ typ:
   | REGEXP                                  { TRE     }
   | STRING                                  { TString }
   | DFATOKEN                                { TDFA    }
+  | NFATOKEN                                { TNFA    }
+  | TEMPTOKEN                               { TTEMP }
 
 int_opt:
   /* nothing */                             { [] }
@@ -204,7 +206,16 @@ expr:
   | ID ASSIGN expr                          { Assign ($1, $3)               }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)                 }
   | LPAREN expr RPAREN                      { $2                            }
-  | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
+  | LBRACE STATES COLON expr ALPH COLON expr START COLON
+  expr FINAL COLON expr TRANF COLON expr RBRACE
+                                            { NFA ($4,$7,$10,$13,$16)  }
+  | LBRACE STATES COLON expr RBRACE
+                                              {TEMP($4)}
+/*
+  | LBRACE STATES COLON expr ALPH COLON expr START COLON
+  expr FINAL COLON expr TRANF COLON expr RBRACE
+*/
+  | LBRACE STATES COLON expr ALPH COLON LBRAC char_opt RBRAC START COLON
   INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { DFA ($4, $8, $12, $16, $21)  }
 

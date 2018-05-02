@@ -13,7 +13,7 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 type uop = UNeg | UNot | URELit | UREStar | UREComp
 
 (* Types within the Expressio language *)
-type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE
+type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE | TNFA | TTEMP
 
 type bind = typ * string
 
@@ -31,7 +31,9 @@ type expr =
   | Unop      of uop * expr
   | Assign    of string * expr
   | Call      of string * expr list
-  | DFA       of int * char list * int * int list * tranf list
+  | DFA       of expr * char list * int * int list * tranf list
+  | NFA       of expr * expr * expr * expr * expr
+  | TEMP      of expr
   | Noexpr
 
 type stmt =
@@ -145,11 +147,17 @@ let rec string_of_expr = function
   | Unop (UREStar, e)   -> string_of_expr e      ^ string_of_uop UREStar
   | Assign (v, e)       -> v ^ " = " ^ string_of_expr e
   | Call (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | DFA (a, b, c, d, e) -> "{\n states : "      ^ string_of_int a     ^
+  | DFA (a, b, c, d, e) -> "{\n states : "      ^ string_of_expr a     ^
                             "\n alphabet : "    ^ string_of_clist b   ^
                             "\n start : "       ^ string_of_int c     ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
+  | NFA(a, b, c, d, e)        ->"{\n states : "      ^ string_of_expr a     ^
+                            "\n alphabet : "    ^ string_of_expr b   ^
+                            "\n start : "       ^ string_of_expr c     ^
+                            "\n final : "       ^ string_of_expr d ^
+                            "\n transitions : " ^ string_of_expr e   ^ "\n }"
+  | TEMP(a)             -> "{\n states : "      ^ string_of_expr a^ "\n }"
   | Noexpr              -> ""
 
 let rec string_of_stmt = function
@@ -172,6 +180,8 @@ let string_of_typ = function
   | TRE     -> "regexp"
   | TString -> "string"
   | TDFA    -> "dfa"
+  | TNFA    -> "nfa"
+  | TTEMP   -> "temp"
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 

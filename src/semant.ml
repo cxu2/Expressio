@@ -103,9 +103,9 @@ module StringMap = Map.Make(String)
       | CharLit c                                 -> (TChar,   SCharLit c)
       | StringLit s                               -> (TString, SStringLit s)
       | BoolLit l                                 -> (TBool,   SBoolLit l)
-      | DFA (states, alpha, start, final, tran)   ->
+      | DFA (states, alpha, start, final, tran)   -> (TDFA, SDFA (states, alpha, start, final, tran))
                                  (* check states is greater than final states *)
-                                 let rec checkFinal maxVal = function
+                                 (* let rec checkFinal maxVal = function
                                    []                       -> false
                                  | x :: _  when maxVal <= x -> true
                                  | _ :: tl                  -> checkFinal maxVal tl
@@ -128,7 +128,9 @@ module StringMap = Map.Make(String)
                                  (* also check that states is greater than start *)
                                  if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
                                  then raise (Failure ("DFA invalid"))
-                                 else (TDFA, SDFA (states, alpha, start, final, tran))
+                                 else (TDFA, SDFA (states, alpha, start, final, tran)) *)
+      | NFA(a,b,c,d,e)        -> (TNFA, SNFA (a,b,c,d,e))
+      | TEMP(a)               -> (TTEMP, STEMP (a))
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
