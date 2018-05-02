@@ -157,19 +157,19 @@ module StringMap = Map.Make(String)
                           BAdd
                         | BSub
                         | BMult
-                        | BDiv     when same && t1 = TInt  -> TInt
+                        | BDiv          when same      && t1 = TInt    -> TInt
                         | BEqual
-                        | BNeq     when same               -> TBool
+                        | BNeq          when same                      -> TBool
                         | BLess
                         | BLeq
                         | BGreater
-                        | BGeq     when same && t1 = TInt  -> TBool
+                        | BGeq          when same      && t1 = TInt    -> TBool
                         | BAnd
-                        | BOr      when same && t1 = TBool -> TBool
+                        | BOr           when same      && t1 = TBool   -> TBool
                         | BREUnion
                         | BREConcat
-                        | BREIntersect when same && t1 = TRE -> TRE
-                        | BREMatches   when t1 = TRE && t2 = TString -> TBool
+                        | BREIntersect  when same      && t1 = TRE     -> TRE
+                        | BREMatches    when t1 = TRE  && t2 = TString -> TBool
                         | BDFAAccepts   when t1 = TDFA && t2 = TString -> TBool
                         | BDFASimulates   when t1 = TDFA && t2 = TString -> TInt
                         | BDFAUnion   when t1 = TDFA && t2 = TDFA -> TDFA
@@ -206,7 +206,7 @@ module StringMap = Map.Make(String)
       | (looping, Expr e)                                  -> (looping, SExpr (expr e))
       | (looping, If (p, b1, b2))                          -> (looping, SIf (check_bool_expr p, snd (check_statement (looping, b1)), snd (check_statement (looping, b2))))
       | (looping, For (e1, e2, e3, s))                     -> (looping, SFor     (expr e1, check_bool_expr e2, expr e3, snd (check_statement (true, s))))
-      | (looping, While (p, s))                            -> (looping, SWhile   (SNostmt,        check_bool_expr p,           snd (check_statement (true, s))))
+      | (looping, While (p, s))                            -> (looping, SWhile   (SNostmt, check_bool_expr p,           snd (check_statement (true, s))))
       | (_,       Infloop s)                               -> (true,    SInfloop (                                      snd (check_statement (true, s))))
       | (looping, Return e) when (fst (expr e) = func.typ) -> (looping, SReturn (expr e))
       | (_,       Return e)                                -> raise (Failure ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e))
