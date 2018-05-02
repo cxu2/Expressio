@@ -1,14 +1,14 @@
 main : -> int {
 int ans;
-dfa zzo;
+dfa zz;
 dfa oo;
 dfa u;
-zzo  = {
- states : 4
+zz  = {
+ states : 3
  alphabet : ['0', '1']
  start : 0
- final : [3]
- transitions : [ (0 '0' 1), (1 '0' 2), (2 '1' 3) ] 
+ final : [2]
+ transitions : [ (0 '0' 1), (1 '0' 2)] 
 };
 
 oo = {
@@ -20,7 +20,29 @@ oo = {
 };
 
 
-u = zzo union oo;
-printdfa(u);
-  return 0;
+u = zz union oo;
+if(u accepts "00"){
+  printf("u accepts 00");
+}  else {
+   printf("u rejects 00");
+}
+
+if(u accepts "11"){
+  printf("u accepts 11");
+}  else	    {
+   printf("u rejects 11");
+}
+
+if(u accepts "0"){
+  printf("u accepts 0");
+}  else	    {
+   printf("u rejects 0");
+}
+
+if(u accepts "111"){
+  printf("u accepts 111");
+}  else	    {
+   printf("u rejects 111");
+}
+return 0;
 }

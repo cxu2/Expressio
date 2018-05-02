@@ -258,6 +258,10 @@ int search(int * list, int len, int key){
 int dfaunion(struct dfa_t * d1, struct dfa_t * d2, struct dfa_t * result){
   int n1 = d1->nstates;
   int n2 = d2->nstates;
+
+  //set initial state
+  result->init = reindex(d1->init, d2->init, n1, n2);
+
   //copy alphabet
   for(int i = 0; i < result->nsym; i++){
     result->alphabet[i] = d2->alphabet[i];
@@ -285,12 +289,42 @@ int dfaunion(struct dfa_t * d1, struct dfa_t * d2, struct dfa_t * result){
     fin_index++;
   }
 
-  /*build the transition function
+  /*** build the transition function ***/
+  // start with setting everything -1 for no transition
+  for(int r = 0; r < result->nstates; r++){
+    for(int s = 0; s < result->nsym; s++){
+      result->delta[idx(r, s, result->nsym)] = -1;
+    }
+  }
+
   for(int i = 0; i < n1; i++){
     for(int j =0; j < n2; j++){
-
+      int from = reindex(i, j, n1, n2);
+      for(int k=0; k < result->nsym; k++){
+        int to = -1;
+        int d1_to = d1->delta[idx(i,IntOfSymbol(d1, result->alphabet[k]), d1->nsym)];
+        int d2_to = d2->delta[idx(j,IntOfSymbol(d2, result->alphabet[k]), d2->nsym)];
+        to = reindex(d1_to, d2_to, n1, n2);
+        link(result, from, to, result->alphabet[k]);
+      }
     }
-  }*/
+  }
+  for(int i = 0; i < n1; i++){
+    int from = reindex(i, -1, n1, n2);
+    for(int k=0; k < result->nsym; k++){
+        int d1_to = d1->delta[idx(i,IntOfSymbol(d1, result->alphabet[k]), d1->nsym)];
+        int to = reindex(d1_to, -1, n1, n2);
+        link(result, from, to, result->alphabet[k]);
+    }
+  }
+    for(int j = 0; j < n2; j++){
+    int from = reindex(-1, j, n1, n2);
+    for(int k=0; k < result->nsym; k++){
+        int d2_to = d2->delta[idx(j,IntOfSymbol(d2, result->alphabet[k]), d2->nsym)];
+        int to = reindex(-1, d2_to, n1, n2);
+        link(result, from, to, result->alphabet[k]);
+    }
+  }
   return 0;
 }
 
