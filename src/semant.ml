@@ -17,15 +17,13 @@ module StringMap = Map.Make(String)
      of another, previously checked binding *)
   let check_binds (kind : string) (to_check : bind list) =
     let check_it checked binding =
-      let void_err = "illegal void " ^ kind ^ " " ^ snd binding
-      and dup_err = "duplicate " ^ kind ^ " " ^ snd binding
-      in match binding with
+      match binding with
         (* No void bindings *)
-        (TUnit, _) -> raise (Failure void_err)
+        (TUnit, _) -> error ("illegal void " ^ kind ^ " " ^ snd binding)
       | (_, n1) -> match checked with
                     (* No duplicate bindings *)
-                      ((_, n2) :: _) when n1 = n2 -> raise (Failure dup_err)
-                    | _ -> binding :: checked
+                    ((_, n2) :: _) when n1 = n2 -> error ("duplicate " ^ kind ^ " " ^ snd binding)
+                   | _ -> binding :: checked
     in let _ = List.fold_left check_it [] (List.sort compare to_check)
        in to_check
 
@@ -56,13 +54,10 @@ module StringMap = Map.Make(String)
 
   (* Add function name to symbol table *)
   in let add_func map fd =
-    let built_in_err = "function " ^ fd.fname ^ " may not be defined"
-    and dup_err      = "duplicate function " ^ fd.fname
-    and make_err er = raise (Failure er)
-    and n = fd.fname (* Name of the function *)
+    let n = fd.fname (* Name of the function *)
     in match fd with (* No duplicate functions or redefinitions of built-ins *)
-         _ when StringMap.mem n built_in_decls -> make_err built_in_err
-       | _ when StringMap.mem n map            -> make_err dup_err
+         _ when StringMap.mem n built_in_decls -> error ("function "           ^ fd.fname ^ " may not be defined")
+       | _ when StringMap.mem n map            -> error ("duplicate function " ^ fd.fname)
        | _                                     -> StringMap.add n fd map
 
   (* Collect all other function names into one symbol table *)
@@ -71,7 +66,7 @@ module StringMap = Map.Make(String)
   (* Return a function from our symbol table *)
   in let find_func s =
     try StringMap.find s function_decls
-    with Not_found -> raise (Failure ("unrecognized function " ^ s))
+    with Not_found -> error ("unrecognized function " ^ s)
 
 
   in let _ = find_func "main" (* Ensure "main" is defined *)
@@ -84,7 +79,7 @@ module StringMap = Map.Make(String)
        the given lvalue type *)
     in let check_assign lvaluet rvaluet err = if lvaluet = rvaluet
                                               then lvaluet
-                                              else raise (Failure err)
+                                              else error err
     (* Build local symbol table of variables for this function *)
     in let bindings : bind list = (globals' @ formals' @ locals')
     in let symbols = fromList (List.map swap bindings)
@@ -93,7 +88,7 @@ module StringMap = Map.Make(String)
     (* TODO write a generic map lookup method instead of this silly exception *)
     in let type_of_identifier s =
       try StringMap.find s symbols
-      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+      with Not_found -> error ("undeclared identifier " ^ s)
 
 
     (* Return a semantically-checked expression, i.e., with a type *)
@@ -127,7 +122,7 @@ module StringMap = Map.Make(String)
 
                                  (* also check that states is greater than start *)
                                  if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
-                                 then raise (Failure ("DFA invalid"))
+                                 then error "DFA invalid"
                                  else (TDFA, SDFA (states, alpha, start, final, tran))
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
@@ -138,15 +133,15 @@ module StringMap = Map.Make(String)
                                  in let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ string_of_typ rt ^ " in " ^ string_of_expr ex
                                  in (check_assign lt rt err, SAssign (var, (rt, e')))
       | Unop (UNeg,    e) when fst (expr e) = TInt  -> (TInt,  SUnop (UNeg, expr e))
-      | Unop (UNeg,    e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop UNeg    ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (UNeg,    e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UNeg    ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Unop (UNot,    e) when fst (expr e) = TBool -> (TBool, SUnop (UNot,    expr e))
-      | Unop (UNot,    e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop UNot    ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (UNot,    e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UNot    ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Unop (URELit,  e) when fst (expr e) = TChar -> (TRE,   SUnop (URELit,  expr e))
-      | Unop (URELit,  e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop URELit  ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (URELit,  e) as ex                     -> error ("illegal unary operator " ^ string_of_uop URELit  ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Unop (UREStar, e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREStar, expr e))
-      | Unop (UREStar, e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop UREStar ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (UREStar, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREStar ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Unop (UREComp, e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
-      | Unop (UREComp, e) as ex                     -> raise (Failure ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex))
+      | Unop (UREComp, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2
@@ -174,24 +169,23 @@ module StringMap = Map.Make(String)
                         | BDFASimulates   when t1 = TDFA && t2 = TString -> TInt
                         | BDFAUnion   when t1 = TDFA && t2 = TDFA -> TDFA
                         | BCase        -> raise (TODO "implement BCase in semant")
-                        | _ -> raise (Failure ("illegal binary operator " ^
-                                               string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
-                                               string_of_typ t2 ^ " in " ^ string_of_expr e))
+                        | _ -> error ("illegal binary operator " ^
+                                      string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
+                                      string_of_typ t2 ^ " in " ^ string_of_expr e)
         in (ty, SBinop ((t1, e1'), op, (t2, e2')))
       | Call (fname, args) as call ->
           let fd              = find_func fname
           in let param_length = List.length fd.formals
           in if List.length args != param_length
-             then raise (Failure ("expecting " ^ string_of_int param_length ^ " arguments in " ^ string_of_expr call))
+             then error ("expecting " ^ string_of_int param_length ^ " arguments in " ^ string_of_expr call)
              else let check_call (ft, _) e = let (et, e') = expr e
                                              in let err = "illegal argument found " ^ string_of_typ et ^ " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
                   in (check_assign ft et err, e')
           in let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall (fname, args'))
     in let check_bool_expr e = let (t', e') = expr e
-                               and err = "expected Boolean expression in " ^ string_of_expr e
                                in if t' != TBool
-                                  then raise (Failure err)
+                                  then error ("expected Boolean expression in " ^ string_of_expr e)
                                   else (t', e')
     (* Return a semantically-checked statement i.e. containing sexprs *)
     (* this function was originally a simple `stmt -> sstmt` but with adding continue/break statements it is
@@ -199,8 +193,8 @@ module StringMap = Map.Make(String)
        so here we pass along some context/state, namely a boolean value which is true if we're in a loop
        false otherwise. *)
     in let rec check_statement (x : (bool * stmt)) : (bool * sstmt) = match x with
-      | (false,   Break)                                   -> raise (Failure "\'break\' is outside of loop")
-      | (false,   Continue)                                -> raise (Failure "\'continue\' is outside of loop")
+      | (false,   Break)                                   -> error "\'break\' is outside of loop"
+      | (false,   Continue)                                -> error "\'continue\' is outside of loop"
       | (true,    Break)                                   -> (true,    SBreak)
       | (true,    Continue)                                -> (true,    SContinue)
       | (looping, Expr e)                                  -> (looping, SExpr (expr e))
@@ -209,8 +203,8 @@ module StringMap = Map.Make(String)
       | (looping, While (p, s))                            -> (looping, SWhile   (SNostmt, check_bool_expr p,           snd (check_statement (true, s))))
       | (_,       Infloop s)                               -> (true,    SInfloop (                                      snd (check_statement (true, s))))
       | (looping, Return e) when (fst (expr e) = func.typ) -> (looping, SReturn (expr e))
-      | (_,       Return e)                                -> raise (Failure ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e))
-      | (_,       Block (Return _ ::  _))                  -> raise (Failure "nothing may follow a return")
+      | (_,       Return e)                                -> error ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e)
+      | (_,       Block (Return _ ::  _))                  -> error "nothing may follow a return"
       | (looping, Block (Block sl :: ss))                  -> (looping, snd (check_statement (looping, (Block (sl @ ss)))))           (* Flatten blocks *)
       | (looping, Block              [])                   -> (looping, SBlock [])
       | (looping, Block              ss)                   -> let ss' : sstmt list = snd (map_accum_left (curry check_statement) looping ss)
@@ -222,7 +216,6 @@ module StringMap = Map.Make(String)
       slocals  = locals';
       sbody    = match (snd (check_statement (false, (Block func.body)))) with (* if we ever decide to support nested functions we should update check_function to pass a boolean variable to indicate the state of looping and include it here instead of `false` *)
                 	 SBlock sl -> sl
-                  | _        -> let err = "internal error: block didn't become a block?"
-                                in raise (Failure err)
+                  | _        -> error "internal error: block didn't become a block?"
     }
   in (globals', dfas', List.map check_function functions)
