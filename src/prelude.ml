@@ -23,11 +23,11 @@ module Prelude = struct
                    in let (s'', ys) = map_accum_left f s' xs
                    in (s'', y :: ys)
 
-  let first' (quadruple : 'a * 'b * 'c * 'd) : 'a = match quadruple with
+  let first'  (quadruple : 'a * 'b * 'c * 'd) : 'a = match quadruple with
     (a , _ , _ , _) -> a
   let second' (quadruple : 'a * 'b * 'c * 'd) : 'b = match quadruple with
     (_ , b , _ , _) -> b
-  let third' (quadruple : 'a * 'b * 'c * 'd) : 'c = match quadruple with
+  let third'  (quadruple : 'a * 'b * 'c * 'd) : 'c = match quadruple with
     (_ , _ , c , _) -> c
   let fourth' (quadruple : 'a * 'b * 'c * 'd) : 'd = match quadruple with
     (_ , _ , _ , d) -> d
@@ -45,6 +45,8 @@ module Prelude = struct
   exception ABSURD
   module StringMap = Map.Make(String)
   let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
+  
+  let error e = raise (Failure e)
 
   (* Implement the Natural numbers Peano style *)
   type nat = Zero | Succ of nat
