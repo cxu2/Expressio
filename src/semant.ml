@@ -15,7 +15,7 @@ open Prelude.Prelude
 
   (* Check if a certain kind of binding has void type or is a duplicate
      of another, previously checked binding *)
-  let check_binds (kind : string) (to_check : bind list) =
+  let check_binds (kind : string) (to_check : bind list) : bind list =
     let check_it (checked : bind list) (binding : bind) =
       match binding with
         (* No void bindings *)
@@ -34,14 +34,14 @@ open Prelude.Prelude
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
-    in let built_in_decls : Ast.func_decl string_map =
-    let add_bind ((ty, name) : bind) : (string * Ast.func_decl) = (name, { typ     = TUnit
+    in let built_in_decls : func_decl string_map =
+    let add_bind ((ty, name) : bind) : (string * func_decl) = (name, { typ     = TUnit
                                                                          ; fname   = name
                                                                          ; formals = [(ty, "x")]
                                                                          ; locals  = []
                                                                          ; body    = []
                                                                          })
-    in let built_ins : (string * Ast.func_decl) list = List.map add_bind [(TInt, "print");(TRE, "printr"); (TDFA, "printdfa"); (TString, "printf")]
+    in let built_ins : (string * func_decl) list = List.map add_bind [(TInt, "print");(TRE, "printr"); (TDFA, "printdfa"); (TString, "printf")]
     in fromList (built_ins)
 
   (* Add function name to symbol table *)
@@ -62,10 +62,10 @@ open Prelude.Prelude
 
   in let _ = find_func "main" (* Ensure "main" is defined *)
 
-  in let check_function func =
+  in let check_function (func : func_decl) : func_decl =
     (* Make sure no formals or locals are void or duplicates *)
-    let formals' = check_binds "formal" func.formals
-    and locals'  = check_binds "local"  func.locals
+    let formals' : bind list = check_binds "formal" func.formals
+    and locals'  : bind list = check_binds "local"  func.locals
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
     in let check_assign lvaluet rvaluet err = if lvaluet = rvaluet
@@ -76,7 +76,6 @@ open Prelude.Prelude
     in let symbols : Ast.typ string_map = fromList (List.map swap bindings)
 
     (* Return a variable from our local symbol table *)
-    (* TODO write a generic map lookup method instead of this silly exception *)
     in let type_of_identifier s = match StringMap.find_opt s symbols with
         Some s' -> s'
       | None    -> error ("undeclared identifier " ^ s)
