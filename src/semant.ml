@@ -64,17 +64,17 @@ module StringMap = Map.Make(String)
   in let function_decls = List.fold_left add_func built_in_decls functions
 
   (* Return a function from our symbol table *)
-  in let find_func s =
-    try StringMap.find s function_decls
-    with Not_found -> error ("unrecognized function " ^ s)
+  in let find_func s = match StringMap.find_opt s function_decls with
+        Some s' -> s'
+      | None    -> error ("unrecognized function " ^ s)
 
 
   in let _ = find_func "main" (* Ensure "main" is defined *)
 
   in let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
-    let    formals' = check_binds "formal" func.formals
-    in let locals'  = check_binds "local"  func.locals
+    let formals' = check_binds "formal" func.formals
+    and locals'  = check_binds "local"  func.locals
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
     in let check_assign lvaluet rvaluet err = if lvaluet = rvaluet
@@ -86,9 +86,10 @@ module StringMap = Map.Make(String)
 
     (* Return a variable from our local symbol table *)
     (* TODO write a generic map lookup method instead of this silly exception *)
-    in let type_of_identifier s =
-      try StringMap.find s symbols
-      with Not_found -> error ("undeclared identifier " ^ s)
+    in let type_of_identifier s = match StringMap.find_opt s symbols with
+        Some s' -> s'
+      | None    -> error ("undeclared identifier " ^ s)
+
 
 
     (* Return a semantically-checked expression, i.e., with a type *)
