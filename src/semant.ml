@@ -52,7 +52,7 @@ open Prelude.Prelude
                                 else StringMap.add fd.fname fd map
 
   (* Collect all other function names into one symbol table *)
-  in let function_decls : Ast.func_decl string_map = List.fold_left add_func built_in_decls functions
+  in let function_decls : func_decl string_map = List.fold_left add_func built_in_decls functions
 
   (* Return a function from our symbol table *)
   in let find_func s = match StringMap.find_opt s function_decls with
@@ -62,7 +62,7 @@ open Prelude.Prelude
 
   in let _ = find_func "main" (* Ensure "main" is defined *)
 
-  in let check_function (func : func_decl) : func_decl =
+  in let check_function (func : func_decl) : sfunc_decl =
     (* Make sure no formals or locals are void or duplicates *)
     let formals' : bind list = check_binds "formal" func.formals
     and locals'  : bind list = check_binds "local"  func.locals
