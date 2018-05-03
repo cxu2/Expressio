@@ -44,9 +44,9 @@ module Prelude = struct
   (* An exception to be used when marking that pattern matching has reached an assumed to be impossible state *)
   exception ABSURD
   module StringMap = Map.Make(String)
-  
+
   type 'a string_map = 'a StringMap.t
-  
+
   let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
   
   let error e = raise (Failure e)
