@@ -34,23 +34,15 @@ open Prelude.Prelude
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
-  in let built_in_decls : Ast.func_decl string_map =
-    let add_bind map (name, ty) : Ast.func_decl = StringMap.add name { typ     = TUnit
-                                                     ; fname   = name
-                                                     ; formals = [(ty, "x")]
-                                                     ; locals  = []
-                                                     ; body    = []
-                                                     } map
-    in List.fold_left add_bind StringMap.empty [ ("print", TInt); ("printr", TRE);
-                                            ("printdfa", TDFA); ("printf", TString) ]
-(*
-                                                    { typ     = TUnit
-                                                    ; fname   = "print"
-                                                    ; formals = [(TInt, "x")]
-                                                    ; locals  = []
-                                                    ; body    = []
-                                                    } map
-                                                    *)
+    in let built_in_decls : Ast.func_decl string_map =
+    let add_bind ((ty, name) : bind) : (string * Ast.func_decl) = (name, { typ     = TUnit
+                                                                         ; fname   = name
+                                                                         ; formals = [(ty, "x")]
+                                                                         ; locals  = []
+                                                                         ; body    = []
+                                                                         })
+    in let built_ins : (string * Ast.func_decl) list = List.map add_bind [(TInt, "print");(TRE, "printr"); (TDFA, "printdfa"); (TString, "printf")]
+    in fromList (built_ins)
 
   (* Add function name to symbol table *)
   in let add_func map fd = if      StringMap.mem fd.fname built_in_decls
@@ -60,7 +52,7 @@ open Prelude.Prelude
                                 else StringMap.add fd.fname fd map
 
   (* Collect all other function names into one symbol table *)
-  in let function_decls = List.fold_left add_func built_in_decls functions
+  in let function_decls : Ast.func_decl string_map = List.fold_left add_func built_in_decls functions
 
   (* Return a function from our symbol table *)
   in let find_func s = match StringMap.find_opt s function_decls with
@@ -166,8 +158,8 @@ open Prelude.Prelude
                         | BREIntersect  when same      && t1 = TRE     -> TRE
                         | BREMatches    when t1 = TRE  && t2 = TString -> TBool
                         | BDFAAccepts   when t1 = TDFA && t2 = TString -> TBool
-                        | BDFASimulates   when t1 = TDFA && t2 = TString -> TInt
-                        | BDFAUnion   when t1 = TDFA && t2 = TDFA -> TDFA
+                        | BDFASimulates when t1 = TDFA && t2 = TString -> TInt
+                        | BDFAUnion     when t1 = TDFA && t2 = TDFA    -> TDFA
                         | BCase        -> raise (TODO "implement BCase in semant")
                         | _ -> error ("illegal binary operator " ^
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
