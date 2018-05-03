@@ -4,7 +4,7 @@ open Ast
 open Sast
 open Prelude.Prelude
 
-module StringMap = Map.Make(String)
+(* module StringMap = Map.Make(String) *)
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
 
@@ -16,7 +16,7 @@ module StringMap = Map.Make(String)
   (* Check if a certain kind of binding has void type or is a duplicate
      of another, previously checked binding *)
   let check_binds (kind : string) (to_check : bind list) =
-    let check_it checked binding =
+    let check_it (checked : bind list) (binding : bind) =
       match binding with
         (* No void bindings *)
         (TUnit, _) -> error ("illegal void " ^ kind ^ " " ^ snd binding)
@@ -29,7 +29,7 @@ module StringMap = Map.Make(String)
 
   (**** Checking Global Variables ****)
 
-  in let globals' = check_binds "global" globals
+  in let globals' : bind list = check_binds "global" globals
   in let dfas' : sdfa_decl list = [] (* check_binds "dfa" dfas *)
   (**** Checking Functions ****)
 
@@ -82,7 +82,7 @@ module StringMap = Map.Make(String)
                                               else error err
     (* Build local symbol table of variables for this function *)
     in let bindings : bind list = (globals' @ formals' @ locals')
-    in let symbols = fromList (List.map swap bindings)
+    in let symbols : Ast.typ string_map = fromList (List.map swap bindings)
 
     (* Return a variable from our local symbol table *)
     (* TODO write a generic map lookup method instead of this silly exception *)
