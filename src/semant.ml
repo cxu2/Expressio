@@ -34,8 +34,8 @@ open Prelude.Prelude
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
-  in let built_in_decls =
-    let add_bind map (name, ty) = StringMap.add name { typ     = TUnit
+  in let built_in_decls : Ast.func_decl string_map =
+    let add_bind map (name, ty) : Ast.func_decl = StringMap.add name { typ     = TUnit
                                                      ; fname   = name
                                                      ; formals = [(ty, "x")]
                                                      ; locals  = []
@@ -53,12 +53,11 @@ open Prelude.Prelude
                                                     *)
 
   (* Add function name to symbol table *)
-  in let add_func map fd =
-    let n = fd.fname (* Name of the function *)
-    in match fd with (* No duplicate functions or redefinitions of built-ins *)
-         _ when StringMap.mem n built_in_decls -> error ("function "           ^ fd.fname ^ " may not be defined")
-       | _ when StringMap.mem n map            -> error ("duplicate function " ^ fd.fname)
-       | _                                     -> StringMap.add n fd map
+  in let add_func map fd = if      StringMap.mem fd.fname built_in_decls
+                           then      error ("function "           ^ fd.fname ^ " may not be defined")
+                           else if StringMap.mem fd.fname map
+                                then error ("duplicate function " ^ fd.fname)
+                                else StringMap.add fd.fname fd map
 
   (* Collect all other function names into one symbol table *)
   in let function_decls = List.fold_left add_func built_in_decls functions
@@ -184,10 +183,9 @@ open Prelude.Prelude
                   in (check_assign ft et err, e')
           in let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall (fname, args'))
-    in let check_bool_expr e = let (t', e') = expr e
-                               in if t' != TBool
-                                  then error ("expected Boolean expression in " ^ string_of_expr e)
-                                  else (t', e')
+    in let check_bool_expr e = match (expr e) with
+                                (TBool, e') -> (TBool, e')
+                              | _           -> error ("expected Boolean expression in " ^ string_of_expr e)
     (* Return a semantically-checked statement i.e. containing sexprs *)
     (* this function was originally a simple `stmt -> sstmt` but with adding continue/break statements it is
        not possible to take any arbitrary `stmt` without more context to determine if said statement is semantically correct,
