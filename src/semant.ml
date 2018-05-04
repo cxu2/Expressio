@@ -19,11 +19,11 @@ open Prelude.Prelude
     let check_it (checked : bind list) (binding : bind) =
       match binding with
         (* No void bindings *)
-        (TUnit, _) -> error ("illegal void " ^ kind ^ " " ^ snd binding)
-      | (_, n1) -> match checked with
-                    (* No duplicate bindings *)
-                    ((_, n2) :: _) when n1 = n2 -> error ("duplicate " ^ kind ^ " " ^ snd binding)
-                   | _ -> binding :: checked
+        (TUnit,  _) -> error ("illegal void " ^ kind ^ " " ^ snd binding)
+      | (_,     n1) -> match checked with
+                        (* No duplicate bindings *)
+                        ((_, n2) :: _) when n1 = n2 -> error ("duplicate " ^ kind ^ " " ^ snd binding)
+                       | _                          -> binding :: checked
     in let _ = List.fold_left check_it [] (List.sort compare to_check)
        in to_check
 
@@ -183,23 +183,24 @@ open Prelude.Prelude
        so here we pass along some context/state, namely a boolean value which is true if we're in a loop
        false otherwise. *)
     in let rec check_statement (x : (bool * stmt)) : (bool * sstmt) = match x with
-      | (false,   Break)                                   -> error "\'break\' is outside of loop"
-      | (false,   Continue)                                -> error "\'continue\' is outside of loop"
-      | (true,    Break)                                   -> (true,    SBreak)
-      | (true,    Continue)                                -> (true,    SContinue)
-      | (looping, Expr e)                                  -> (looping, SExpr (expr e))
-      | (looping, If (p, b1, b2))                          -> (looping, SIf (check_bool_expr p, snd (check_statement (looping, b1)), snd (check_statement (looping, b2))))
-      | (looping, For (e1, e2, e3, s))                     -> (looping, SFor     (expr e1, check_bool_expr e2, expr e3, snd (check_statement (true, s))))
-      | (looping, While (p, s))                            -> (looping, SWhile   (SNostmt, check_bool_expr p,           snd (check_statement (true, s))))
-      | (_,       Infloop s)                               -> (true,    SInfloop (                                      snd (check_statement (true, s))))
-      | (looping, Return e) when (fst (expr e) = func.typ) -> (looping, SReturn (expr e))
-      | (_,       Return e)                                -> error ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e)
-      | (looping, Block (Return e :: []))                  -> (looping, SBlock [SReturn (expr e)])
-      | (_,       Block (Return _ ::  _))                  -> error "nothing may follow a return"
-      | (looping, Block (Block sl :: ss))                  -> (looping, snd (check_statement (looping, (Block (sl @ ss)))))           (* Flatten blocks *)
-      | (looping, Block              [])                   -> (looping, SBlock [])
-      | (looping, Block              ss)                   -> let ss' : sstmt list = snd (map_accum_left (curry check_statement) looping ss)
-                                                              in  (looping, SBlock (ss'))
+      | (false,   Break)                                                 -> error "\'break\' is outside of loop"
+      | (false,   Continue)                                              -> error "\'continue\' is outside of loop"
+      | (true,    Break)                                                 -> (true,    SBreak)
+      | (true,    Continue)                                              -> (true,    SContinue)
+      | (looping, Expr e)                                                -> (looping, SExpr (expr e))
+      | (looping, If (p, b1, b2))                                        -> (looping, SIf (check_bool_expr p, snd (check_statement (looping, b1)), snd (check_statement (looping, b2))))
+      | (looping, For (e1, e2, e3, s))                                   -> (looping, SFor     (expr e1, check_bool_expr e2, expr e3, snd (check_statement (true, s))))
+      | (looping, While (p, s))                                          -> (looping, SWhile   (SNostmt, check_bool_expr p,           snd (check_statement (true, s))))
+      | (_,       Infloop s)                                             -> (true,    SInfloop (                                      snd (check_statement (true, s))))
+      | (looping, Return e)               when (fst (expr e) = func.typ) -> (looping, SReturn (expr e))
+      | (_,       Return e)                                              -> error ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e)
+      | (looping, Block (Return e :: [])) when (fst (expr e) = func.typ) -> (looping, SBlock [SReturn (expr e)])
+      | (looping, Block (Return e :: []))                                -> error ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e)
+      | (_,       Block (Return _ ::  _))                                -> error "nothing may follow a return"
+      | (looping, Block (Block sl :: ss))                                -> (looping, snd (check_statement (looping, (Block (sl @ ss)))))           (* Flatten blocks *)
+      | (looping, Block              [])                                 -> (looping, SBlock [])
+      | (looping, Block              ss)                                 -> let ss' : sstmt list = snd (map_accum_left (curry check_statement) looping ss)
+                                                                            in  (looping, SBlock (ss'))
     in (* body of check_function *)
     { styp     = func.typ;
       sfname   = func.fname;
