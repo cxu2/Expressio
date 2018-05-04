@@ -44,14 +44,14 @@ let translate (globals, _, functions) =
   let context : L.llcontext = L.global_context ()
    (* Add types to the context so we can use them in our LLVM code *)
 
-  in let i32_t      = L.i32_type    context
-     and i8_t       = L.i8_type     context
-     and i1_t       = L.i1_type     context
-     and void_t     = L.void_type   context
-     and pointer_t  = L.pointer_type
+  in let i32_t     :              L.lltype  = L.i32_type    context
+     and i8_t      :              L.lltype  = L.i8_type     context
+     and i1_t      :              L.lltype  = L.i1_type     context
+     and void_t    :              L.lltype  = L.void_type   context
+     and pointer_t : (L.lltype -> L.lltype) = L.pointer_type
     (* Create an LLVM module -- this is a "container" into which we'll
      generate actual code *)
-     and the_module = L.create_module context "Expressio"
+     and the_module : L.llmodule = L.create_module context "Expressio"
 
   (* Tree named struct definition for regexp *)
   in let tree_t = L.struct_type context [| i8_t; i8_t; (pointer_t i8_t); (pointer_t i8_t) |]
@@ -64,8 +64,6 @@ let translate (globals, _, functions) =
   (**************************
    * Ast type to LLVM type  *
    **************************)
-
-
   in let ltype_of_typ = function
       A.TInt    -> i32_t
     | A.TBool   -> i1_t
@@ -88,9 +86,6 @@ let translate (globals, _, functions) =
   (***********************
    * Built-in Functions  *
    ***********************)
-
-
-
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
   in let printf_func = L.declare_function "printf" printf_t the_module
 
@@ -112,11 +107,11 @@ let translate (globals, _, functions) =
   in let simulates_t = L.function_type i32_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let simulates_func = L.declare_function "simulates" simulates_t the_module in
 
+
+
   (**********************
    *   Build Functions  *
    **********************)
-
-
 
   (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
@@ -304,23 +299,23 @@ let translate (globals, _, functions) =
       L.build_load dfa_ptr "dfa_loaded" b in
 
 
-    let build_dfaunion d1 d2 b = 
+    let build_dfaunion d1 d2 b =
       let d1_ptr = get_ptr d1 b
       and d2_ptr = get_ptr d2 b in
 
-      let n1 =   L.build_load (get_struct_idx d1_ptr 0 b) "d1.nstates"  b
-      and n2 =   L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates"  b 
-      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"  b 
-      and f1 =   L.build_load (get_struct_idx d1_ptr 5 b) "d2.nsfin"  b
-      and f2 =   L.build_load (get_struct_idx d2_ptr 5 b) "d2.nfin"  b in
+      let n1   = L.build_load (get_struct_idx d1_ptr 0 b) "d1.nstates" b
+      and n2   = L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates" b
+      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"    b
+      and f1   = L.build_load (get_struct_idx d1_ptr 5 b) "d2.nsfin"   b
+      and f2   = L.build_load (get_struct_idx d2_ptr 5 b) "d2.nfin"    b in
 
       let one = L.const_int i32_t 1 in
 
       let ns = (L.build_mul (L.build_add n1 one "++" b) (L.build_add n2 one "++" b) "mul" b)
-      and nfin = (L.build_sub 
-                    (L.build_add 
+      and nfin = (L.build_sub
+                    (L.build_add
                         (L.build_mul f1 (L.build_add n2 one "++" b) "mult" b) (L.build_mul f2 (L.build_add n1 one "++" b) "mult" b)
-                    "add" b) 
+                    "add" b)
                   (L.build_mul f1 f2 "mul" b) "sub" b) in
 
       (*Define llvm "array types"*)
@@ -367,7 +362,6 @@ let translate (globals, _, functions) =
       | SRE (Mult (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREConcat,    (TRE, SRE b)))
       | SRE (And  (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREIntersect, (TRE, SRE b)))
       | SRE (Plus (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREUnion,     (TRE, SRE b)))
-      | SBinop (_,  A.BCase,          _) -> raise (Prelude.TODO "implement codegen")
       | SBinop (e1, A.BDFAUnion,     e2) -> build_dfaunion (expr builder e1) (expr builder e2)                builder
       | SBinop (_, A.BDFAConcat,    _) -> raise (Prelude.TODO "implement codegen")
       | SBinop (e1, A.BDFAAccepts,   e2) -> L.build_call accepts_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
@@ -393,20 +387,22 @@ let translate (globals, _, functions) =
       | SUnop (A.URELit,  e)             -> build_lit 'l'           (expr builder e)                          builder
       | SUnop (A.UREComp, e)             -> build_unop '\\'         (expr builder e)                          builder
       | SUnop (A.UREStar, e)             -> build_unop '*'          (expr builder e)                          builder
-      | SAssign (s, e)          -> let e' = expr builder e in
-                                   let _  = L.build_store e' (lookup s) builder in e'
-      | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
-      | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf" builder
-      | SCall ("printdfa", [e]) -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf" builder
-      | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf" builder
-      | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr" builder
-      | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
-                                   in let actuals = List.rev (List.map (expr builder) (List.rev act))
-                                   in let result = (match fdecl.styp with
-                                                      A.TUnit -> ""
-                                                    | _       -> f ^ "_result")
-                                   in L.build_call fdef (Array.of_list actuals) result builder
-    in
+      | SAssign (s, e)                   -> let e' = expr builder e
+                                            in let _  = L.build_store e' (lookup s) builder
+                                            in e'
+      | SDFA (n, a, s, f, delta)         -> build_dfa n a s f delta builder
+      | SCase _ (*(e, cases) *)          -> raise (Prelude.TODO "codegen: expr fn, SCase") (* TODO build this multiway "if" into regular if statemants using stmt fn? (might have to use `and` for mutal recursion) *)
+      | SCall ("print",    [e])          -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf" builder
+      | SCall ("printdfa", [e])          -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf" builder
+      | SCall ("printf",   [e])          -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf" builder
+      | SCall ("printr",   [e])          -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr" builder
+      | SCall (f,          act)          -> let (fdef, fdecl) = StringMap.find f function_decls
+                                            and actuals = List.rev (List.map (expr builder) (List.rev act))
+                                            in let result = (match fdecl.styp with
+                                                              A.TUnit -> ""
+                                                            | _       -> f ^ "_result")
+                                            in L.build_call fdef (Array.of_list actuals) result builder
+
 
     (* Each basic block in a program ends with a "terminator" instruction i.e.
     one that ends the basic block. By definition, these instructions must
@@ -414,7 +410,7 @@ let translate (globals, _, functions) =
     and produce control flow, not values *)
     (* Invoke "f builder" if the current block doesn't already
        have a terminator (e.g., a branch). *)
-    let add_terminal builder f =
+    in let add_terminal builder f =
                            (* The current block where we're inserting instr *)
       match L.block_terminator (L.insertion_block builder) with
 	      Some _ -> ()
@@ -500,7 +496,7 @@ let translate (globals, _, functions) =
               in let merge_bb      = L.append_block context "merge" the_function
               in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
               in (L.builder_at_end context merge_bb,callStack)
-          | SInfloop (body) -> stmt (builder,callStack) ( SBlock [SWhile (SNostmt, (A.TBool ,SBoolLit(true)), SBlock [body]) ] )
+          | SInfloop (body) -> stmt (builder,callStack) ( SBlock [SWhile (SNostmt, (A.TBool, SBoolLit(true)), SBlock [body]) ] )
           (* Implement for loops as while loops! *)
           | SFor (e1, e2, e3, body) -> stmt (builder,callStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
           | SContinue               ->

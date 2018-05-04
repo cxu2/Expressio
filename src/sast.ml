@@ -16,6 +16,7 @@ and sx =
   | SUnop      of uop * sexpr
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
+  | SCase      of expr * ((expr * expr) list)
   | SDFA       of int * char list * int * int list * tranf list
   | SNoexpr
 
@@ -122,6 +123,7 @@ let rec string_of_sexpr (t, e) =
                                     | SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
                                     | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
                                     | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
+                                    | SCase (e, cases)     -> string_of_expr (Case (e, cases))
                                     | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
                                                               "\n alphabet : "    ^ string_of_clist b   ^
                                                               "\n start : "       ^ string_of_int c     ^

@@ -22,26 +22,12 @@ open Prelude
 %token <string> ID
 %token EOF
 
-/* FIXME we will need to think about the correct precedence of these
-within the context of the entire language before adding */
-/*
-For reference, this is the correct precedence between RegExp operators in Haskell:
-infixl 6 + (Numeric.Additive.Class)
-infixl 7 * (Numeric.Algebra.Class)
-infixr 8 `closure`
-*/
-
 %start program
 %type <Ast.program> program
 
 %nonassoc NOELSE
 %nonassoc ELSE
 %right ASSIGN
-
-%right CASE
-/* %<assoc> CASETO */
-/* FIXME may need to change this in the future, for now this gets rid of shift/reduce conflicts */
-%nonassoc COLON
 
 %left OR
 %left AND
@@ -201,8 +187,22 @@ expr:
   | expr DFACONCAT  expr                    { Binop ($1, BDFAConcat,    $3) }
   | expr DFASIM     expr                    { Binop ($1, BDFASimulates, $3) }
   | expr DFAACCEPTS expr                    { Binop ($1, BDFAAccepts,   $3) }
-  /* The line which follows should probably be CASE X OF Y, but this is tough to add without conflicts */
-  | expr CASE COLON expr                    { Binop ($1, BCase,         $4) }
+  | CASE expr        COLON
+    expr CASETO expr COMMA /* TODO can probably make this a list later, but enforcing the correct length (8, one for each of the RegExp constructors) as it is done now may be the better idea  if keeping case expressions restricted to RegExp */
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA                  { Case ($2, [($4,  $6);
+                                                         ($8,  $10);
+                                                         ($12, $14);
+                                                         ($16, $18);
+                                                         ($20, $22);
+                                                         ($24, $26);
+                                                         ($28, $30);
+                                                         ($32, $34)])       }
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)               }
   | NOT expr                                { Unop (UNot, $2)               }
   | expr RESTAR                             { Unop (UREStar, $1)            }

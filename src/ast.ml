@@ -5,7 +5,6 @@ open RegExp
 
 (* Binary operators *)
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq | BAnd | BOr
-         | BCase
          | BREUnion  | BREConcat  | BREMatches  | BREIntersect
          | BDFAUnion | BDFAConcat | BDFAAccepts | BDFASimulates
 
@@ -32,6 +31,7 @@ type expr =
   | Assign    of string * expr
   | Call      of string * expr list
   | DFA       of int * char list * int * int list * tranf list
+  | Case      of expr * ((expr * expr) list)
   | Noexpr
 
 type stmt =
@@ -84,7 +84,6 @@ let string_of_op = function
   | BREUnion      -> "|"
   | BREConcat     -> "^"
   | BREMatches    -> "matches"
-  | BCase         -> "case"
   | BREIntersect  -> "&"
   | BDFAUnion     -> "union"
   | BDFAConcat    -> "concat"
@@ -140,6 +139,10 @@ let rec string_of_expr = function
                             "\n start : "       ^ string_of_int c     ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
+                            (*raise (Prelude.TODO "string_of case")*)
+                            (* FIXME this is not correct but I'll keep it here for now while I make my own branch *)
+  | Case (e, cs)        -> let cases = String.concat "\n" (List.map (fun (x, y) -> string_of_expr x ^ " -> " ^ string_of_expr y) cs)
+                           in "case " ^ string_of_expr e ^ ":\n" ^ cases
   | Noexpr              -> ""
 
 let rec string_of_stmt = function

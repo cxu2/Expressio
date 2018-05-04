@@ -89,6 +89,14 @@ open Prelude.Prelude
       | CharLit c                                 -> (TChar,   SCharLit c)
       | StringLit s                               -> (TString, SStringLit s)
       | BoolLit l                                 -> (TBool,   SBoolLit l)
+      | Case (e, _) when fst (expr e) = TRE   -> raise (TODO "Semant: case in expr check") (* DELETEME: temporary line to appease compiler warning *)
+      (*| Case (e, cases) when fst (expr e) = TRE   -> let check_cases = 56
+                                                     in let x = List.map fst cases
+      (* check that type of e is the same as every type in (fmap fst cases) *)
+      (* check that every case for a RegExp is covered in (fmap fst cases) *)
+
+                                                     in raise (TODO "Semant: case in expr check") *)
+      | Case (_, _)                               -> error "case expressions currently only support regular expressions"
       | DFA (states, alpha, start, final, tran)   ->
                                  (* check states is greater than final states *)
                                  let rec checkFinal maxVal = function
@@ -159,7 +167,6 @@ open Prelude.Prelude
                         | BDFAAccepts   when t1 = TDFA && t2 = TString -> TBool
                         | BDFASimulates when t1 = TDFA && t2 = TString -> TInt
                         | BDFAUnion     when t1 = TDFA && t2 = TDFA    -> TDFA
-                        | BCase        -> raise (TODO "implement BCase in semant")
                         | _ -> error ("illegal binary operator " ^
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                       string_of_typ t2 ^ " in " ^ string_of_expr e)
