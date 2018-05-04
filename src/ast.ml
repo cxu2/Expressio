@@ -67,16 +67,6 @@ type dfa_decl = {
 type program = bind list * dfa_decl list *  func_decl list
 
 (* Pretty-printing functions *)
-(*
-let rec string_of_re = function
-    RegExp.Zero                -> "∅"
-  | RegExp.One                 -> "ε"
-  | RegExp.Lit  c              -> "(lit " ^ (String.make 1 c) ^ ")"
-  | RegExp.Plus (a, b)         -> "(" ^ string_of_re a ^ "+" ^ string_of_re b ^ ")"
-  | RegExp.Mult (a, b)         -> "(" ^ string_of_re a ^ "." ^ string_of_re b ^ ")"
-  | RegExp.Star (RegExp.Lit c) -> (String.make 1 c) ^ "⋆"
-  | RegExp.Star a              -> "(" ^ string_of_re a ^ ")⋆"
-  *)
 
 let string_of_op = function
     BAdd          -> "+"
