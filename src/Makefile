@@ -77,4 +77,3 @@ scanner.cmx : parser.cmx
 semant.cmo : ast.cmo
 semant.cmx : ast.cmx
 parser.cmi : ast.cmo
-
