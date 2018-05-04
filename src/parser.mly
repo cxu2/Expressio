@@ -40,6 +40,9 @@ infixr 8 `closure`
 %right ASSIGN
 
 %right CASE
+/* %<assoc> CASETO */
+/* FIXME may need to change this in the future, for now this gets rid of shift/reduce conflicts */
+%nonassoc COLON
 
 %left OR
 %left AND
@@ -200,7 +203,7 @@ expr:
   | expr DFASIM     expr                    { Binop ($1, BDFASimulates, $3) }
   | expr DFAACCEPTS expr                    { Binop ($1, BDFAAccepts,   $3) }
   /* The line which follows should probably be CASE X OF Y, but this is tough to add without conflicts */
-  | expr CASE expr                          { Binop ($1, BCase,         $3) }
+  | expr CASE COLON expr                    { Binop ($1, BCase,         $4) }
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)               }
   | NOT expr                                { Unop (UNot, $2)               }
   | expr RESTAR                             { Unop (UREStar, $1)            }
