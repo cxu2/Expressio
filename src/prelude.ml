@@ -43,13 +43,16 @@ module Prelude = struct
   exception TODO of string
   (* An exception to be used when marking that pattern matching has reached an assumed to be impossible state *)
   exception ABSURD
+
   module StringMap = Map.Make(String)
 
+  (* type alias for StringMap's type to make it more consistent with OCaml, e.g. like the `list` type *)
   type 'a string_map = 'a StringMap.t
 
+  (* fromList :: [(String, a)] -> Map String a *)
   let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
 
-  let error e = raise (Failure e)
+  let error (message : string) = raise (Failure message)
 
   (* Implement the Natural numbers Peano style *)
   type nat = Zero | Succ of nat

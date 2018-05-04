@@ -47,21 +47,21 @@ type stmt =
 
 
 type func_decl = {
-    typ : typ;
-    fname : string;
+    typ     : typ;
+    fname   : string;
     formals : bind list;
-    locals : bind list;
-    body : stmt list;
+    locals  : bind list;
+    body    : stmt list;
   }
 
 
 type dfa_decl = {
-    dfa_name : string;
-    dfa_states : int;
-    dfa_alphabet: char list;
-    dfa_start: int;
-    dfa_final: int list;
-    dfa_tranves: tranf list;
+    dfa_name     : string;
+    dfa_states   : int;
+    dfa_alphabet : char list;
+    dfa_start    : int;
+    dfa_final    : int list;
+    dfa_tranves  : tranf list;
   }
 
 type program = bind list * dfa_decl list *  func_decl list

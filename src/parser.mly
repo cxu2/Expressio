@@ -72,6 +72,7 @@ decls:
  | decls ddecl                              { (      Prelude.first $1, $2 :: Prelude.second $1,       Prelude.third $1) }
  | decls fdecl                              { (      Prelude.first $1,       Prelude.second $1, $2 :: Prelude.third $1) }
 
+/* DFA declarations */
 ddecl:
   ID LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
   INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
@@ -132,6 +133,7 @@ vdecl_list:
 vdecl:
    typ ID SEMI                              { ($1, $2) }
 
+/* transition function declarations */
 tfdecl:
    LPAREN INTLIT CHLIT INTLIT RPAREN        { ($2, $3, $4) }
 
