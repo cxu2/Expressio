@@ -116,7 +116,7 @@ let rec string_of_clist = function
 let rec string_of_intlist = function
     []            -> ""
   | [last]        -> string_of_int last
-  | first :: rest -> string_of_int first ^ ", " ^string_of_intlist rest
+  | first :: rest -> string_of_int first ^ ", " ^ string_of_intlist rest
 
 let string_of_tranf tranf =
   let (one, two, three) = tranf in
@@ -185,11 +185,11 @@ let string_of_fdecl fdecl =
 
 let string_of_ddecl dfa =
   dfa.dfa_name ^
-  "{\n states : " ^ string_of_int dfa.dfa_states ^
-  "\n alphabet : " ^ string_of_clist dfa.dfa_alphabet ^
-  "\n start : " ^ string_of_int dfa.dfa_start ^
-  "\n final : " ^ string_of_intlist dfa.dfa_final ^
-  "\n transitions : " ^ string_of_tlist dfa.dfa_tranves ^ "\n }"
+  "{\n states : "     ^ string_of_int     dfa.dfa_states   ^
+  "\n alphabet : "    ^ string_of_clist   dfa.dfa_alphabet ^
+  "\n start : "       ^ string_of_int     dfa.dfa_start    ^
+  "\n final : "       ^ string_of_intlist dfa.dfa_final    ^
+  "\n transitions : " ^ string_of_tlist   dfa.dfa_tranves  ^ "\n }"
 
 let string_of_program (vars, dfas, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^

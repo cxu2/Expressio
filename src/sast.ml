@@ -44,12 +44,12 @@ type sstmt =
 
 
 type sfunc_decl = {
-    styp : typ;
-    sfname : string;
-    sformals : bind list;
-    slocals : bind list;
-    sbody : sstmt list;
-  }
+  styp     : typ;
+  sfname   : string;
+  sformals : bind list;
+  slocals  : bind list;
+  sbody    : sstmt list;
+}
 
   (* type func_decl = {
       typ : typ;
@@ -61,13 +61,13 @@ type sfunc_decl = {
 
 
 type sdfa_decl = {
-    sdfa_name : string;
-    sdfa_states : int;
-    sdfa_alphabet: char list;
-    sdfa_start: int;
-    sdfa_final: int list;
-    sdfa_tranves: tranf list;
-  }
+  sdfa_name     : string;
+  sdfa_states   : int;
+  sdfa_alphabet : char list;
+  sdfa_start    : int;
+  sdfa_final    : int list;
+  sdfa_tranves  : tranf list;
+}
   (* type dfa_decl = {
       dfa_name : string;
       dfa_states : int;
@@ -105,11 +105,11 @@ type sprogram = bind list * sdfa_decl list * sfunc_decl list
 
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
-                                      SIntLit l            -> string_of_int l
+                                      SIntLit i            -> string_of_expr (IntLit i)
                                     | SRE r                -> RegExp.string_of_re r
-                                    | SBoolLit true        -> "true"
-                                    | SBoolLit false       -> "false"
-                                    | SCharLit c           -> String.make 1 c
+                                    | SBoolLit true        -> string_of_expr (BoolLit true)
+                                    | SBoolLit false       -> string_of_expr (BoolLit false)
+                                    | SCharLit c           -> string_of_expr (CharLit c)
                                     | SStringLit s         -> s
                                     | SId s                -> s
                                     | SBinop (e1, o, e2)   -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
@@ -148,10 +148,10 @@ let rec string_of_sstmt = function
   | SIf (e, s, SBlock []) -> "if " ^ string_of_sexpr e ^ "\n" ^ string_of_sstmt s
   | SIf (e, s1, s2)       -> "if " ^ string_of_sexpr e ^ "\n" ^ string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2
   | SFor (e1, e2, e3, s)  -> "for " ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
-  | SWhile (_, e, s)         -> "for " ^ string_of_sexpr e ^ " " ^ string_of_sstmt s
+  | SWhile (_, e, s)      -> "for " ^ string_of_sexpr e ^ " " ^ string_of_sstmt s
   | SInfloop (s)          -> "for " ^ string_of_sstmt s
-  | SBreak                -> "break;"
-  | SContinue             -> "continue;"
+  | SBreak                -> string_of_stmt Break
+  | SContinue             -> string_of_stmt Continue
   | SNostmt               -> ""
 
 let string_of_sfdecl fdecl =
