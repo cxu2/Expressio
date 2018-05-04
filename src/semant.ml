@@ -97,14 +97,14 @@ open Prelude.Prelude
                                  | _ :: tl                  -> checkFinal maxVal tl
 
                                  (* check states is greater than start/final in transition *)
-                                 in let rec checkTran maxVal = function
+                                 and checkTran maxVal = function
                                    []                                  -> false
                                  | (t1, _,  _) :: _  when maxVal <= t1 -> true
                                  | (_,  _, t3) :: _  when maxVal <= t3 -> true
-                                 | (_,  _,  _) :: tl                   -> checkTran maxVal tl in
+                                 | (_,  _,  _) :: tl                   -> checkTran maxVal tl
 
                                  (* check transition table has one to one *)
-                                 let rec oneToOne sMap = function
+                                 and oneToOne sMap = function
                                    []                 -> false
                                  | (t1, t2, t3) :: tl -> let    combo      = string_of_int t1 ^ String.make 1 t2
                                                          in let finalState = string_of_int t3
@@ -195,7 +195,7 @@ open Prelude.Prelude
       | (looping, Return e)               when (fst (expr e) = func.typ) -> (looping, SReturn (expr e))
       | (_,       Return e)                                              -> error ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e)
       | (looping, Block (Return e :: [])) when (fst (expr e) = func.typ) -> (looping, SBlock [SReturn (expr e)])
-      | (looping, Block (Return e :: []))                                -> error ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e)
+      | (_,       Block (Return e :: []))                                -> error ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e)
       | (_,       Block (Return _ ::  _))                                -> error "nothing may follow a return"
       | (looping, Block (Block sl :: ss))                                -> (looping, snd (check_statement (looping, (Block (sl @ ss)))))           (* Flatten blocks *)
       | (looping, Block              [])                                 -> (looping, SBlock [])
