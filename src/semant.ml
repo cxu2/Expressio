@@ -194,6 +194,7 @@ open Prelude.Prelude
       | (_,       Infloop s)                               -> (true,    SInfloop (                                      snd (check_statement (true, s))))
       | (looping, Return e) when (fst (expr e) = func.typ) -> (looping, SReturn (expr e))
       | (_,       Return e)                                -> error ("return gives " ^ string_of_typ (fst (expr e)) ^ " expected " ^ string_of_typ func.typ ^ " in " ^ string_of_expr e)
+      | (looping, Block (Return e :: []))                  -> (looping, SBlock [SReturn (expr e)])
       | (_,       Block (Return _ ::  _))                  -> error "nothing may follow a return"
       | (looping, Block (Block sl :: ss))                  -> (looping, snd (check_statement (looping, (Block (sl @ ss)))))           (* Flatten blocks *)
       | (looping, Block              [])                   -> (looping, SBlock [])
