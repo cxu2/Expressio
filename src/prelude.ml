@@ -32,11 +32,11 @@ module Prelude = struct
   let fourth' (quadruple : 'a * 'b * 'c * 'd) : 'd = match quadruple with
     (_ , _ , _ , d) -> d
 
-  let first (triple : 'a * 'b * 'c) : 'a = match triple with
+  let first  (triple : 'a * 'b * 'c) : 'a = match triple with
     (a , _ , _) -> a
   let second (triple : 'a * 'b * 'c) : 'b = match triple with
     (_ , b , _) -> b
-  let third (triple : 'a * 'b * 'c) : 'c = match triple with
+  let third  (triple : 'a * 'b * 'c) : 'c = match triple with
     (_ , _ , c) -> c
 
   (* An exception to be used in places where scaffolding for unimplemented code is needed *)
@@ -48,7 +48,7 @@ module Prelude = struct
   type 'a string_map = 'a StringMap.t
 
   let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
-  
+
   let error e = raise (Failure e)
 
   (* Implement the Natural numbers Peano style *)
