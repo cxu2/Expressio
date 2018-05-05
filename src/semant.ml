@@ -115,7 +115,7 @@ open Prelude.Prelude
                                     and     checkTran  = List.for_all (fun (q, _, p) -> (in_bounds q
                                                                                       && in_bounds p)) tran
                                     (* check transition table is actually a function (one to one mapping) *)
-                                    and oneToOne map = function
+                                    and     oneToOne map = function
                                       []                 -> false
                                     | (t1, t2, t3) :: tl -> let    combo      = string_of_int t1 ^ String.make 1 t2
                                                             in let finalState = string_of_int t3
