@@ -54,6 +54,9 @@ module Prelude = struct
 
   let error (message : string) = raise (Failure message)
 
+  (* similar to Haskell `and` *)
+  let and' = List.fold_left (&&) true
+
   (* Implement the Natural numbers Peano style *)
   type nat = Zero | Succ of nat
   let rec nat_to_int = function
