@@ -108,31 +108,21 @@ open Prelude.Prelude
                                                      (* TODO is there an assert here or do I manually check with and and fail on false? *)
       | Case (_, _)                               -> error "case expressions currently only support regular expressions"
       | DFA (states, alpha, start, final, tran)   ->
-                                 (* check states is greater than final states *)
-                                 let rec checkFinal maxVal = function
-                                   []                       -> false
-                                 | x :: _  when maxVal <= x -> true
-                                 | _ :: tl                  -> checkFinal maxVal tl
-
-                                 (* check states is greater than start/final in transition *)
-                                 and checkTran maxVal = function
-                                   []                                  -> false
-                                 | (t1, _,  _) :: _  when maxVal <= t1 -> true
-                                 | (_,  _, t3) :: _  when maxVal <= t3 -> true
-                                 | (_,  _,  _) :: tl                   -> checkTran maxVal tl
-
-                                 (* check transition table has one to one *)
-                                 and oneToOne sMap = function
-                                   []                 -> false
-                                 | (t1, t2, t3) :: tl -> let    combo      = string_of_int t1 ^ String.make 1 t2
-                                                         in let finalState = string_of_int t3
-                                                         in
-                                                         if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl in
-
-                                 (* also check that states is greater than start *)
-                                 if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
-                                 then error "DFA invalid"
-                                 else (TDFA, SDFA (states, alpha, start, final, tran))
+                                 (* ensure all states used in the DFA definition are in bounds *)
+                                 let in_bounds q = q <= states
+                                 in let rec checkFinal = List.for_all                    in_bounds final
+                                    and     checkStart =                                 in_bounds start
+                                    and     checkTran  = List.for_all (fun (q, _, p) -> (in_bounds q
+                                                                                      && in_bounds p)) tran
+                                    (* check transition table is actually a function (one to one mapping) *)
+                                    and oneToOne map = function
+                                      []                 -> false
+                                    | (t1, t2, t3) :: tl -> let    combo      = string_of_int t1 ^ String.make 1 t2
+                                                            in let finalState = string_of_int t3
+                                                            in if StringMap.mem combo map then true else oneToOne (StringMap.add combo finalState map) tl
+                                 in if checkStart &&  checkFinal && checkTran && oneToOne StringMap.empty tran
+                                    then error "DFA invalid"
+                                    else (TDFA, SDFA (states, alpha, start, final, tran))
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
