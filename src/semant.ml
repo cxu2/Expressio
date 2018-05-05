@@ -36,11 +36,11 @@ open Prelude.Prelude
   (* Collect function declarations for built-in functions: no bodies *)
     in let built_in_decls : func_decl string_map =
     let add_bind ((ty, name) : bind) : (string * func_decl) = (name, { typ     = TUnit
-                                                                         ; fname   = name
-                                                                         ; formals = [(ty, "x")]
-                                                                         ; locals  = []
-                                                                         ; body    = []
-                                                                         })
+                                                                     ; fname   = name
+                                                                     ; formals = [(ty, "x")]
+                                                                     ; locals  = []
+                                                                     ; body    = []
+                                                                     })
     in let built_ins : (string * func_decl) list = List.map add_bind [(TInt, "print");(TRE, "printr"); (TDFA, "printdfa"); (TString, "printf")]
     in fromList (built_ins)
 
@@ -80,22 +80,32 @@ open Prelude.Prelude
         Some s' -> s'
       | None    -> error ("undeclared identifier " ^ s)
 
-
+    in let rec type_of_expr e = fst (expr e)
 
     (* Return a semantically-checked expression, i.e., with a type *)
     (* in let rec expr = function *)
-    in let rec expr (ex : expr) : sexpr = match ex with
+    and expr (ex : expr) : sexpr = match ex with
         IntLit  l                                 -> (TInt,    SIntLit l)
       | CharLit c                                 -> (TChar,   SCharLit c)
       | StringLit s                               -> (TString, SStringLit s)
       | BoolLit l                                 -> (TBool,   SBoolLit l)
-      | Case (e, _) when fst (expr e) = TRE   -> raise (TODO "Semant: case in expr check") (* DELETEME: temporary line to appease compiler warning *)
-      (*| Case (e, cases) when fst (expr e) = TRE   -> let check_cases = 56
-                                                     in let x = List.map fst cases
-      (* check that type of e is the same as every type in (fmap fst cases) *)
-      (* check that every case for a RegExp is covered in (fmap fst cases) *)
-
-                                                     in raise (TODO "Semant: case in expr check") *)
+      | Case (e, cases) when fst (expr e) = TRE   -> let lhs = List.map fst cases
+                                                     and rhs = List.map snd cases
+                                                     (* TODO can also check if all cases are matched for basic types *)
+                                                     and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
+                                                     (* ensure that the type of the expression being matched fits into the LHS of the cases *)
+                                                     in let same_lhs_and_e : bool = check_expressions_have_type (type_of_expr e) lhs
+                                                        and type_rhs = type_of_expr (List.hd rhs)
+                                                        (* ensure that the all the types on the RHS of the case are the same *)
+                                                        and same_rhs = function
+                                                              []        -> true
+                                                            | (e :: es) -> check_expressions_have_type (type_of_expr e) es
+                                                     in (if (not same_lhs_and_e)
+                                                         then error "expression and all of LHS must have same type"
+                                                         else (if (not (same_rhs rhs))
+                                                               then error "all of RHS must have same type"
+                                                               else (type_rhs, (SCase (e, cases)))))
+                                                     (* TODO is there an assert here or do I manually check with and and fail on false? *)
       | Case (_, _)                               -> error "case expressions currently only support regular expressions"
       | DFA (states, alpha, start, final, tran)   ->
                                  (* check states is greater than final states *)
