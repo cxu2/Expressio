@@ -147,30 +147,30 @@ type sprogram = bind list * sdfa_decl list * sfunc_decl list
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ string_of_sx e ^ ")"
 and     string_of_sx = function
-  SIntLit i            -> string_of_int i
-| SRE r                -> RegExp.string_of_re r
-| SBoolLit true        -> string_of_expr (BoolLit true)
-| SBoolLit false       -> string_of_expr (BoolLit false)
-| SCharLit c           -> string_of_expr (CharLit c)
-| SStringLit s         -> s
-| SId s                -> s
-| SBinop (e1, o, e2)   -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
-(* prefix *)
-| SUnop (UNeg,    e)   -> string_of_uop UNeg    ^ string_of_sexpr e
-| SUnop (UNot,    e)   -> string_of_uop UNot    ^ string_of_sexpr e
-| SUnop (UREComp, e)   -> string_of_uop UREComp ^ string_of_sexpr e
-| SUnop (URELit,  e)   -> string_of_uop URELit  ^ string_of_sexpr e
-(* postfix *)
-| SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
-| SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
-| SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-| SCase (e, cases)     -> string_of_expr (Case (e, cases))
-| SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
-                          "\n alphabet : "    ^ string_of_clist b   ^
-                          "\n start : "       ^ string_of_int c     ^
-                          "\n final : "       ^ string_of_intlist d ^
-                          "\n transitions : " ^ string_of_tlist e   ^ "\n }"
-| SNoexpr            -> ""
+    SIntLit i            -> string_of_int i
+  | SRE r                -> RegExp.string_of_re r
+  | SBoolLit true        -> string_of_expr (BoolLit true)
+  | SBoolLit false       -> string_of_expr (BoolLit false)
+  | SCharLit c           -> string_of_expr (CharLit c)
+  | SStringLit s         -> s
+  | SId s                -> s
+  | SBinop (e1, o, e2)   -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
+  (* prefix *)
+  | SUnop (UNeg,    e)   -> string_of_uop UNeg    ^ string_of_sexpr e
+  | SUnop (UNot,    e)   -> string_of_uop UNot    ^ string_of_sexpr e
+  | SUnop (UREComp, e)   -> string_of_uop UREComp ^ string_of_sexpr e
+  | SUnop (URELit,  e)   -> string_of_uop URELit  ^ string_of_sexpr e
+  (* postfix *)
+  | SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
+  | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
+  | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
+  | SCase (e, cases)     -> string_of_expr (Case (e, cases))
+  | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
+                            "\n alphabet : "    ^ string_of_clist b   ^
+                            "\n start : "       ^ string_of_int c     ^
+                            "\n final : "       ^ string_of_intlist d ^
+                            "\n transitions : " ^ string_of_tlist e   ^ "\n }"
+  | SNoexpr            -> ""
 
 (* let rec string_of_stmt = function
    Block stmts         -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
