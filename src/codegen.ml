@@ -364,9 +364,9 @@ let translate (globals, _, functions) =
       | SRE (Plus (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREUnion,     (TRE, SRE b)))
       | SBinop (e1, A.BDFAUnion,     e2) -> build_dfaunion (expr builder e1) (expr builder e2)                builder
       | SBinop (_, A.BDFAConcat,    _) -> raise (Prelude.TODO "implement codegen")
-      | SBinop (e1, A.BDFAAccepts,   e2) -> L.build_call accepts_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
+      | SBinop (e1, A.BDFAAccepts,   e2) -> L.build_call accepts_func   [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
       | SBinop (e1, A.BDFASimulates, e2) -> L.build_call simulates_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
-      | SBinop (e1, A.BREMatches,    e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
+      | SBinop (e1, A.BREMatches,    e2) -> L.build_call matches_func   [|          (expr builder e1)         ; (expr builder e2) |] "matches" builder
       | SBinop (e1, A.BREUnion,      e2) -> build_binop '|'         (expr builder e1) (expr builder e2)       builder
       | SBinop (e1, A.BREConcat,     e2) -> build_binop '^'         (expr builder e1) (expr builder e2)       builder
       | SBinop (e1, A.BREIntersect,  e2) -> build_binop '&'         (expr builder e1) (expr builder e2)       builder
