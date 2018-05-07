@@ -68,7 +68,7 @@ open Prelude.Prelude
     and locals'  : bind list = check_binds "local"  func.locals
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
-    in let check_assign lvaluet rvaluet err = if lvaluet = rvaluet
+    and check_assign (lvaluet : typ) (rvaluet : typ) err = if lvaluet = rvaluet
                                               then lvaluet
                                               else error err
     (* Build local symbol table of variables for this function *)
@@ -76,7 +76,7 @@ open Prelude.Prelude
     in let symbols : Ast.typ string_map = fromList (List.map swap bindings)
 
     (* Return a variable from our local symbol table *)
-    in let type_of_identifier s = match StringMap.find_opt s symbols with
+    in let type_of_identifier (s : string) : typ = match StringMap.find_opt s symbols with
         Some s' -> s'
       | None    -> error ("undeclared identifier " ^ s)
 
@@ -107,9 +107,17 @@ open Prelude.Prelude
                                                                else (type_rhs, (SCase (e, cases)))))
                                                      (* TODO is there an assert here or do I manually check with and and fail on false? *)
       | Case (_, _)                               -> error "case expressions currently only support regular expressions"
-      | DFA (IntLit states, alpha, IntLit start, final, tran) ->
+      (* TODO clean this up a bit *)
+      | DFA (states1, alpha, start1, final, tran) when fst (expr states1) = TInt
+                                                    && fst (expr start1)  = TInt ->
+                                 let states = match expr states1 with
+                                              (TInt,  sint) -> snd (eval_sint StringMap.empty sint)
+                                             | _            -> error ("internal error: DFA field failed to evaluate " ^ string_of_sexpr (expr states1))
+                                 and start = match expr start1 with
+                                              (TInt,  sint) -> snd (eval_sint StringMap.empty sint)
+                                             | _            -> error ("internal error: DFA field failed to evaluate " ^ string_of_sexpr (expr start1))
                                  (* ensure all states used in the DFA definition are in bounds *)
-                                 let in_bounds q = q <= states
+                                 in let in_bounds q = q <= states
                                  in let rec checkFinal = List.for_all                    in_bounds final
                                     and     checkStart =                                 in_bounds start
                                     and     checkTran  = List.for_all (fun (q, _, p) -> (in_bounds q
