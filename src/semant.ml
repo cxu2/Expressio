@@ -123,7 +123,7 @@ open Prelude.Prelude
                                  in if checkStart &&  checkFinal && checkTran && oneToOne StringMap.empty tran
                                     then error "DFA invalid"
                                     else (TDFA, SDFA (states, alpha, start, final, tran))
-      | DFA (states, alpha, start, final, tran)   -> error "The expression for the given DFA's states/start was not an int"
+      | DFA (_, _, _, _, _)   -> error "The expression for the given DFA's states/start was not an int"
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
