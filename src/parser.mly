@@ -212,7 +212,7 @@ expr:
   | LBRACE
       STATES COLON expr
       ALPH   COLON LBRAC char_opt   RBRAC
-      START  COLON INTLIT
+      START  COLON expr
       FINAL  COLON LBRAC int_opt    RBRAC
       TRANF  COLON LBRAC tfdecl_opt RBRAC
     RBRACE

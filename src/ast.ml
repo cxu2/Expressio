@@ -30,7 +30,7 @@ type expr =
   | Unop      of uop * expr
   | Assign    of string * expr
   | Call      of string * expr list
-  | DFA       of expr * char list * int * int list * tranf list
+  | DFA       of expr * char list * expr * int list * tranf list
   | Case      of expr * ((expr * expr) list)
   | Noexpr
 
@@ -136,7 +136,7 @@ let rec string_of_expr = function
   | Call (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | DFA (a, b, c, d, e) -> "{\n states : "      ^ string_of_expr a    ^
                             "\n alphabet : "    ^ string_of_clist b   ^
-                            "\n start : "       ^ string_of_int c     ^
+                            "\n start : "       ^ string_of_expr c    ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
                             (*raise (Prelude.TODO "string_of case")*)
