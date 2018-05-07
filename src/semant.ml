@@ -107,9 +107,9 @@ open Prelude.Prelude
                                                                else (type_rhs, (SCase (e, cases)))))
                                                      (* TODO is there an assert here or do I manually check with and and fail on false? *)
       | Case (_, _)                               -> error "case expressions currently only support regular expressions"
-      | DFA (states, alpha, start, final, tran)   ->
+      | DFA (IntLit i, alpha, start, final, tran) -> let states : int = i
                                  (* ensure all states used in the DFA definition are in bounds *)
-                                 let in_bounds q = q <= states
+                                 in let in_bounds q = q <= states
                                  in let rec checkFinal = List.for_all                    in_bounds final
                                     and     checkStart =                                 in_bounds start
                                     and     checkTran  = List.for_all (fun (q, _, p) -> (in_bounds q
@@ -123,6 +123,7 @@ open Prelude.Prelude
                                  in if checkStart &&  checkFinal && checkTran && oneToOne StringMap.empty tran
                                     then error "DFA invalid"
                                     else (TDFA, SDFA (states, alpha, start, final, tran))
+      | DFA (states, alpha, start, final, tran)   -> error "The expression for the given DFA's states was not an int"
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
