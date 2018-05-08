@@ -187,12 +187,16 @@ open Prelude.Prelude
       | (true,    Continue)                                              -> (true,    SContinue)
       (* | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock []) *)
       (* | (looping, Case (e, cases)) when fst (expr e) = TRE               -> let lhs = List.map fst cases *)
-      | (looping, (Case (e, [(e1, e2);
-                             (e3, e4);
-                             (e5, e6);
-                             (e7, e8)]))) when fst (expr e) = TRE        -> let lhs = [e1; e3; e5; e7]
+      | (looping, (Case (e, [(e1,  e2);
+                             (e3,  e4);
+                             (e5,  e6);
+                             (e7,  e8);
+                             (e9,  e10);
+                             (e11, e12);
+                             (e13, e14);
+                             (e15, e16);]))) when fst (expr e) = TRE     -> let lhs = [e1; e3; e5; e7; e9; e11; e13; e15]
                                                                                       (* List.map fst cases *)
-                                                                            and rhs = [e2; e4; e6; e8]
+                                                                            and rhs = [e2; e4; e6; e8; e10; e12; e14; e16]
                                                                                       (* List.map snd cases *)
                                                                             (* TODO can also check if all cases are matched for basic types *)
                                                                             and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
@@ -208,7 +212,7 @@ open Prelude.Prelude
                                                                                 else (if (not (same_rhs rhs))
                                                                                       then error "all of RHS must have same type"
                                                                                       (* else (looping, (type_rhs, (SCase (e, cases)))))) *)
-                                                                                      else (looping, let x = SBlock [error "implement"]
+                                                                                      else (looping, let x = SBlock [error "TODO"] (* SIf ((), (), ()) *)
                                                                                         (* (e, cases) *)
                                                                                                      in x)))
                                                      (* TODO is there an assert here or do I manually check with and and fail on false? *)
