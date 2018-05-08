@@ -160,6 +160,7 @@ and     string_of_sx = function
   | SUnop (UNot,    e)   -> string_of_uop UNot    ^ string_of_sexpr e
   | SUnop (UREComp, e)   -> string_of_uop UREComp ^ string_of_sexpr e
   | SUnop (URELit,  e)   -> string_of_uop URELit  ^ string_of_sexpr e
+  | SUnop (UREOut,  e)   -> string_of_uop UREOut  ^ string_of_sexpr e
   (* postfix *)
   | SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
   | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e

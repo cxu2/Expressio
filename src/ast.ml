@@ -5,11 +5,12 @@ open RegExp
 
 (* Binary operators *)
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq | BAnd | BOr
+         | BREEqual (* Structural equality of RegExp *)
          | BREUnion  | BREConcat  | BREMatches  | BREIntersect
          | BDFAUnion | BDFAConcat | BDFAAccepts | BDFASimulates
 
 (* Unary operators *)
-type uop = UNeg | UNot | URELit | UREStar | UREComp
+type uop = UNeg | UNot | URELit | UREStar | UREComp | UREOut
 
 (* Types within the Expressio language *)
 type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE
@@ -81,6 +82,7 @@ let string_of_op = function
   | BGeq          -> ">="
   | BAnd          -> "&&"
   | BOr           -> "||"
+  | BREEqual      -> "" (* TODO operator charactor or do string/word? *)
   | BREUnion      -> "|"
   | BREConcat     -> "^"
   | BREMatches    -> "matches"
@@ -96,6 +98,7 @@ let string_of_uop = function
   | URELit  -> "lit"
   | UREStar -> "**"
   | UREComp -> "'"
+  | UREOut  -> "outer"
 
 let rec string_of_clist = function
     []            -> ""
@@ -129,6 +132,7 @@ let rec string_of_expr = function
   | Unop (UNot,    e)   -> string_of_uop UNot    ^ string_of_expr e
   | Unop (UREComp, e)   -> string_of_uop UREComp ^ string_of_expr e
   | Unop (URELit,  e)   -> string_of_uop URELit  ^ string_of_expr e
+  | Unop (UREOut,  e)   -> string_of_uop UREOut  ^ string_of_expr e
   (* postfix *)
   | Unop (UREStar, e)   -> string_of_expr e      ^ string_of_uop UREStar
   | Assign (v, e)       -> v ^ " = " ^ string_of_expr e

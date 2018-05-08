@@ -133,6 +133,8 @@ open RegExp
       | Unop (UREStar, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREStar ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Unop (UREComp, e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
       | Unop (UREComp, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
+      | Unop (UREOut,  e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
+      | Unop (UREOut,  e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREOut ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2
@@ -152,6 +154,7 @@ open RegExp
                         | BGeq          when same      && t1 = TInt    -> TBool
                         | BAnd
                         | BOr           when same      && t1 = TBool   -> TBool
+                        | BREEqual      when same      && t1 = TRE     -> TBool
                         | BREUnion
                         | BREConcat
                         | BREIntersect  when same      && t1 = TRE     -> TRE
@@ -236,10 +239,29 @@ open RegExp
                                                                                                                     else if r = a **
                                                                                                                           then e8
                                                                                                                           else raise ABSURD
+                                                                                      (* TODO modify this to use new C function*)
+                                                                                      if r = {.}
+                                                                                      then e1
+                                                                                      else if r = {{.}}
+                                                                                           then e2
+                                                                                           else if (outer  r = lit 'a'
+                                                                                                then e3
+                                                                                                else if r = a & b
+                                                                                                     then e4
+                                                                                                     else if r = a | b
+                                                                                                          then e5
+                                                                                                          else if r = a ^ b
+                                                                                                               then e6
+                                                                                                               else if r = ' b
+                                                                                                                    then e7
+                                                                                                                    else if r = a **
+                                                                                                                          then e8
+                                                                                                                          else raise ABSURD
                                                                                       *)
-                                                                                      else (looping, let if3 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), raise (TODO "finish"))
-                                                                                                     in let if2 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), (if3))
-                                                                                                     in let if1 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BEqual, (TRE, SRE RegExp.Zero))) in x)), (SExpr (expr e1)), (if2))
+                                                                                      else (looping, let _ = ()
+                                                                                                     in let if3 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BREEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), raise (TODO "finish"))
+                                                                                                     in let if2 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BREEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), (if3))
+                                                                                                     in let if1 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BREEqual, (TRE, SRE RegExp.Zero))) in x)), (SExpr (expr e1)), (if2))
                                                                                                      in let x = SBlock [if1 ; raise (TODO "")] (* SIf ((), (), ()) *)
                                                                                                      in x)))
                                                      (* TODO is there an assert here or do I manually check with and and fail on false? *)

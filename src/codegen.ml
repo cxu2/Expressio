@@ -364,6 +364,15 @@ let translate (globals, _, functions) =
       | SBinop (e1, A.BREUnion,      e2) -> build_binop '|'         (expr builder e1) (expr builder e2)       builder
       | SBinop (e1, A.BREConcat,     e2) -> build_binop '^'         (expr builder e1) (expr builder e2)       builder
       | SBinop (e1, A.BREIntersect,  e2) -> build_binop '&'         (expr builder e1) (expr builder e2)       builder
+
+
+      | SBinop ((TRE, SRE Zero), BREEqual, (TRE, SRE Zero)) -> expr builder (TBool, SBoolLit true)
+      | SBinop ((TRE, SRE One), BREEqual, (TRE, SRE One)) -> expr builder (TBool, SBoolLit true)
+      (* | SBinop () *)
+      | SBinop ((TRE, SRE e1), BREEqual, (TRE, SRE e2)) -> raise (Prelude.TODO "implement codegen")
+      | SBinop (_, BREEqual, _) -> raise Prelude.ABSURD
+
+
       | SBinop (e1, A.BAdd,          e2) -> L.build_add             (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BSub,          e2) -> L.build_sub             (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BMult,         e2) -> L.build_mul             (expr builder e1) (expr builder e2) "tmp" builder
@@ -381,6 +390,7 @@ let translate (globals, _, functions) =
       | SUnop (A.URELit,  e)             -> build_lit 'l'           (expr builder e)                          builder
       | SUnop (A.UREComp, e)             -> build_unop '\\'         (expr builder e)                          builder
       | SUnop (A.UREStar, e)             -> build_unop '*'          (expr builder e)                          builder
+      | SUnop (A.UREOut,  e)             -> raise (Prelude.TODO "codegen.ml expr UREOut case")
       | SAssign (s, e)                   -> let e' = expr builder e
                                             in let _  = L.build_store e' (lookup s) builder
                                             in e'
