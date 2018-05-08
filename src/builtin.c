@@ -27,15 +27,15 @@ int printr_helper(tree_t* regex_ptr) {
     printf("%c", regex_ptr -> character);
   } else if (regex_ptr -> operator == '*' || regex_ptr -> operator == '\\') {
     printr_helper((tree_t *)(regex_ptr -> left));
-    printf(" %c ", regex_ptr -> operator); 
+    printf(" %c ", regex_ptr -> operator);
   } else {
     printf("( ");
     printr_helper((tree_t *)(regex_ptr -> left));
-    printf(" %c ", regex_ptr -> operator);  
+    printf(" %c ", regex_ptr -> operator);
     printr_helper((tree_t *)(regex_ptr -> right));
     printf(" )");
   }
- 
+
 	return 0;
   // printf("tree: %p\n", regex_ptr);
   // printf("operator: %c\n", regex_ptr -> operator);
@@ -189,7 +189,7 @@ tree_t* derivative(tree_t* regex_ptr, char c) {
       return plus(derivative((tree_t*)(regex_ptr -> left), c), derivative((tree_t*)(regex_ptr -> right), c));
     // Mult
     case '^':
-      return plus(mult(derivative((tree_t*)(regex_ptr -> left), c), (tree_t*)regex_ptr -> right), 
+      return plus(mult(derivative((tree_t*)(regex_ptr -> left), c), (tree_t*)regex_ptr -> right),
         mult(constant((tree_t*)(regex_ptr -> left)), derivative((tree_t*)(regex_ptr -> right), c)));
     default:
       return regex_ptr -> character == '#' ? Zero() : One();
@@ -219,24 +219,7 @@ int matches(tree_t* regex_ptr, char* str) {
   return matchesHelper(regex_ptr, str);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// return the outermost operation (checking for nullary operations too)
+char outer (tree_t* t) {
+  return (t -> operator == 'n') ? t -> character : t -> operator;
+}
