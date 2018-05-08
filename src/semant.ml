@@ -195,14 +195,10 @@ open RegExp.RegExp
                              (Binop (e7, BREUnion,      e8),  e9);
                              (Binop (e10, BREConcat,   e11), e12);
                              (Unop (UREComp, e13),           e14);
-                             (Unop (UREStar, e15),           e16)] as cases)))) when fst (expr e) = TRE     ->
+                             (Unop (UREStar, e15),           e16)]
+                             as cases)))) when fst (expr e) = TRE        ->
                                                                             let lhs = List.map fst cases
-                                                                            (* [RE Zero; RE One; e5; e7; e9; e11; e13; e15] *)
-                                                                            (* in let check_all_regexp_cases = List.mem (Unop (URELit,  e)) lhs *)
-                                                                                      (* List.map fst cases *)
                                                                             and rhs = List.map snd cases
-                                                                            (* [e2; e4; e6; e8; e10; e12; e14; e16] *)
-                                                                                      (*  *)
                                                                             (* TODO can also check if all cases are matched for basic types *)
                                                                             and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
                                                                             (* ensure that the type of the expression being matched fits into the LHS of the cases *)
