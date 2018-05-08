@@ -70,7 +70,6 @@ rule token = parse
 | "bool"        { BOOL }
 | "case"        { CASE }
 | ">>"          { CASETO }
-(* | "of"          { OF } *)
 | "unit"        { UNIT }
 | "true"        { BLIT(true)  }
 | "false"       { BLIT(false) }
