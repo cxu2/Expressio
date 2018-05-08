@@ -307,16 +307,16 @@ let translate (globals, _, functions) =
          and one  = L.const_int i32_t 1
 
       in let ns = (L.build_mul (L.build_add n1 one "++" b) (L.build_add n2 one "++" b) "mul" b)
-      and nfin = (L.build_sub
-                    (L.build_add
-                        (L.build_mul f1 (L.build_add n2 one "++" b) "mult" b) (L.build_mul f2 (L.build_add n1 one "++" b) "mult" b)
-                    "add" b)
-                  (L.build_mul f1 f2 "mul" b) "sub" b)
+         and nfin = (L.build_sub
+                      (L.build_add
+                          (L.build_mul f1 (L.build_add n2 one "++" b) "mult" b) (L.build_mul f2 (L.build_add n1 one "++" b) "mult" b)
+                      "add" b)
+                     (L.build_mul f1 f2 "mul" b) "sub" b)
 
-      (*Define llvm "array types"*)
-      and alpha_t = L.array_type i8_t 1
-      and fin_t = L.array_type i32_t 1
-      and delta_t = L.array_type i32_t 1
+          (*Define llvm "array types"*)
+         and alpha_t = L.array_type i8_t 1
+         and fin_t   = L.array_type i32_t 1
+         and delta_t = L.array_type i32_t 1
 
       (*Allocating space and getting pointers*)
       and dfa_ptr = L.build_malloc dfa_t "dfa" b
@@ -440,13 +440,13 @@ let translate (globals, _, functions) =
           they don't already have a terminator) and the build_cond_br function at
           the end, which adds jump instructions to the "then" and "else" basic blocks *)
           | SIf (predicate, then_stmt, else_stmt) ->
-             let bool_val        = expr builder predicate
+             let bool_val = expr builder predicate
              (* Add "merge" basic block to our function's list of blocks *)
-    	       in let merge_bb     = L.append_block context "merge" the_function
+    	       and merge_bb = L.append_block context "merge" the_function
              (* Partial function used to generate branch to merge block *)
              in let branch_instr = L.build_br merge_bb
-             (* Same for "then" basic block *)
-    	       in let then_bb      = L.append_block context "then" the_function
+                (* Same for "then" basic block *)
+      	        and then_bb      = L.append_block context "then" the_function
              (* Position builder in "then" block and build the statement *)
              in let (then_builder, _) = stmt ((L.builder_at_end context then_bb), callStack) then_stmt
              (* Add a branch to the "then" block (to the merge block)
@@ -474,8 +474,8 @@ let translate (globals, _, functions) =
               (* Create the body's block, generate the code for it, and add a branch
               back to the predicate block (we always jump back at the end of a while
               loop's body, unless we returned or something) *)
-              in let body_bb       = L.append_block context "while_body" the_function
-              in let callStack = callStack @ [int_bb]
+              in let body_bb   = L.append_block context "while_body" the_function
+                 and callStack = callStack @ [int_bb]
               in let (while_builder, _) = stmt ((L.builder_at_end context body_bb), callStack) body
 
               (* in let int_bb        = L.append_block context "int_bb" the_function  *)
@@ -485,29 +485,29 @@ let translate (globals, _, functions) =
               in let (int_builder2, _) = stmt (int_builder,callStack) lastInstr
               in let ()            = add_terminal int_builder2 (L.build_br pred_bb)
               (* Generate the predicate code in the predicate block *)
-              in let pred_builder  = L.builder_at_end context pred_bb
+              and pred_builder  = L.builder_at_end context pred_bb
               in let bool_val      = expr pred_builder predicate
-              (* Hook everything up *)
-              in let merge_bb      = L.append_block context "merge" the_function
+                 (* Hook everything up *)
+                 and merge_bb      = L.append_block context "merge" the_function
               in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
-              in (L.builder_at_end context merge_bb,callStack)
-          | SInfloop (body) -> stmt (builder,callStack) ( SBlock [SWhile (SNostmt, (A.TBool, SBoolLit(true)), SBlock [body]) ] )
+              in (L.builder_at_end context merge_bb, callStack)
+          | SInfloop (body)         -> stmt (builder, callStack) (SBlock [SWhile (SNostmt, (A.TBool, SBoolLit (true)), SBlock [body]) ] )
           (* Implement for loops as while loops! *)
-          | SFor (e1, e2, e3, body) -> stmt (builder, callStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
+          | SFor (e1, e2, e3, body) -> stmt (builder, callStack) (SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
           | SContinue               ->
-              if List.length callStack = 0 then (builder, callStack)
-              else
-              let continue_bb       = L.append_block context "continue_bb" the_function
-              in let () = add_terminal builder (L.build_br continue_bb)
-              in let b = L.builder_at_end context continue_bb
-              (* in let _ = L.build_br continue_bb b *)
+              if List.length callStack = 0
+              then (builder, callStack)
+              else let continue_bb       = L.append_block context "continue_bb" the_function
+                   in let () = add_terminal builder (L.build_br continue_bb)
+                      and b = L.builder_at_end context continue_bb
+                      (* in let _ = L.build_br continue_bb b *)
 
-              in let _ = L.build_br (List.hd (List.rev callStack)) b
-              (* in let int_bb       = L.append_block context "int_bb" the_function
-              in let c = L.builder_at_end context int_bb *)
+                   in let _ = L.build_br (List.hd (List.rev callStack)) b
+                   (* in let int_bb       = L.append_block context "int_bb" the_function
+                   in let c = L.builder_at_end context int_bb *)
 
-              in let callStack = List.rev (List.tl (List.rev callStack))
-              in (b,callStack)
+                   in let callStack = List.rev (List.tl (List.rev callStack))
+                  in (b, callStack)
           | SBreak                  -> raise (Prelude.TODO "implement")
           | SNostmt                 -> (builder, callStack)
         (* Build the code for each statement in the function *)
