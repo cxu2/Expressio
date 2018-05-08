@@ -155,7 +155,7 @@ stmt:
     expr CASETO expr COMMA
     expr CASETO expr COMMA
     expr CASETO expr COMMA
-    expr CASETO expr COMMA                  { Case ($2, [($4,  $6);
+    expr CASETO expr SEMI                   { Case ($2, [($4,  $6);
                                                          ($8,  $10);
                                                          ($12, $14);
                                                          ($16, $18);
