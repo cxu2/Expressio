@@ -236,20 +236,20 @@ let translate (globals, _, functions) =
       let ns = L.const_int i32_t n
       and len_a = List.length a
       in let delta_len = L.const_int i32_t (n*len_a)
-      and start = L.const_int i32_t s
-      and nsym = L.const_int i32_t len_a
-      and nfin = L.const_int i32_t (List.length f)
+         and start     = L.const_int i32_t s
+         and nsym      = L.const_int i32_t len_a
+         and nfin      = L.const_int i32_t (List.length f)
 
-      (*Define llvm "array types"*)
-      and alpha_t = L.array_type i8_t len_a
-      and fin_t = L.array_type i32_t (List.length f)
-      (*and delta_row_t = L.array_type i32_t (List.length a) in*)
-      and delta_t = L.array_type i32_t (n*len_a)
+         (* Define llvm "array types" *)
+         and alpha_t = L.array_type i8_t  len_a
+         and fin_t   = L.array_type i32_t (List.length f)
+         (* and delta_row_t = L.array_type i32_t (List.length a) in *)
+         and delta_t = L.array_type i32_t (n*len_a)
 
-      (*Allocating space and getting pointers*)
+      (* Allocating space and getting pointers *)
       and dfa_ptr = L.build_malloc dfa_t "dfa" b
       in let alpha_ptr = L.build_array_malloc alpha_t nsym "alpha" b
-         and fin_ptr = L.build_array_malloc fin_t nfin "fin" b
+         and fin_ptr   = L.build_array_malloc fin_t nfin "fin" b
          and delta_ptr = L.build_array_malloc delta_t delta_len "delta" b
 
          (* preprocess our Ocaml lists so we can insert them into llvm arrays *)
@@ -259,11 +259,11 @@ let translate (globals, _, functions) =
       and ll_of_int fint = L.const_int i32_t fint
       in let list_of_llvm_int =  List.map ll_of_int f
 
-      (* copy over the values to the llvm arrays*)
+      (* copy over the values to the llvm arrays *)
       and copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb) in
 
       ignore(List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char);
-      ignore(List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int);
+      ignore(List.fold_left copy_list_to_array (fin_ptr,   0, b) list_of_llvm_int);
 
       (*Now, to copy the delta function*)
       (*First, we obtain a mapping of characters to the appropriate index*)
@@ -314,7 +314,7 @@ let translate (globals, _, functions) =
                      (L.build_mul f1 f2 "mul" b) "sub" b)
 
           (*Define llvm "array types"*)
-         and alpha_t = L.array_type i8_t 1
+         and alpha_t = L.array_type i8_t  1
          and fin_t   = L.array_type i32_t 1
          and delta_t = L.array_type i32_t 1
 
