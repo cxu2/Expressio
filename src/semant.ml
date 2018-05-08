@@ -3,7 +3,7 @@
 open Ast
 open Sast
 open Prelude.Prelude
-open RegExp.RegExp
+open RegExp
 
 (* module StringMap = Map.Make(String) *)
 (* Semantic checking of the AST. Returns an SAST if successful,
@@ -12,7 +12,7 @@ open RegExp.RegExp
    Check each global variable, then check each function *)
 
 (* let check (globals, dfas, functions) = *)
-  let check (globals, _, functions) =
+  let check ((globals, _, functions) : program) : sprogram =
 
   (* Check if a certain kind of binding has void type or is a duplicate
      of another, previously checked binding *)
@@ -188,8 +188,8 @@ open RegExp.RegExp
       | (true,    Continue)                                              -> (true,    SContinue)
       (* | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock []) *)
       (* | (looping, Case (e, cases)) when fst (expr e) = TRE               -> let lhs = List.map fst cases *)
-      | (looping, (Case (e, ([(RE Zero,                       e1);
-                             (RE One,                         e2);
+      | (looping, (Case (e, ([(RE RegExp.Zero,                e1);
+                             (RE RegExp.One,                  e2);
                              (Unop (URELit, c),               e3);
                              (Binop (e4, BREIntersect,  e5),  e6);
                              (Binop (e7, BREUnion,      e8),  e9);
@@ -199,6 +199,7 @@ open RegExp.RegExp
                              as cases)))) when fst (expr e) = TRE        ->
                                                                             let lhs = List.map fst cases
                                                                             and rhs = List.map snd cases
+                                                                            and e'  : sx = snd (expr e)
                                                                             (* TODO can also check if all cases are matched for basic types *)
                                                                             and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
                                                                             (* ensure that the type of the expression being matched fits into the LHS of the cases *)
@@ -213,8 +214,33 @@ open RegExp.RegExp
                                                                                 else (if (not (same_rhs rhs))
                                                                                       then error "all of RHS must have same type"
                                                                                       (* else (looping, (type_rhs, (SCase (e, cases)))))) *)
-                                                                                      else (looping, let x = SBlock [error "TODO"] (* SIf ((), (), ()) *)
-                                                                                        (* (e, cases) *)
+                                                                                      (*
+                                                                                      | SIf      of sexpr * sstmt * sstmt
+                                                                                      *)
+                                                                                      (*
+
+                                                                                      if r = {.}
+                                                                                      then e1
+                                                                                      else if r = {{.}}
+                                                                                           then e2
+                                                                                           else if r = lit 'a'
+                                                                                                then e3
+                                                                                                else if r = a & b
+                                                                                                     then e4
+                                                                                                     else if r = a | b
+                                                                                                          then e5
+                                                                                                          else if r = a ^ b
+                                                                                                               then e6
+                                                                                                               else if r = ' b
+                                                                                                                    then e7
+                                                                                                                    else if r = a **
+                                                                                                                          then e8
+                                                                                                                          else raise ABSURD
+                                                                                      *)
+                                                                                      else (looping, let if3 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), raise (TODO "finish"))
+                                                                                                     in let if2 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), (if3))
+                                                                                                     in let if1 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BEqual, (TRE, SRE RegExp.Zero))) in x)), (SExpr (expr e1)), (if2))
+                                                                                                     in let x = SBlock [if1 ; raise (TODO "")] (* SIf ((), (), ()) *)
                                                                                                      in x)))
                                                      (* TODO is there an assert here or do I manually check with and and fail on false? *)
       | (_,       Case (_, _))                                           -> error "case expressions currently only support regular expressions"
