@@ -172,6 +172,7 @@ open Prelude.Prelude
                         | BDFAAccepts   when t1 = TDFA && t2 = TString -> TBool
                         | BDFASimulates when t1 = TDFA && t2 = TString -> TInt
                         | BDFAUnion     when t1 = TDFA && t2 = TDFA    -> TDFA
+                        | BDFAConcat    when t1 = TDFA && t2 = TDFA    -> TDFA
                         | BCase        -> raise (TODO "implement BCase in semant")
                         | _ -> error ("illegal binary operator " ^
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^

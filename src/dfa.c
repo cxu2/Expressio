@@ -328,6 +328,56 @@ int dfaunion(struct dfa_t * d1, struct dfa_t * d2, struct dfa_t * result){
   return 0;
 }
 
+int concat_index(int n1, int n2, int n1f, int i){
+  if(i == -1){
+    return -1;
+  }
+  return n1+n1f*n2+i-1;
+}
+
+int dfaconcat(struct dfa_t * d1, struct dfa_t * d2, struct dfa_t * result){
+  int n1 = d1->nstates;
+  int n2 = d2->nstates;
+
+  result->init = d1->init;
+
+  //copy alphabet
+  for(int i = 0; i < result->nsym; i++){
+    result->alphabet[i] = d2->alphabet[i];
+  }
+
+  //set final states
+  for(int i = 0; i < d1->nfin; i++){
+    for(int j = 0; j < d2->nfin; j++){
+      result->final[i*(d2->nfin)+j] = concat_index(n1, n2, i, d2->final[j]);
+    }
+  } 
+
+    /*** build the transition function ***/
+  // start with setting everything -1 for no transition
+  for(int r = 0; r < result->nstates; r++){
+    for(int s = 0; s < result->nsym; s++){
+      result->delta[idx(r, s, result->nsym)] = -1;
+    }
+  }
+
+  for(int i = 0; i < n1; i++){
+    for(int c = 0; c < d1->nsym; c++){
+      result->delta[idx(i, c, result->nsym)] = d1->delta[idx(i, c, d1->nsym)];
+    }
+  }
+
+  for(int f = 0; f < d1->nfin; f++){
+    for(int i = 0; i < n2; i++){
+      for(int c = 0; c < d1->nsym; c++){
+        result->delta[idx(concat_index(n1, n2, f, i), c, result->nsym)] = concat_index(n1, n2, f, d2->delta[idx(i, c, result->nsym)]);
+      }
+    }
+  }
+
+  return 0;
+}
+
 int len(const char * str){
   return strlen(str);
 }
