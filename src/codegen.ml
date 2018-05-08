@@ -240,18 +240,18 @@ let translate (globals, _, functions) =
 
     in let build_dfa n a s f d b =
       (*Getting our llvm values for array sizes, which we need for our c lib*)
-      let ns = L.const_int i32_t n
-      and len_a = List.length a in
-      let delta_len = L.const_int i32_t (n*len_a)
-      and start = L.const_int i32_t s
-      and nsym = L.const_int i32_t len_a
+      let ns = n
+      and len_a = (List.length a)
+      and start = L.const_int i32_t s in
+      let nsym = L.const_int i32_t len_a in
+      let delta_len = L.const_mul n nsym
       and nfin = L.const_int i32_t (List.length f) in
 
       (*Define llvm "array types"*)
       let alpha_t = L.array_type i8_t len_a
       and fin_t = L.array_type i32_t (List.length f) in
       (*and delta_row_t = L.array_type i32_t (List.length a) in*)
-      let delta_t = L.array_type i32_t (n*len_a) in
+      let delta_t = L.array_type i32_t 1 in
 
       (*Allocating space and getting pointers*)
       let dfa_ptr = L.build_alloca dfa_t "dfa" b in
@@ -278,11 +278,12 @@ let translate (globals, _, functions) =
         if (List.hd elts) = c then idx else get_char_index c ((List.tl elts), idx+1) in
 
       (*fill the table with special value -1 to indicate no transition*)
+      let zero = itol 0 in
       let rec build_memset len arr fill = match len with
-        0 -> arr
-        | _ -> build_memset (len-1) (fill::arr) fill in
+        zero -> arr
+        | _ -> build_memset (L.const_sub len (L.const_int i32_t 1)) (fill::arr) fill in
 
-      let filler = (build_memset (n*len_a) [-1] (-1)) in
+      let filler = (build_memset (L.const_mul n nsym) [-1] (-1)) in
       let llvm_filler = List.map ll_of_int filler in
       ignore(List.fold_left copy_list_to_array (delta_ptr, 0, b) llvm_filler);
 
