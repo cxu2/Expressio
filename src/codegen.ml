@@ -25,13 +25,13 @@ http://llvm.moe/ocaml/
 
 *)
 
-(* We'll refer to Llvm and Ast constructs with module names *)
 module L = Llvm
 module A = Ast
 open Ast
 open Sast
 open Prelude
 open RegExp.RegExp
+open L
 (* open Exceptions *)
 
 module StringMap = Map.Make(String)
@@ -44,14 +44,14 @@ let translate (globals, _, functions) =
   let context : L.llcontext = L.global_context ()
    (* Add types to the context so we can use them in our LLVM code *)
 
-  in let i32_t     :              L.lltype  = L.i32_type    context
-     and i8_t      :              L.lltype  = L.i8_type     context
-     and i1_t      :              L.lltype  = L.i1_type     context
-     and void_t    :              L.lltype  = L.void_type   context
-     and pointer_t : (L.lltype -> L.lltype) = L.pointer_type
+  in let i32_t     :            lltype  = L.i32_type    context
+     and i8_t      :            lltype  = L.i8_type     context
+     and i1_t      :            lltype  = L.i1_type     context
+     and void_t    :            lltype  = L.void_type   context
+     and pointer_t : (lltype -> lltype) = L.pointer_type
     (* Create an LLVM module -- this is a "container" into which we'll
      generate actual code *)
-     and the_module : L.llmodule = L.create_module context "Expressio"
+     and the_module : llmodule = L.create_module context "Expressio"
 
   (* Tree named struct definition for regexp *)
   in let tree_t = L.struct_type context [| i8_t; i8_t; (pointer_t i8_t); (pointer_t i8_t) |]
@@ -209,7 +209,7 @@ let translate (globals, _, functions) =
 
 
     in let build_binop op lregexp rregexp b =
-      let tree_ptr : L.llvalue = L.build_alloca tree_t "tree_space" b
+      let tree_ptr : llvalue = L.build_alloca tree_t "tree_space" b
 
       (* storing the operator *)
       in let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b
@@ -254,16 +254,15 @@ let translate (globals, _, functions) =
 
          (* preprocess our Ocaml lists so we can insert them into llvm arrays *)
          and ll_of_char c  = L.const_int i8_t (int_of_char c)
-      in let list_of_llvm_char : L.llvalue list = List.map ll_of_char a
+      in let list_of_llvm_char : llvalue list = List.map ll_of_char a
 
       and ll_of_int fint = L.const_int i32_t fint
       in let list_of_llvm_int =  List.map ll_of_int f
 
       (* copy over the values to the llvm arrays *)
-      and copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb) in
-
-      ignore(List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char);
-      ignore(List.fold_left copy_list_to_array (fin_ptr,   0, b) list_of_llvm_int);
+      and copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb)
+      in ignore(List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char);
+         ignore(List.fold_left copy_list_to_array (fin_ptr,   0, b) list_of_llvm_int);
 
       (*Now, to copy the delta function*)
       (*First, we obtain a mapping of characters to the appropriate index*)
@@ -340,7 +339,7 @@ let translate (globals, _, functions) =
 
 
     (* Construct code for an expression; return its value *)
-    in let rec expr builder ((_, e) : sexpr) : L.llvalue = match e with
+    in let rec expr builder ((_, e) : sexpr) : llvalue = match e with
 	      SIntLit i                        -> L.const_int i32_t i
       | SBoolLit b                       -> L.const_int i1_t (if b then 1 else 0)
       | SCharLit c                       -> L.const_int i8_t (int_of_char c)
@@ -386,7 +385,9 @@ let translate (globals, _, functions) =
                                             in let _  = L.build_store e' (lookup s) builder
                                             in e'
       | SDFA (n, a, s, f, delta)         -> build_dfa n a s f delta builder
-      | SCase _ (*(e, cases) *)          -> raise (Prelude.TODO "codegen: expr fn, SCase") (* TODO build this multiway "if" into regular if statemants using stmt fn? (might have to use `and` for mutal recursion) *)
+      | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> expr builder (Prelude.error "hi")
+      | SCase (_, _)                     -> raise Prelude.ABSURD (* If we get here semantic checking has an error *)
+       (* raise (Prelude.TODO "codegen: expr fn, SCase") (* TODO build this multiway "if" into regular if statemants using stmt fn? (might have to use `and` for mutal recursion) *) *)
       | SCall ("print",    [e])          -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf" builder
       | SCall ("printdfa", [e])          -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf" builder
       | SCall ("printf",   [e])          -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf" builder
@@ -416,18 +417,15 @@ let translate (globals, _, functions) =
     (**************************
      *    Statement Builder   *
      **************************)
-
-
-
     (* Build the code for the given statement; return the builder for
        the statement's successor (i.e., the next instruction will be built
        after the one generated by this call) *)
     (* Imperative nature of statement processing entails imperative OCaml *)
-    (* let rec stmt (builder : L.llbuilder) (x : sstmt) : L.llbuilder = match x with *)
-    let rec stmt (builder, callStack) = function
+    let rec stmt ((builder : llbuilder), (callStack : llbasicblock list)) (x : sstmt) : (llbuilder * (llbasicblock list)) = match x with
     	      SBlock sl -> List.fold_left stmt (builder, callStack) sl
             (* Generate code for this expression, return resulting builder *)
-          | SExpr e   -> let _ = expr builder e in (builder, callStack)
+          | SExpr e   -> let _ = expr builder e
+                         in (builder, callStack)
           | SReturn e -> let _ = match fdecl.styp with
                                     (* Special "return nothing" instr *)
                                     A.TUnit -> L.build_ret_void builder
@@ -511,7 +509,7 @@ let translate (globals, _, functions) =
           | SBreak                  -> raise (Prelude.TODO "implement")
           | SNostmt                 -> (builder, callStack)
         (* Build the code for each statement in the function *)
-        in let (builder, _) = stmt (builder,[]) (SBlock fdecl.sbody)
+        in let (builder, _) = stmt (builder, []) (SBlock fdecl.sbody)
         (* Add a return if the last block falls off the end *)
         in add_terminal builder (match fdecl.styp with
             A.TUnit -> L.build_ret_void
