@@ -76,9 +76,8 @@ let translate (globals, _, functions) =
 
   (* Declare each global variable; remember its value in a map *)
   in let global_vars =
-    let global_var m (t, n) =
-      let init = L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n init the_module) m
+    let global_var m (t, n) = let init = L.const_int (ltype_of_typ t) 0
+                              in StringMap.add n (L.define_global n init the_module) m
     in List.fold_left global_var StringMap.empty globals
 
 
@@ -135,10 +134,10 @@ let translate (globals, _, functions) =
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
        value, if appropriate, and remember their values in the "locals" map *)
-    in let local_vars =
+    and local_vars =
       let add_formal m (t, n) p =
         let () = L.set_value_name n p
-        in let local = L.build_alloca (ltype_of_typ t) n builder
+        and local = L.build_alloca (ltype_of_typ t) n builder
         in let _  = L.build_store p local builder
         in StringMap.add n local m
 
@@ -201,7 +200,7 @@ let translate (globals, _, functions) =
 
       (* storing left tree *)
       let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b
-      in let left_tree_ptr = get_ptr regexp b
+      and left_tree_ptr = get_ptr regexp b
       in let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b
       in ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
 
@@ -218,18 +217,18 @@ let translate (globals, _, functions) =
 
       (* storing left tree *)
       let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b
-      in let left_tree_ptr = get_ptr lregexp b in
-      let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b in
-      ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
+      and left_tree_ptr = get_ptr lregexp b
+      in let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b
+      in ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
 
       (* storing right tree *)
-      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
-      let right_tree_ptr = get_ptr rregexp b in
-      let right_tree_op_ptr = L.build_in_bounds_gep right_tree_ptr [| itol 0; itol 0 |] "right_tree_op_ptr" b in
-      ignore(L.build_store right_tree_op_ptr right_ptr_ptr b);
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b
+      and right_tree_ptr = get_ptr rregexp b
+      in let right_tree_op_ptr = L.build_in_bounds_gep right_tree_ptr [| itol 0; itol 0 |] "right_tree_op_ptr" b
+      in ignore(L.build_store right_tree_op_ptr right_ptr_ptr b);
 
-      let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
-      tree_loaded
+      let tree_loaded = L.build_load tree_ptr "tree_loaded" b
+      in tree_loaded
 
 
     in let build_dfa n a s f d b =
@@ -239,29 +238,29 @@ let translate (globals, _, functions) =
       in let delta_len = L.const_int i32_t (n*len_a)
       and start = L.const_int i32_t s
       and nsym = L.const_int i32_t len_a
-      and nfin = L.const_int i32_t (List.length f) in
+      and nfin = L.const_int i32_t (List.length f)
 
       (*Define llvm "array types"*)
-      let alpha_t = L.array_type i8_t len_a
-      and fin_t = L.array_type i32_t (List.length f) in
+      and alpha_t = L.array_type i8_t len_a
+      and fin_t = L.array_type i32_t (List.length f)
       (*and delta_row_t = L.array_type i32_t (List.length a) in*)
-      let delta_t = L.array_type i32_t (n*len_a) in
+      and delta_t = L.array_type i32_t (n*len_a)
 
       (*Allocating space and getting pointers*)
-      let dfa_ptr = L.build_malloc dfa_t "dfa" b in
-      let alpha_ptr = L.build_array_malloc alpha_t nsym "alpha" b in
-      let fin_ptr = L.build_array_malloc fin_t nfin "fin" b in
-      let delta_ptr = L.build_array_malloc delta_t delta_len "delta" b in
+      and dfa_ptr = L.build_malloc dfa_t "dfa" b
+      in let alpha_ptr = L.build_array_malloc alpha_t nsym "alpha" b
+         and fin_ptr = L.build_array_malloc fin_t nfin "fin" b
+         and delta_ptr = L.build_array_malloc delta_t delta_len "delta" b
 
-      (*preprocess our Ocaml lists so we can insert them into llvm arrays*)
-      let ll_of_char c  = L.const_int i8_t (int_of_char c) in
-      let list_of_llvm_char : L.llvalue list = List.map ll_of_char a in
+         (* preprocess our Ocaml lists so we can insert them into llvm arrays *)
+         and ll_of_char c  = L.const_int i8_t (int_of_char c)
+      in let list_of_llvm_char : L.llvalue list = List.map ll_of_char a
 
-      let ll_of_int fint = L.const_int i32_t fint in
-      let list_of_llvm_int =  List.map ll_of_int f in
+      and ll_of_int fint = L.const_int i32_t fint
+      in let list_of_llvm_int =  List.map ll_of_int f
 
       (* copy over the values to the llvm arrays*)
-      let copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb) in
+      and copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb) in
 
       ignore(List.fold_left copy_list_to_array (alpha_ptr, 0, b) list_of_llvm_char);
       ignore(List.fold_left copy_list_to_array (fin_ptr, 0, b) list_of_llvm_int);
@@ -269,16 +268,16 @@ let translate (globals, _, functions) =
       (*Now, to copy the delta function*)
       (*First, we obtain a mapping of characters to the appropriate index*)
       let rec get_char_index c (elts, idx) =
-        if (List.hd elts) = c then idx else get_char_index c ((List.tl elts), idx+1) in
+        if (List.hd elts) = c then idx else get_char_index c ((List.tl elts), idx+1)
 
       (*fill the table with special value -1 to indicate no transition*)
-      let rec build_memset len arr fill = match len with
+      in let rec build_memset len arr fill = match len with
         0 -> arr
-        | _ -> build_memset (len-1) (fill::arr) fill in
+        | _ -> build_memset (len-1) (fill::arr) fill
 
-      let filler = (build_memset (n*len_a) [-1] (-1)) in
-      let llvm_filler = List.map ll_of_int filler in
-      ignore(List.fold_left copy_list_to_array (delta_ptr, 0, b) llvm_filler);
+      in let filler = (build_memset (n*len_a) [-1] (-1))
+      in let llvm_filler = List.map ll_of_int filler
+      in ignore(List.fold_left copy_list_to_array (delta_ptr, 0, b) llvm_filler);
 
       let copy_by_index (arr, lst, localb) (from_s, ch, to_s) =
         (ignore(insert_elt arr (L.const_int i32_t to_s) (from_s*len_a + (get_char_index ch (lst, 0))) localb); arr, lst, localb) in
@@ -292,39 +291,39 @@ let translate (globals, _, functions) =
       ignore(L.build_store (arr_ptr fin_ptr   b) (get_struct_idx dfa_ptr 4 b) b);
       ignore(L.build_store nfin                  (get_struct_idx dfa_ptr 5 b) b);
       ignore(L.build_store (arr_ptr delta_ptr b) (get_struct_idx dfa_ptr 6 b) b);
-      L.build_load dfa_ptr "dfa_loaded" b in
+      L.build_load dfa_ptr "dfa_loaded" b
 
 
-    let build_dfaunion d1 d2 b =
+    and build_dfaunion d1 d2 b =
       let d1_ptr = get_ptr d1 b
-      and d2_ptr = get_ptr d2 b in
+      and d2_ptr = get_ptr d2 b
 
-      let n1   = L.build_load (get_struct_idx d1_ptr 0 b) "d1.nstates" b
-      and n2   = L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates" b
-      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"    b
-      and f1   = L.build_load (get_struct_idx d1_ptr 5 b) "d2.nsfin"   b
-      and f2   = L.build_load (get_struct_idx d2_ptr 5 b) "d2.nfin"    b in
+      in let n1   = L.build_load (get_struct_idx d1_ptr 0 b) "d1.nstates" b
+         and n2   = L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates" b
+         and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"    b
+         and f1   = L.build_load (get_struct_idx d1_ptr 5 b) "d2.nsfin"   b
+         and f2   = L.build_load (get_struct_idx d2_ptr 5 b) "d2.nfin"    b
 
-      let one = L.const_int i32_t 1 in
+         and one  = L.const_int i32_t 1
 
-      let ns = (L.build_mul (L.build_add n1 one "++" b) (L.build_add n2 one "++" b) "mul" b)
+      in let ns = (L.build_mul (L.build_add n1 one "++" b) (L.build_add n2 one "++" b) "mul" b)
       and nfin = (L.build_sub
                     (L.build_add
                         (L.build_mul f1 (L.build_add n2 one "++" b) "mult" b) (L.build_mul f2 (L.build_add n1 one "++" b) "mult" b)
                     "add" b)
-                  (L.build_mul f1 f2 "mul" b) "sub" b) in
+                  (L.build_mul f1 f2 "mul" b) "sub" b)
 
       (*Define llvm "array types"*)
-      let alpha_t = L.array_type i8_t 1
-      and fin_t = L.array_type i32_t 1 in
-      let delta_t = L.array_type i32_t 1 in
+      and alpha_t = L.array_type i8_t 1
+      and fin_t = L.array_type i32_t 1
+      and delta_t = L.array_type i32_t 1
 
       (*Allocating space and getting pointers*)
-      let dfa_ptr = L.build_malloc dfa_t "dfa" b in
-      let alpha_ptr = L.build_array_malloc alpha_t nsym "alpha" b in
-      let fin_ptr = L.build_array_malloc fin_t nfin "fin" b in
-      let delta_ptr = L.build_array_malloc delta_t (L.build_mul ns nsym "mul" b) "delta" b in
-
+      and dfa_ptr = L.build_malloc dfa_t "dfa" b
+      in let alpha_ptr = L.build_array_malloc alpha_t nsym                          "alpha" b
+         and fin_ptr   = L.build_array_malloc fin_t   nfin                          "fin"   b
+         and delta_ptr = L.build_array_malloc delta_t (L.build_mul ns nsym "mul" b) "delta" b
+      in
       ignore(L.build_store ns                    (get_struct_idx dfa_ptr 0 b) b);
       ignore(L.build_store (arr_ptr alpha_ptr b) (get_struct_idx dfa_ptr 1 b) b);
       ignore(L.build_store nsym                  (get_struct_idx dfa_ptr 2 b) b);
@@ -332,7 +331,7 @@ let translate (globals, _, functions) =
       ignore(L.build_store nfin                  (get_struct_idx dfa_ptr 5 b) b);
       ignore(L.build_store (arr_ptr delta_ptr b) (get_struct_idx dfa_ptr 6 b) b);
       ignore(L.build_call dfaunion_func [| d1_ptr; d2_ptr; dfa_ptr |] "dfaunion" b);
-      L.build_load dfa_ptr "dfa_loaded" b in
+      L.build_load dfa_ptr "dfa_loaded" b
 
     (*************************
      *   Expression Builder  *
@@ -341,7 +340,7 @@ let translate (globals, _, functions) =
 
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder ((_, e) : sexpr) : L.llvalue = match e with
+    in let rec expr builder ((_, e) : sexpr) : L.llvalue = match e with
 	      SIntLit i                        -> L.const_int i32_t i
       | SBoolLit b                       -> L.const_int i1_t (if b then 1 else 0)
       | SCharLit c                       -> L.const_int i8_t (int_of_char c)
