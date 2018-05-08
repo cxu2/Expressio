@@ -120,7 +120,6 @@ let translate (globals, _, functions) =
 
   in let righttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
   in let righttok_func = L.declare_function "righttok" righttok_t the_module *)
-
   in let litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 

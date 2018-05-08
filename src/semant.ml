@@ -55,6 +55,7 @@ open Prelude.Prelude
                                                                 }) :: built_ins
     in fromList (built_ins)
 
+
   (* Add function name to symbol table *)
   in let add_func map fd = if      StringMap.mem fd.fname built_in_decls
                            then      error ("function "           ^ fd.fname ^ " may not be defined")
@@ -185,9 +186,11 @@ open Prelude.Prelude
                   in (check_assign ft et err, e')
           in let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall (fname, args'))
+
     in let check_bool_expr e = match (expr e) with
                                 (TBool, e') -> (TBool, e')
                               | _           -> error ("expected Boolean expression in " ^ string_of_expr e)
+
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     (* this function was originally a simple `stmt -> sstmt` but with adding continue/break statements it is
