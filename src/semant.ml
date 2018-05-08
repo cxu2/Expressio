@@ -3,6 +3,7 @@
 open Ast
 open Sast
 open Prelude.Prelude
+open RegExp.RegExp
 
 (* module StringMap = Map.Make(String) *)
 (* Semantic checking of the AST. Returns an SAST if successful,
@@ -187,17 +188,21 @@ open Prelude.Prelude
       | (true,    Continue)                                              -> (true,    SContinue)
       (* | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock []) *)
       (* | (looping, Case (e, cases)) when fst (expr e) = TRE               -> let lhs = List.map fst cases *)
-      | (looping, (Case (e, [(e1,  e2);
-                             (e3,  e4);
-                             (e5,  e6);
-                             (e7,  e8);
-                             (e9,  e10);
-                             (e11, e12);
-                             (e13, e14);
-                             (e15, e16);]))) when fst (expr e) = TRE     -> let lhs = [e1; e3; e5; e7; e9; e11; e13; e15]
+      | (looping, (Case (e, ([(RE Zero,                       e1);
+                             (RE One,                         e2);
+                             (Unop (URELit, c),               e3);
+                             (Binop (e4, BREIntersect,  e5),  e6);
+                             (Binop (e7, BREUnion,      e8),  e9);
+                             (Binop (e10, BREConcat,   e11), e12);
+                             (Unop (UREComp, e13),           e14);
+                             (Unop (UREStar, e15),           e16)] as cases)))) when fst (expr e) = TRE     ->
+                                                                            let lhs = List.map fst cases
+                                                                            (* [RE Zero; RE One; e5; e7; e9; e11; e13; e15] *)
+                                                                            (* in let check_all_regexp_cases = List.mem (Unop (URELit,  e)) lhs *)
                                                                                       (* List.map fst cases *)
-                                                                            and rhs = [e2; e4; e6; e8; e10; e12; e14; e16]
-                                                                                      (* List.map snd cases *)
+                                                                            and rhs = List.map snd cases
+                                                                            (* [e2; e4; e6; e8; e10; e12; e14; e16] *)
+                                                                                      (*  *)
                                                                             (* TODO can also check if all cases are matched for basic types *)
                                                                             and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
                                                                             (* ensure that the type of the expression being matched fits into the LHS of the cases *)
