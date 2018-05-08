@@ -56,9 +56,9 @@ let translate (globals, _, functions) =
   (* Tree named struct definition for regexp *)
   in let tree_t = L.struct_type context [| i8_t; i8_t; (pointer_t i8_t); (pointer_t i8_t) |]
 
-  in let dfa_t =
-      let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type i32_t] in
-      L.struct_type context types
+  and dfa_t =
+      let types = Array.of_list [i32_t; L.pointer_type i8_t; i32_t; i32_t; L.pointer_type i32_t; i32_t; L.pointer_type i32_t]
+      in L.struct_type context types
 
 
   (**************************
@@ -105,7 +105,7 @@ let translate (globals, _, functions) =
   in let accepts_func = L.declare_function "accepts" accepts_t the_module
 
   and simulates_t = L.function_type i32_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
-  in let simulates_func = L.declare_function "simulates" simulates_t the_module in
+  in let simulates_func = L.declare_function "simulates" simulates_t the_module
 
 
 
@@ -116,21 +116,21 @@ let translate (globals, _, functions) =
   (* Define each function (arguments and return type) so we can
    * define it's body and call it later *)
 
-  let function_decls =
+  and function_decls =
     let function_decl m fdecl =
       let name = fdecl.sfname
       and formal_types = Array.of_list (List.map (fun (t, _) -> ltype_of_typ t) fdecl.sformals)
-      in let ftype = L.function_type (ltype_of_typ fdecl.styp) formal_types in
-      StringMap.add name (L.define_function name ftype the_module, fdecl) m in
-    List.fold_left function_decl StringMap.empty functions in
+      in let ftype = L.function_type (ltype_of_typ fdecl.styp) formal_types
+      in StringMap.add name (L.define_function name ftype the_module, fdecl) m
+    in List.fold_left function_decl StringMap.empty functions
 
   (* Fill in the body of the given function *)
-  let build_function_body fdecl =
+  in let build_function_body fdecl =
     let (the_function, _) = StringMap.find fdecl.sfname function_decls
     in let builder = L.builder_at_end context (L.entry_block the_function)
 
     in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    in let string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
+    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -139,19 +139,17 @@ let translate (globals, _, functions) =
       let add_formal m (t, n) p =
         let () = L.set_value_name n p
         in let local = L.build_alloca (ltype_of_typ t) n builder
-        in let _  = L.build_store p local builder in StringMap.add n local m
+        in let _  = L.build_store p local builder
+        in StringMap.add n local m
 
 
       (* Allocate space for any locally declared variables and add the
        * resulting registers to our map *)
-    in let add_local m (t, n) =
-    	let local_var = L.build_alloca (ltype_of_typ t) n builder
-    	in StringMap.add n local_var m
+    in let add_local m (t, n) = let local_var = L.build_alloca (ltype_of_typ t) n builder
+    	                          in StringMap.add n local_var m
 
-    in let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
-        (Array.to_list (L.params the_function)) in
-    List.fold_left add_local formals fdecl.slocals
-    in
+    and formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals (Array.to_list (L.params the_function))
+    in List.fold_left add_local formals fdecl.slocals
 
 
 
@@ -159,70 +157,68 @@ let translate (globals, _, functions) =
      *    Helper Functions   *
      *************************)
 
-
-
     (* Return the value for a variable or formal argument. First check
      * locals, then globals *)
 
-    let lookup n = try StringMap.find n local_vars
+    in let lookup n = try StringMap.find n local_vars
                    with Not_found -> try StringMap.find n global_vars
                                      with Not_found -> raise(Exceptions.GlobalVarNotFound("unknown variable name: "^n))
 
     in let itol n = L.const_int i32_t n
 
-    in let get_ptr v b =
-      let val_ptr = L.build_alloca (L.type_of v) "val_ptr" b in
-      ignore(L.build_store v val_ptr b);
+    and get_ptr v b =
+      let val_ptr = L.build_alloca (L.type_of v) "val_ptr" b
+      in ignore(L.build_store v val_ptr b);
       val_ptr
 
-    in let arr_ptr a b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t 0|] "arr" b
-    in let get_arr_idx a i b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t i|] "arr" b
+    and arr_ptr a b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t 0|] "arr" b
+    and get_arr_idx a i b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t i|] "arr" b
     in let insert_elt a v i b = L.build_store v (get_arr_idx a i b) b
 
-    in let get_struct_idx s i b = L.build_struct_gep s i "structelt" b
+    and get_struct_idx s i b = L.build_struct_gep s i "structelt" b
 
-    in let build_lit op character b =
-      let tree_ptr = L.build_alloca tree_t "tree_space" b in
+    and build_lit op character b =
+      let tree_ptr = L.build_alloca tree_t "tree_space" b
 
       (* storing leaf node identifier operator l for lit *)
-      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
-      ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
+      in let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b
+      in ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
 
       (* storing the character *)
-      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
-      ignore(L.build_store character char_ptr b);
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b
+      in ignore(L.build_store character char_ptr b);
 
-      let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
-      tree_loaded
+      let tree_loaded = L.build_load tree_ptr "tree_loaded" b
+      in tree_loaded
 
 
     in let build_unop op regexp b =
-      let tree_ptr = L.build_alloca tree_t "tree_space" b in
+      let tree_ptr = L.build_alloca tree_t "tree_space" b
 
       (* storing the operator *)
-      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
-      ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
+      in let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b
+      in ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
 
       (* storing left tree *)
-      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
-      let left_tree_ptr = get_ptr regexp b in
-      let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b in
-      ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b
+      in let left_tree_ptr = get_ptr regexp b
+      in let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b
+      in ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
 
-      let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
-      tree_loaded
+      let tree_loaded = L.build_load tree_ptr "tree_loaded" b
+      in tree_loaded
 
 
     in let build_binop op lregexp rregexp b =
-      let tree_ptr : L.llvalue = L.build_alloca tree_t "tree_space" b in
+      let tree_ptr : L.llvalue = L.build_alloca tree_t "tree_space" b
 
       (* storing the operator *)
-      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
-      ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
+      in let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b
+      in ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
 
       (* storing left tree *)
-      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
-      let left_tree_ptr = get_ptr lregexp b in
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b
+      in let left_tree_ptr = get_ptr lregexp b in
       let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b in
       ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
 
@@ -239,8 +235,8 @@ let translate (globals, _, functions) =
     in let build_dfa n a s f d b =
       (*Getting our llvm values for array sizes, which we need for our c lib*)
       let ns = L.const_int i32_t n
-      and len_a = List.length a in
-      let delta_len = L.const_int i32_t (n*len_a)
+      and len_a = List.length a
+      in let delta_len = L.const_int i32_t (n*len_a)
       and start = L.const_int i32_t s
       and nsym = L.const_int i32_t len_a
       and nfin = L.const_int i32_t (List.length f) in
@@ -429,7 +425,7 @@ let translate (globals, _, functions) =
        after the one generated by this call) *)
     (* Imperative nature of statement processing entails imperative OCaml *)
     (* let rec stmt (builder : L.llbuilder) (x : sstmt) : L.llbuilder = match x with *)
-    let rec stmt (builder,callStack) = function
+    let rec stmt (builder, callStack) = function
     	      SBlock sl -> List.fold_left stmt (builder, callStack) sl
             (* Generate code for this expression, return resulting builder *)
           | SExpr e   -> let _ = expr builder e in (builder, callStack)
@@ -453,13 +449,13 @@ let translate (globals, _, functions) =
              (* Same for "then" basic block *)
     	       in let then_bb      = L.append_block context "then" the_function
              (* Position builder in "then" block and build the statement *)
-             in let (then_builder,_) = stmt ((L.builder_at_end context then_bb), callStack) then_stmt
+             in let (then_builder, _) = stmt ((L.builder_at_end context then_bb), callStack) then_stmt
              (* Add a branch to the "then" block (to the merge block)
                if a terminator doesn't already exist for the "then" block *)
     	       in let ()           = add_terminal then_builder branch_instr
              (* Identical to stuff we did for "then" *)
     	       in let else_bb      = L.append_block context "else" the_function
-             in let (else_builder,_) = stmt ((L.builder_at_end context else_bb), callStack) else_stmt
+             in let (else_builder, _) = stmt ((L.builder_at_end context else_bb), callStack) else_stmt
     	       in let ()           = add_terminal else_builder branch_instr
              (* Generate initial branch instruction perform the selection of "then"
              or "else". Note we're using the builder we had access to at the start
@@ -481,13 +477,13 @@ let translate (globals, _, functions) =
               loop's body, unless we returned or something) *)
               in let body_bb       = L.append_block context "while_body" the_function
               in let callStack = callStack @ [int_bb]
-              in let (while_builder,_) = stmt ((L.builder_at_end context body_bb), callStack) body
+              in let (while_builder, _) = stmt ((L.builder_at_end context body_bb), callStack) body
 
               (* in let int_bb        = L.append_block context "int_bb" the_function  *)
               in let ()            = add_terminal while_builder (L.build_br int_bb)
               in let int_builder = L.builder_at_end context int_bb
               (* in let i3         = expr int_builder lastInstr *)
-              in let (int_builder2,_) = stmt (int_builder,callStack) lastInstr
+              in let (int_builder2, _) = stmt (int_builder,callStack) lastInstr
               in let ()            = add_terminal int_builder2 (L.build_br pred_bb)
               (* Generate the predicate code in the predicate block *)
               in let pred_builder  = L.builder_at_end context pred_bb
@@ -516,7 +512,7 @@ let translate (globals, _, functions) =
           | SBreak                  -> raise (Prelude.TODO "implement")
           | SNostmt                 -> (builder, callStack)
         (* Build the code for each statement in the function *)
-        in let (builder,_) = stmt (builder,[]) (SBlock fdecl.sbody)
+        in let (builder, _) = stmt (builder,[]) (SBlock fdecl.sbody)
         (* Add a return if the last block falls off the end *)
         in add_terminal builder (match fdecl.styp with
             A.TUnit -> L.build_ret_void
