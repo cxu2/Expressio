@@ -52,6 +52,9 @@ module Prelude = struct
   (* fromList :: [(String, a)] -> Map String a *)
   let fromList (xs : (string * 'a) list) : 'a StringMap.t = List.fold_left (fun acc (k, v) -> StringMap.add k v acc) StringMap.empty xs
 
+  (* let print_string_map = StringMap.iter (Printf.printf "%s -> %d\n") *)
+  (* let print_smap (string_of : 'a -> string) (m : 'a StringMap.t) = StringMap.iter (fun k v -> Printf.printf "%s -> %s\n" k (string_of v)) m *)
+
   let error (message : string) = raise (Failure message)
 
   (* Implement the Natural numbers Peano style *)
