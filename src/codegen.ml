@@ -436,6 +436,7 @@ let translate (globals, _, functions) =
       | SBinop (e1, A.BLeq,          e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGreater,      e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGeq,          e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
+      (* | SBinop (e1, A.BStrAppend,    e2) -> TODO *)
       | SUnop (A.UNeg,    e)             -> L.build_neg             (expr builder e)                    "tmp" builder
       | SUnop (A.UNot,    e)             -> L.build_not             (expr builder e)                    "tmp" builder
       | SUnop (A.URELit,  e)             -> build_lit 'l'           (expr builder e)                          builder
@@ -462,12 +463,12 @@ let translate (globals, _, functions) =
                                                     | _       -> f ^ "_result")
                                    in L.build_call fdef (Array.of_list actuals) result builder
       | SStringIndex(a,b) -> L.build_call strindex_func [| (L.build_load (lookup a) a builder);  (expr builder b) |] "strindex" builder
-      | SStringAppend(a,b) ->  L.build_global_stringptr a "string" builder
-      | SIntList(a) -> 
+      (* | SStringAppend(a,b) ->  L.build_global_stringptr a "string" builder *)
+  (*     | SIntList(a) -> 
       | SCharList(a) -> 
       | SBoolList(a) ->  
       | SStringList(a) ->  
-      | STupleList(a) ->  
+      | STupleList(a) ->   *)
 
     in
 

@@ -38,7 +38,6 @@ infixr 8 `closure`
 %nonassoc NOELSE
 %nonassoc ELSE
 %right ASSIGN
-%right APPEND
 
 %right CASE
 /* %<assoc> CASETO */
@@ -215,6 +214,7 @@ expr:
   | expr DFACONCAT  expr                    { Binop ($1, BDFAConcat,    $3) }
   | expr DFASIM     expr                    { Binop ($1, BDFASimulates, $3) }
   | expr DFAACCEPTS expr                    { Binop ($1, BDFAAccepts,   $3) }
+  | expr APPEND expr                        { Binop ($1, BStrAppend,   $3) }
   /* The line which follows should probably be CASE X OF Y, but this is tough to add without conflicts */
   | expr CASE COLON expr                    { Binop ($1, BCase,         $4) }
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)               }
@@ -224,7 +224,6 @@ expr:
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)                 }
   | LPAREN expr RPAREN                      { $2                            }
   | ID LBRAC expr RBRAC                     { StringIndex($1,$3)}
-  | ID APPEND expr                          { StringAppend($1,$3)}
   | INTLIST LBRAC expr_list RBRAC             { IntList(List.rev $3)}
   | BOOLLIST LBRAC expr_list RBRAC             { BoolList(List.rev $3)}
   | CHARLIST LBRAC expr_list RBRAC             { CharList(List.rev $3)}

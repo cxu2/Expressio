@@ -171,6 +171,7 @@ open Prelude.Prelude
                         | BDFAAccepts   when t1 = TDFA && t2 = TString -> TBool
                         | BDFASimulates when t1 = TDFA && t2 = TString -> TInt
                         | BDFAUnion     when t1 = TDFA && t2 = TDFA    -> TDFA
+                        | BStrAppend    when t1 = TString && t2 = TString -> TString
                         | BCase        -> raise (TODO "implement BCase in semant")
                         | _ -> error ("illegal binary operator " ^
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -181,10 +182,10 @@ open Prelude.Prelude
                                  in let err = "bad string index"
                                in let _ = check_assign TInt rt err
                                  in (TChar, SStringIndex (a, (rt, e')))
-      | StringAppend(a,b) -> let (rt, e') = expr b
+(*       | StringAppend(a,b) -> let (rt, e') = expr b
                                  in let err = "bad string index"
                                in let _ = check_assign TString rt err
-                                 in (TString, SStringAppend (a, (rt, e')))
+                                 in (TString, SStringAppend (a, (rt, e'))) *)
       | IntList(a) -> (*Check all values in list are int *)
                     let err = "bad int list" 
                     in let rec checkTypes = function

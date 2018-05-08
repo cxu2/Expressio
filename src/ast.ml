@@ -8,6 +8,7 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
          | BCase
          | BREUnion  | BREConcat  | BREMatches  | BREIntersect
          | BDFAUnion | BDFAConcat | BDFAAccepts | BDFASimulates
+         | BStrAppend
 
 (* Unary operators *)
 type uop = UNeg | UNot | URELit | UREStar | UREComp
@@ -34,7 +35,6 @@ type expr =
   | Call      of string * expr list
   | DFA       of int * char list * int * int list * tranf list
   | StringIndex of string * expr 
-  | StringAppend of string * expr 
   | IntList of expr list 
   | CharList of expr list 
   | BoolList of expr list 
@@ -51,6 +51,7 @@ type stmt =
   | Infloop of stmt
   | While   of expr * stmt
   | Continue
+  | StringAppend of string * expr 
   | Break
 
 

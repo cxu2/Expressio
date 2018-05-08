@@ -18,7 +18,6 @@ and sx =
   | SCall      of string * sexpr list
   | SDFA       of int * char list * int * int list * tranf list
   | SStringIndex of string * sexpr 
-  | SStringAppend of string * sexpr
   | SIntList of expr list  
   | SCharList of expr list 
   | SBoolList of expr list 
