@@ -37,22 +37,24 @@ module StringMap = Map.Make(String)
 
   (* Collect function declarations for built-in functions: no bodies *)
   in let built_in_decls =
-    let add_bind map (name, ty) = StringMap.add name { typ     = TUnit
-                                                     ; fname   = name
-                                                     ; formals = [(ty, "x")]
-                                                     ; locals  = []
-                                                     ; body    = []
-                                                     } map
-    in List.fold_left add_bind StringMap.empty [ ("print", TInt); ("printr", TRE);
-                                            ("printdfa", TDFA); ("printf", TString) ]
-(*
-                                                    { typ     = TUnit
-                                                    ; fname   = "print"
-                                                    ; formals = [(TInt, "x")]
-                                                    ; locals  = []
-                                                    ; body    = []
-                                                    } map
-                                                    *)
+    let add_bind map (name, ty, rt) = StringMap.add name { typ     = rt
+                                                         ; fname   = name
+                                                         ; formals = [(ty, "x")]
+                                                         ; locals  = []
+                                                         ; body    = []
+                                                         } map
+    in List.fold_left add_bind StringMap.empty [ ("print", TInt, TUnit); ("printr", TRE, TUnit);
+                                            ("printdfa", TDFA, TUnit); ("printf", TString, TUnit);
+                                            ("lefttok", TRE, TRE); ("righttok", TRE, TRE);
+                                            ("litchar", TRE, TChar); ("printb", TBool, TUnit) ]
+
+  in let built_in_decls = StringMap.add "matches" { typ = TBool
+                                              ; fname = "matches"
+                                              ; formals = [(TString, "x") ; (TRE, "y")]
+                                              ; locals = []
+                                              ; body = []
+                                              } built_in_decls
+
 
   (* Add function name to symbol table *)
   in let add_func map fd =
@@ -187,6 +189,7 @@ module StringMap = Map.Make(String)
                   in (check_assign ft et err, e')
           in let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall (fname, args'))
+
     in let check_bool_expr e = let (t', e') = expr e
                                and err = "expected Boolean expression in " ^ string_of_expr e
                                in if t' != TBool
