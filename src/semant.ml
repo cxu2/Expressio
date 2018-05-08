@@ -103,7 +103,8 @@ module StringMap = Map.Make(String)
       | CharLit c                                 -> (TChar,   SCharLit c)
       | StringLit s                               -> (TString, SStringLit s)
       | BoolLit l                                 -> (TBool,   SBoolLit l)
-      | DFA (states, alpha, start, final, tran)   -> (TDFA, SDFA (states, alpha, start, final, tran))
+      | DFA (states, alpha, start, final, tran)   -> (* let (_, e') = expr states in *) 
+                                                    (TDFA, SDFA (expr states, alpha, start, final, tran))
                                  (* check states is greater than final states *)
                                  (* let rec checkFinal maxVal = function
                                    []                       -> false

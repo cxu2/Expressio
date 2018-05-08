@@ -17,7 +17,7 @@ and sx =
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
   (* | SDFA       of int * char list * int * int list * tranf list *)
-  | SDFA       of expr * expr * expr * expr * expr
+  | SDFA       of sexpr * char list * int * int list * tranf list
   | STEMP      of expr
   | SNFA       of expr * expr * expr * expr * expr
   | SNoexpr
@@ -125,16 +125,16 @@ let rec string_of_sexpr (t, e) =
                                     | SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
                                     | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
                                     | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-                                    (* | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
+                                    | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_sexpr a     ^
                                                               "\n alphabet : "    ^ string_of_clist b   ^
                                                               "\n start : "       ^ string_of_int c     ^
                                                               "\n final : "       ^ string_of_intlist d ^
-                                                              "\n transitions : " ^ string_of_tlist e   ^ "\n }" *)
-                                    | SDFA(a, b, c, d, e)        ->"{\n states : "      ^ string_of_expr a     ^
+                                                              "\n transitions : " ^ string_of_tlist e   ^ "\n }" 
+                                    (*| SDFA(a, b, c, d, e)        ->"{\n states : "      ^ string_of_expr a     ^
                                                               "\n alphabet : "    ^ string_of_expr b   ^
                                                               "\n start : "       ^ string_of_expr c     ^
                                                               "\n final : "       ^ string_of_expr d ^
-                                                              "\n transitions : " ^ string_of_expr e   ^ "\n }"
+                                                              "\n transitions : " ^ string_of_expr e   ^ "\n }"*)
                                     | SNFA(a, b, c, d, e)        ->"{\n states : "      ^ string_of_expr a     ^
                                                               "\n alphabet : "    ^ string_of_expr b   ^
                                                               "\n start : "       ^ string_of_expr c     ^

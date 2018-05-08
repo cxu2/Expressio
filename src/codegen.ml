@@ -354,7 +354,7 @@ let translate (globals, _, functions) =
       | SUnop (A.UREStar, e)             -> build_unop '*'          (expr builder e)                          builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
-      | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
+      | SDFA (n, a, s, f, delta) -> build_dfa (expr builder n) a s f delta builder(* let ns = expr builder n in  *)
       | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf" builder
       | SCall ("printdfa", [e]) -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf" builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf" builder
