@@ -94,10 +94,13 @@ let translate (globals, _, functions) =
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
   in let printf_func = L.declare_function "printf" printf_t the_module
 
+  in let printb_t = L.function_type i32_t [| i1_t |]
+  in let printb_func = L.declare_function "printb" printb_t the_module 
+
   in let printr_t = L.function_type i32_t [| L.pointer_type tree_t |]
   in let printr_func = L.declare_function "printr" printr_t the_module
 
-  in let matches_t = L.function_type i1_t [| L.pointer_type i8_t; L.pointer_type tree_t |]
+  in let matches_t = L.function_type i1_t [| L.pointer_type tree_t ; L.pointer_type i8_t |]
   in let matches_func = L.declare_function "matches" matches_t the_module
 
   in let printdfa_t = L.function_type i32_t [| L.pointer_type dfa_t |]
@@ -109,9 +112,19 @@ let translate (globals, _, functions) =
   in let accepts_t = L.function_type i1_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let accepts_func = L.declare_function "accepts" accepts_t the_module
 
-  in let simulates_t = L.function_type i32_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
-  in let simulates_func = L.declare_function "simulates" simulates_t the_module in
+  in let simulates_t = L.function_type i32_t [| L.pointer_type dfa_t;  L.pointer_type i8_t |]
+  in let simulates_func = L.declare_function "simulates" simulates_t the_module
 
+(*   in let lefttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
+  in let lefttok_func = L.declare_function "lefttok" lefttok_t the_module
+
+  in let righttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
+  in let righttok_func = L.declare_function "righttok" righttok_t the_module *)
+
+  in let litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
+  in let litchar_func = L.declare_function "litchar" litchar_t the_module
+
+  in
   (**********************
    *   Build Functions  *
    **********************)
@@ -185,6 +198,31 @@ let translate (globals, _, functions) =
     in let insert_elt a v i b = L.build_store v (get_arr_idx a i b) b
 
     in let get_struct_idx s i b = L.build_struct_gep s i "structelt" b
+
+    in let build_zero b =
+      let tree_ptr = L.build_alloca tree_t "tree_space" b in
+
+      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
+      ignore(L.build_store (L.const_int i8_t (int_of_char 'n')) operator_ptr b);
+
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
+      ignore(L.build_store (L.const_int i8_t (int_of_char '#')) char_ptr b);
+
+      let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
+      tree_loaded
+
+    in let build_one b =
+      let tree_ptr = L.build_alloca tree_t "tree_space" b in
+
+      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
+      ignore(L.build_store (L.const_int i8_t (int_of_char 'n')) operator_ptr b);
+
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
+      ignore(L.build_store (L.const_int i8_t (int_of_char '@')) char_ptr b);
+
+      let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
+      tree_loaded
+
 
     in let build_lit op character b =
       let tree_ptr = L.build_alloca tree_t "tree_space" b in
@@ -359,8 +397,8 @@ let translate (globals, _, functions) =
       | SId s                            -> L.build_load (lookup s) s builder
       (* TODO decide if it's better to keep this or do a nullary op constructor instead *)
       (* Convert SRE to its expression constituents *)
-      | SRE Zero                         -> raise (Prelude.TODO "implement SRE Zero")
-      | SRE One                          -> raise (Prelude.TODO "implement SRE One")
+      | SRE Zero                         -> build_zero builder
+      | SRE One                          -> build_one builder
       | SRE (Lit c)                      -> expr builder (TRE, SUnop  (A.URELit,  (TRE, SRE (Lit c))))
       | SRE (Comp r)                     -> expr builder (TRE, SUnop  (A.UREComp, (TRE, SRE (Comp r))))
       | SRE (Star r)                     -> expr builder (TRE, SUnop  (A.UREStar, (TRE, SRE (Star r))))
@@ -372,7 +410,7 @@ let translate (globals, _, functions) =
       | SBinop (_, A.BDFAConcat,    _) -> raise (Prelude.TODO "implement codegen")
       | SBinop (e1, A.BDFAAccepts,   e2) -> L.build_call accepts_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
       | SBinop (e1, A.BDFASimulates, e2) -> L.build_call simulates_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
-      | SBinop (e1, A.BREMatches,    e2) -> L.build_call matches_func [| (expr builder e1) ; (expr builder e2) |] "matches" builder
+      | SBinop (e1, A.BREMatches,    e2) -> L.build_call matches_func [| get_ptr (expr builder e1) builder ; (expr builder e2) |] "matches" builder
       | SBinop (e1, A.BREUnion,      e2) -> build_binop '|'         (expr builder e1) (expr builder e2)       builder
       | SBinop (e1, A.BREConcat,     e2) -> build_binop '^'         (expr builder e1) (expr builder e2)       builder
       | SBinop (e1, A.BREIntersect,  e2) -> build_binop '&'         (expr builder e1) (expr builder e2)       builder
@@ -391,15 +429,20 @@ let translate (globals, _, functions) =
       | SUnop (A.UNeg,    e)             -> L.build_neg             (expr builder e)                    "tmp" builder
       | SUnop (A.UNot,    e)             -> L.build_not             (expr builder e)                    "tmp" builder
       | SUnop (A.URELit,  e)             -> build_lit 'l'           (expr builder e)                          builder
-      | SUnop (A.UREComp, e)             -> build_unop '\\'         (expr builder e)                          builder
+      | SUnop (A.UREComp, e)             -> build_unop '\''          (expr builder e)                          builder
       | SUnop (A.UREStar, e)             -> build_unop '*'          (expr builder e)                          builder
       | SAssign (s, e)          -> let e' = expr builder e in
                                    let _  = L.build_store e' (lookup s) builder in e'
       | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
-      | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf" builder
-      | SCall ("printdfa", [e]) -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf" builder
-      | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf" builder
-      | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr" builder
+      | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf"   builder
+      | SCall ("printdfa", [e]) -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf"   builder
+      | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
+      | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
+      | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder
+      (* | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
+      | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
+       *)
+      | SCall ("litchar",  [e]) -> L.build_call litchar_func  [| get_ptr (expr builder e) builder     |] "litchar"  builder
       | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
                                    in let actuals = List.rev (List.map (expr builder) (List.rev act))
                                    in let result = (match fdecl.styp with
