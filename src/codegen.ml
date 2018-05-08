@@ -123,6 +123,9 @@ let translate (globals, _, functions) =
   in let litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 
+  in let len_t = L.function_type i32_t [| L.pointer_type i8_t |]
+  in let len_func = L.declare_function "len" len_t the_module
+
   in
   (**********************
    *   Build Functions  *
@@ -146,7 +149,7 @@ let translate (globals, _, functions) =
     let (the_function, _) = StringMap.find fdecl.sfname function_decls
     in let builder = L.builder_at_end context (L.entry_block the_function)
 
-    in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
+    in let int_format_str = L.build_global_stringptr "%i\n" "fmt" builder
     in let string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
 
     (* Construct the function's "locals": formal arguments and locally
@@ -438,6 +441,7 @@ let translate (globals, _, functions) =
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder
+      | SCall ("len",      [e]) -> L.build_call len_func   [| (expr builder e) |] "len"   builder
       (* | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
        *)

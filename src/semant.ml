@@ -41,12 +41,13 @@ open Prelude.Prelude
                                                                          ; locals  = []
                                                                          ; body    = []
                                                                          })
-    in let built_ins : (string * func_decl) list = List.map add_bind [ (TUnit, TInt, "print");
-                                                                      (TUnit, TRE, "printr"); 
-                                                                      (TUnit, TDFA, "printdfa"); 
+    in let built_ins : (string * func_decl) list = List.map add_bind [(TUnit, TInt,    "print");
+                                                                      (TUnit, TRE,     "printr"); 
+                                                                      (TUnit, TDFA,    "printdfa"); 
                                                                       (TUnit, TString, "printf");
-                                                                      (TChar, TRE, "litchar");
-                                                                      (TUnit, TBool, "printb") ]
+                                                                      (TChar, TRE,     "litchar");
+                                                                      (TUnit, TBool,   "printb");
+                                                                      (TInt,  TString, "len") ]
     in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
                                                                 ; fname = "matches"
                                                                 ; formals = [(TString, "x") ; (TRE, "y")]

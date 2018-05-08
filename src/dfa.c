@@ -328,6 +328,10 @@ int dfaunion(struct dfa_t * d1, struct dfa_t * d2, struct dfa_t * result){
   return 0;
 }
 
+int len(const char * str){
+  return strlen(str);
+}
+
 #ifdef BUILD_TEST
 int main(){
   printf("Test3---------\n");
