@@ -16,7 +16,6 @@ and sx =
   | SUnop      of uop * sexpr
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
-  | SCase      of expr * ((expr * expr) list)
   | SDFA       of int * char list * int * int list * tranf list
   | SNoexpr
 
@@ -25,6 +24,7 @@ type sstmt =
   | SExpr    of sexpr
   | SReturn  of sexpr
   | SIf      of sexpr * sstmt * sstmt
+  | SCase    of expr * ((expr * expr) list) (* TODO might delete this if SIf is sufficient *)
   | SFor     of sexpr * sexpr * sexpr * sstmt
   | SWhile   of sstmt * sexpr * sstmt
   | SInfloop of sstmt
@@ -44,7 +44,8 @@ type sstmt =
     | Break *)
 
 
-(* evaluate a semantically checked int expression by interpreting it
+(*
+  evaluate a semantically checked int expression by interpreting it
    N.B. this assumes the semantic checking on `s` was done correctly.
    TODO: if I were not under a time crunch, I would explore the idea of implementing this with map_accum_left :)
 *)
@@ -77,7 +78,6 @@ let rec eval_sint (map : int string_map) (s : sx) : (int string_map * int) = mat
   | SStringLit _                     -> raise ABSURD
   | SRE        _                     -> raise ABSURD
   | SBoolLit   _                     -> raise ABSURD
-  | SCase      _                     -> raise ABSURD
   | SDFA       _                     -> raise ABSURD
   | SNoexpr                          -> error "noexpr"
   *)
@@ -164,7 +164,6 @@ and     string_of_sx = function
   | SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
   | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
   | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-  | SCase (e, cases)     -> string_of_expr (Case (e, cases))
   | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
                             "\n alphabet : "    ^ string_of_clist b   ^
                             "\n start : "       ^ string_of_int c     ^
@@ -192,6 +191,7 @@ let rec string_of_sstmt = function
   | SFor (e1, e2, e3, s)  -> "for " ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
   | SWhile (_, e, s)      -> "for " ^ string_of_sexpr e ^ " " ^ string_of_sstmt s
   | SInfloop (s)          -> "for " ^ string_of_sstmt s
+  | SCase (e, cases)      -> string_of_stmt (Case (e, cases))
   | SBreak                -> string_of_stmt Break
   | SContinue             -> string_of_stmt Continue
   | SNostmt               -> ""

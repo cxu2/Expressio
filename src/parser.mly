@@ -147,6 +147,22 @@ stmt:
   | CONTINUE SEMI                           { Continue              }
   | BREAK SEMI                              { Break                 }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
+  | CASE expr        COLON
+    expr CASETO expr COMMA /* TODO can probably make this a list later, but enforcing the correct length (8, one for each of the RegExp constructors) as it is done now may be the better idea  if keeping case expressions restricted to RegExp */
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA
+    expr CASETO expr COMMA                  { Case ($2, [($4,  $6);
+                                                         ($8,  $10);
+                                                         ($12, $14);
+                                                         ($16, $18);
+                                                         ($20, $22);
+                                                         ($24, $26);
+                                                         ($28, $30);
+                                                         ($32, $34)]) }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
   | FOR expr SEMI expr SEMI expr for_body
@@ -187,22 +203,6 @@ expr:
   | expr DFACONCAT  expr                    { Binop ($1, BDFAConcat,    $3) }
   | expr DFASIM     expr                    { Binop ($1, BDFASimulates, $3) }
   | expr DFAACCEPTS expr                    { Binop ($1, BDFAAccepts,   $3) }
-  | CASE expr        COLON
-    expr CASETO expr COMMA /* TODO can probably make this a list later, but enforcing the correct length (8, one for each of the RegExp constructors) as it is done now may be the better idea  if keeping case expressions restricted to RegExp */
-    expr CASETO expr COMMA
-    expr CASETO expr COMMA
-    expr CASETO expr COMMA
-    expr CASETO expr COMMA
-    expr CASETO expr COMMA
-    expr CASETO expr COMMA
-    expr CASETO expr COMMA                  { Case ($2, [($4,  $6);
-                                                         ($8,  $10);
-                                                         ($12, $14);
-                                                         ($16, $18);
-                                                         ($20, $22);
-                                                         ($24, $26);
-                                                         ($28, $30);
-                                                         ($32, $34)])       }
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)               }
   | NOT expr                                { Unop (UNot, $2)               }
   | expr RESTAR                             { Unop (UREStar, $1)            }

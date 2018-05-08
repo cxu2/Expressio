@@ -89,24 +89,6 @@ open Prelude.Prelude
       | CharLit c                                 -> (TChar,   SCharLit c)
       | StringLit s                               -> (TString, SStringLit s)
       | BoolLit l                                 -> (TBool,   SBoolLit l)
-      | Case (e, cases) when fst (expr e) = TRE   -> let lhs = List.map fst cases
-                                                     and rhs = List.map snd cases
-                                                     (* TODO can also check if all cases are matched for basic types *)
-                                                     and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
-                                                     (* ensure that the type of the expression being matched fits into the LHS of the cases *)
-                                                     in let same_lhs_and_e : bool = check_expressions_have_type (type_of_expr e) lhs
-                                                        and type_rhs = type_of_expr (List.hd rhs)
-                                                        (* ensure that the all the types on the RHS of the case are the same *)
-                                                        and same_rhs = function
-                                                              []        -> true
-                                                            | (e :: es) -> check_expressions_have_type (type_of_expr e) es
-                                                     in (if (not same_lhs_and_e)
-                                                         then error "expression and all of LHS must have same type"
-                                                         else (if (not (same_rhs rhs))
-                                                               then error "all of RHS must have same type"
-                                                               else (type_rhs, (SCase (e, cases)))))
-                                                     (* TODO is there an assert here or do I manually check with and and fail on false? *)
-      | Case (_, _)                               -> error "case expressions currently only support regular expressions"
       (* TODO clean this up a bit *)
       | DFA (states1, alpha, start1, final, tran) when fst (expr states1) = TInt
                                                     && fst (expr start1)  = TInt ->
@@ -203,6 +185,34 @@ open Prelude.Prelude
       | (false,   Continue)                                              -> error "\'continue\' is outside of loop"
       | (true,    Break)                                                 -> (true,    SBreak)
       | (true,    Continue)                                              -> (true,    SContinue)
+      (* | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock []) *)
+      (* | (looping, Case (e, cases)) when fst (expr e) = TRE               -> let lhs = List.map fst cases *)
+      | (looping, (Case (e, [(e1, e2);
+                             (e3, e4);
+                             (e5, e6);
+                             (e7, e8)]))) when fst (expr e) = TRE        -> let lhs = [e1; e3; e5; e7]
+                                                                                      (* List.map fst cases *)
+                                                                            and rhs = [e2; e4; e6; e8]
+                                                                                      (* List.map snd cases *)
+                                                                            (* TODO can also check if all cases are matched for basic types *)
+                                                                            and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
+                                                                            (* ensure that the type of the expression being matched fits into the LHS of the cases *)
+                                                                            in let same_lhs_and_e : bool = check_expressions_have_type (type_of_expr e) lhs
+                                                                               (* and type_rhs = type_of_expr (List.hd rhs) *)
+                                                                               (* ensure that the all the types on the RHS of the case are the same *)
+                                                                               and same_rhs = function
+                                                                                     []        -> true
+                                                                                   | (e :: es) -> check_expressions_have_type (type_of_expr e) es
+                                                                            in (if (not same_lhs_and_e)
+                                                                                then error "expression and all of LHS must have same type"
+                                                                                else (if (not (same_rhs rhs))
+                                                                                      then error "all of RHS must have same type"
+                                                                                      (* else (looping, (type_rhs, (SCase (e, cases)))))) *)
+                                                                                      else (looping, let x = SBlock [error "implement"]
+                                                                                        (* (e, cases) *)
+                                                                                                     in x)))
+                                                     (* TODO is there an assert here or do I manually check with and and fail on false? *)
+      | (_,       Case (_, _))                                           -> error "case expressions currently only support regular expressions"
       | (looping, Expr e)                                                -> (looping, SExpr (expr e))
       | (looping, If (p, b1, b2))                                        -> (looping, SIf (check_bool_expr p, snd (check_statement (looping, b1)), snd (check_statement (looping, b2))))
       | (looping, For (e1, e2, e3, s))                                   -> (looping, SFor     (expr e1, check_bool_expr e2, expr e3, snd (check_statement (true, s))))

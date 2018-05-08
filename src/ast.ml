@@ -31,7 +31,6 @@ type expr =
   | Assign    of string * expr
   | Call      of string * expr list
   | DFA       of expr * char list * expr * int list * tranf list
-  | Case      of expr * ((expr * expr) list)
   | Noexpr
 
 type stmt =
@@ -42,6 +41,7 @@ type stmt =
   | For     of expr * expr * expr * stmt
   | Infloop of stmt
   | While   of expr * stmt
+  | Case    of expr * ((expr * expr) list)
   | Continue
   | Break
 
@@ -138,10 +138,7 @@ let rec string_of_expr = function
                             "\n start : "       ^ string_of_expr c    ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
-                            (*raise (Prelude.TODO "string_of case")*)
-                            (* FIXME this is not correct but I'll keep it here for now while I make my own branch *)
-  | Case (e, cs)        -> let cases = String.concat "\n" (List.map (fun (x, y) -> string_of_expr x ^ " -> " ^ string_of_expr y) cs)
-                           in "case " ^ string_of_expr e ^ ":\n" ^ cases
+
   | Noexpr              -> ""
 
 let rec string_of_stmt = function
@@ -153,6 +150,10 @@ let rec string_of_stmt = function
   | For (e1, e2, e3, s) -> "for " ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^ string_of_expr e3 ^ "; " ^ string_of_stmt s
   | While (e, s)        -> "for ;" ^ string_of_expr e ^ "; " ^ string_of_stmt s
   | Infloop (s)         -> "for " ^ string_of_stmt s
+  (*raise (Prelude.TODO "string_of case")*)
+  (* FIXME this is not correct but I'll keep it here for now while I make my own branch *)
+  | Case (e, cs)        -> let cases = String.concat "\n" (List.map (fun (x, y) -> string_of_expr x ^ " -> " ^ string_of_expr y) cs)
+                           in "case " ^ string_of_expr e ^ ":\n" ^ cases
   | Break               -> "break;"
   | Continue            -> "continue;"
 
