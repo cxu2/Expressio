@@ -78,33 +78,33 @@ let translate (globals, _, functions) =
   in let global_vars =
     let global_var m (t, n) =
       let init = L.const_int (ltype_of_typ t) 0
-      in StringMap.add n (L.define_global n init the_module) m in
-    List.fold_left global_var StringMap.empty globals in
+      in StringMap.add n (L.define_global n init the_module) m
+    in List.fold_left global_var StringMap.empty globals
 
 
 
   (***********************
    * Built-in Functions  *
    ***********************)
-  let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
+  and printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |]
   in let printf_func = L.declare_function "printf" printf_t the_module
 
-  in let printr_t = L.function_type i32_t [| L.pointer_type tree_t |]
+  and printr_t = L.function_type i32_t [| L.pointer_type tree_t |]
   in let printr_func = L.declare_function "printr" printr_t the_module
 
-  in let matches_t = L.function_type i1_t [| L.pointer_type i8_t; L.pointer_type tree_t |]
+  and matches_t = L.function_type i1_t [| L.pointer_type i8_t; L.pointer_type tree_t |]
   in let matches_func = L.declare_function "matches" matches_t the_module
 
-  in let printdfa_t = L.function_type i32_t [| L.pointer_type dfa_t |]
+  and printdfa_t = L.function_type i32_t [| L.pointer_type dfa_t |]
   in let printdfa_func = L.declare_function "printdfa" printdfa_t the_module
 
-  in let dfaunion_t = L.function_type i32_t [| (L.pointer_type dfa_t); (L.pointer_type dfa_t); (L.pointer_type dfa_t) |]
+  and dfaunion_t = L.function_type i32_t [| (L.pointer_type dfa_t); (L.pointer_type dfa_t); (L.pointer_type dfa_t) |]
   in let dfaunion_func = L.declare_function "dfaunion" dfaunion_t the_module
 
-  in let accepts_t = L.function_type i1_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
+  and accepts_t = L.function_type i1_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let accepts_func = L.declare_function "accepts" accepts_t the_module
 
-  in let simulates_t = L.function_type i32_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
+  and simulates_t = L.function_type i32_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let simulates_func = L.declare_function "simulates" simulates_t the_module in
 
 
