@@ -463,9 +463,11 @@ let translate (globals, _, functions) =
                                    in L.build_call fdef (Array.of_list actuals) result builder
       | SStringIndex(a,b) -> L.build_call strindex_func [| (L.build_load (lookup a) a builder);  (expr builder b) |] "strindex" builder
       | SStringAppend(a,b) ->  L.build_global_stringptr a "string" builder
-      
-
-
+      | SIntList(a) -> 
+      | SCharList(a) -> 
+      | SBoolList(a) ->  
+      | SStringList(a) ->  
+      | STupleList(a) ->  
 
     in
 
