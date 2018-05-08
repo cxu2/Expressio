@@ -430,15 +430,15 @@ let translate (globals, _, functions) =
     (* Imperative nature of statement processing entails imperative OCaml *)
     (* let rec stmt (builder : L.llbuilder) (x : sstmt) : L.llbuilder = match x with *)
     let rec stmt (builder,callStack) = function
-    	      SBlock sl -> List.fold_left stmt (builder,callStack) sl
+    	      SBlock sl -> List.fold_left stmt (builder, callStack) sl
             (* Generate code for this expression, return resulting builder *)
-          | SExpr e   -> let _ = expr builder e in (builder,callStack)
+          | SExpr e   -> let _ = expr builder e in (builder, callStack)
           | SReturn e -> let _ = match fdecl.styp with
                                     (* Special "return nothing" instr *)
                                     A.TUnit -> L.build_ret_void builder
                                     (* Build return statement *)
                                   | _       -> L.build_ret (expr builder e) builder
-                         in (builder,callStack)
+                         in (builder, callStack)
           (* The order that we create and add the basic blocks for an If statement
           doesnt 'really' matter (seemingly). What hooks them up in the right order
           are the build_br functions used at the end of the then and else blocks (if
@@ -453,13 +453,13 @@ let translate (globals, _, functions) =
              (* Same for "then" basic block *)
     	       in let then_bb      = L.append_block context "then" the_function
              (* Position builder in "then" block and build the statement *)
-             in let (then_builder,_) = stmt ((L.builder_at_end context then_bb),callStack) then_stmt
+             in let (then_builder,_) = stmt ((L.builder_at_end context then_bb), callStack) then_stmt
              (* Add a branch to the "then" block (to the merge block)
                if a terminator doesn't already exist for the "then" block *)
     	       in let ()           = add_terminal then_builder branch_instr
              (* Identical to stuff we did for "then" *)
     	       in let else_bb      = L.append_block context "else" the_function
-             in let (else_builder,_) = stmt ((L.builder_at_end context else_bb),callStack) else_stmt
+             in let (else_builder,_) = stmt ((L.builder_at_end context else_bb), callStack) else_stmt
     	       in let ()           = add_terminal else_builder branch_instr
              (* Generate initial branch instruction perform the selection of "then"
              or "else". Note we're using the builder we had access to at the start
@@ -481,7 +481,7 @@ let translate (globals, _, functions) =
               loop's body, unless we returned or something) *)
               in let body_bb       = L.append_block context "while_body" the_function
               in let callStack = callStack @ [int_bb]
-              in let (while_builder,_) = stmt ((L.builder_at_end context body_bb),callStack) body
+              in let (while_builder,_) = stmt ((L.builder_at_end context body_bb), callStack) body
 
               (* in let int_bb        = L.append_block context "int_bb" the_function  *)
               in let ()            = add_terminal while_builder (L.build_br int_bb)
@@ -498,9 +498,9 @@ let translate (globals, _, functions) =
               in (L.builder_at_end context merge_bb,callStack)
           | SInfloop (body) -> stmt (builder,callStack) ( SBlock [SWhile (SNostmt, (A.TBool, SBoolLit(true)), SBlock [body]) ] )
           (* Implement for loops as while loops! *)
-          | SFor (e1, e2, e3, body) -> stmt (builder,callStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
+          | SFor (e1, e2, e3, body) -> stmt (builder, callStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
           | SContinue               ->
-              if List.length callStack = 0 then (builder,callStack)
+              if List.length callStack = 0 then (builder, callStack)
               else
               let continue_bb       = L.append_block context "continue_bb" the_function
               in let () = add_terminal builder (L.build_br continue_bb)
@@ -514,7 +514,7 @@ let translate (globals, _, functions) =
               in let callStack = List.rev (List.tl (List.rev callStack))
               in (b,callStack)
           | SBreak                  -> raise (Prelude.TODO "implement")
-          | SNostmt                 -> (builder,callStack)
+          | SNostmt                 -> (builder, callStack)
         (* Build the code for each statement in the function *)
         in let (builder,_) = stmt (builder,[]) (SBlock fdecl.sbody)
         (* Add a return if the last block falls off the end *)
