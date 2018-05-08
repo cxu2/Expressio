@@ -6,7 +6,8 @@ open RegExp
 open Prelude
 %}
 
-%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE APPEND ASSIGN 
+%token INTLIST CHARLIST BOOLLIST STRINGLIST TRANFLIST
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR UNIT BOOL CHAR INT STRING
 %token CONTINUE BREAK
@@ -37,6 +38,7 @@ infixr 8 `closure`
 %nonassoc NOELSE
 %nonassoc ELSE
 %right ASSIGN
+%right APPEND
 
 %right CASE
 /* %<assoc> CASETO */
@@ -172,6 +174,18 @@ expr_opt:
     /* nothing */                           { Noexpr }
   | expr                                    { $1 }
 
+expr_list:
+  | expr                                    { [$1] }
+  | expr_list COMMA expr                    { $3 :: $1 }
+
+tranf:
+   LPAREN expr COMMA expr COMMA expr RPAREN        { ($2, $4, $6) }
+tranf_list:
+    /* nothing */                           { [] }
+  | tranf                                    { [$1] }
+  | tranf_list COMMA tranf                    { $3 :: $1 }
+
+
 expr:
     INTLIT                                  { IntLit ($1)                   }
   | BLIT                                    { BoolLit ($1)                  }
@@ -209,7 +223,13 @@ expr:
   | ID ASSIGN expr                          { Assign ($1, $3)               }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)                 }
   | LPAREN expr RPAREN                      { $2                            }
-  | ID LBRAC expr RBRAC                     { StringIndex($3)}
+  | ID LBRAC expr RBRAC                     { StringIndex($1,$3)}
+  | ID APPEND expr                          { StringAppend($1,$3)}
+  | INTLIST LBRAC expr_list RBRAC             { IntList(List.rev $3)}
+  | BOOLLIST LBRAC expr_list RBRAC             { BoolList(List.rev $3)}
+  | CHARLIST LBRAC expr_list RBRAC             { CharList(List.rev $3)}
+  | STRINGLIST LBRAC expr_list RBRAC             { StringList(List.rev $3)}
+  | TRANFLIST LBRAC tranf_list RBRAC             { TupleList(List.rev $3)}
   | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
   INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { DFA ($4, $8, $12, $16, $21)  }

@@ -13,12 +13,13 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 type uop = UNeg | UNot | URELit | UREStar | UREComp
 
 (* Types within the Expressio language *)
-type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE
+type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE | TIntList | TCharList | TBoolList | TStringList | TTupleList
 
 type bind = typ * string
 
 (* transition function *)
 type tranf = int * char * int
+
 
 type expr =
     IntLit    of int
@@ -32,7 +33,13 @@ type expr =
   | Assign    of string * expr
   | Call      of string * expr list
   | DFA       of int * char list * int * int list * tranf list
-  | StringIndex of expr 
+  | StringIndex of string * expr 
+  | StringAppend of string * expr 
+  | IntList of expr list 
+  | CharList of expr list 
+  | BoolList of expr list 
+  | StringList of expr list 
+  | TupleList of (expr * expr * expr) list 
   | Noexpr
 
 type stmt =
@@ -141,7 +148,7 @@ let rec string_of_expr = function
                             "\n start : "       ^ string_of_int c     ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
-  | StringIndex(a)      -> string_of_expr a                        
+  | StringIndex(a,b)      -> ""                        
   | Noexpr              -> ""
 
 let rec string_of_stmt = function

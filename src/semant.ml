@@ -46,6 +46,7 @@ open Prelude.Prelude
                                                                       (TUnit, TDFA, "printdfa"); 
                                                                       (TUnit, TString, "printf");
                                                                       (TChar, TRE, "litchar");
+                                                                      (TUnit, TChar, "printc");
                                                                       (TUnit, TBool, "printb") ]
     in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
                                                                 ; fname = "matches"
@@ -95,7 +96,6 @@ open Prelude.Prelude
 
 
     (* Return a semantically-checked expression, i.e., with a type *)
-    (* in let rec expr = function *)
     in let rec expr (ex : expr) : sexpr = match ex with
         IntLit  l                                 -> (TInt,    SIntLit l)
       | CharLit c                                 -> (TChar,   SCharLit c)
@@ -176,6 +176,47 @@ open Prelude.Prelude
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                       string_of_typ t2 ^ " in " ^ string_of_expr e)
         in (ty, SBinop ((t1, e1'), op, (t2, e2')))
+      | StringIndex(a,b) ->  
+                                 let (rt, e') = expr b
+                                 in let err = "bad string index"
+                               in let _ = check_assign TInt rt err
+                                 in (TChar, SStringIndex (a, (rt, e')))
+      | StringAppend(a,b) -> let (rt, e') = expr b
+                                 in let err = "bad string index"
+                               in let _ = check_assign TString rt err
+                                 in (TString, SStringAppend (a, (rt, e')))
+      | IntList(a) -> (*Check all values in list are int *)
+                    let err = "bad int list" 
+                    in let rec checkTypes = function
+                                   []                       -> check_assign TInt TInt err
+                                 | x :: _                   -> let (rt, e') = expr x in check_assign TInt rt err
+                                 | _ :: tl                  -> checkTypes tl
+                    in let _ = checkTypes a 
+                    in  (TIntList, SIntList (a))
+      | CharList(a) -> (*Check all values in list are int *)
+                    let err = "bad char list" 
+                    in let rec checkTypes = function
+                                   []                       -> check_assign TChar TChar err
+                                 | x :: _                   -> let (rt, e') = expr x in check_assign TChar rt err
+                                 | _ :: tl                  -> checkTypes tl
+                    in let _ = checkTypes a 
+                    in  (TCharList, SCharList (a))
+      | BoolList(a) -> (*Check all values in list are int *)
+                    let err = "bad bool list" 
+                    in let rec checkTypes = function
+                                   []                       -> check_assign TBool TBool err
+                                 | x :: _                   -> let (rt, e') = expr x in check_assign TBool rt err
+                                 | _ :: tl                  -> checkTypes tl
+                    in let _ = checkTypes a 
+                    in  (TBoolList, SBoolList (a))
+      | StringList(a) -> (*Check all values in list are int *)
+                    let err = "bad string list" 
+                    in let rec checkTypes = function
+                                   []                       -> check_assign TString TString err
+                                 | x :: _                   -> let (rt, e') = expr x in check_assign TString rt err
+                                 | _ :: tl                  -> checkTypes tl
+                    in let _ = checkTypes a 
+                    in  (TStringList, SStringList (a))
       | Call (fname, args) as call ->
           let fd              = find_func fname
           in let param_length = List.length fd.formals

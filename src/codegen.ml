@@ -95,7 +95,10 @@ let translate (globals, _, functions) =
   in let printf_func = L.declare_function "printf" printf_t the_module
 
   in let printb_t = L.function_type i32_t [| i1_t |]
-  in let printb_func = L.declare_function "printb" printb_t the_module 
+  in let printb_func = L.declare_function "printb" printb_t the_module
+
+  in let printc_t = L.function_type i32_t [| i8_t |]
+  in let printc_func = L.declare_function "printc" printc_t the_module
 
   in let printr_t = L.function_type i32_t [| L.pointer_type tree_t |]
   in let printr_func = L.declare_function "printr" printr_t the_module
@@ -123,6 +126,12 @@ let translate (globals, _, functions) =
   in let litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 
+   in let strindex_t = L.function_type i8_t [| L.pointer_type i8_t; i32_t|]
+  in let strindex_func = L.declare_function "strindex" strindex_t the_module
+
+(*   in let strappend_t = L.function_type i32_t [| L.pointer_type i8_t; i32_t|]
+  in let strappend_func = L.declare_function "strappend" strappend_t the_module *)
+
   in
   (**********************
    *   Build Functions  *
@@ -148,6 +157,7 @@ let translate (globals, _, functions) =
 
     in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
     in let string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
+    in let char_format_cr = L.build_global_stringptr "%c\n" "fmt" builder
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -194,6 +204,7 @@ let translate (globals, _, functions) =
 
     in let arr_ptr a b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t 0|] "arr" b
     in let get_arr_idx a i b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t i|] "arr" b
+  in let string_indexing a i b =  L.build_in_bounds_gep a [| L.const_int i32_t 0; i|] "arr" b
     in let insert_elt a v i b = L.build_store v (get_arr_idx a i b) b
 
     in let get_struct_idx s i b = L.build_struct_gep s i "structelt" b
@@ -341,23 +352,23 @@ let translate (globals, _, functions) =
       L.build_load dfa_ptr "dfa_loaded" b in
 
 
-    let build_dfaunion d1 d2 b = 
+    let build_dfaunion d1 d2 b =
       let d1_ptr = get_ptr d1 b
       and d2_ptr = get_ptr d2 b in
 
       let n1 =   L.build_load (get_struct_idx d1_ptr 0 b) "d1.nstates"  b
-      and n2 =   L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates"  b 
-      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"  b 
+      and n2 =   L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates"  b
+      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"  b
       and f1 =   L.build_load (get_struct_idx d1_ptr 5 b) "d2.nsfin"  b
       and f2 =   L.build_load (get_struct_idx d2_ptr 5 b) "d2.nfin"  b in
 
       let one = L.const_int i32_t 1 in
 
       let ns = (L.build_mul (L.build_add n1 one "++" b) (L.build_add n2 one "++" b) "mul" b)
-      and nfin = (L.build_sub 
-                    (L.build_add 
+      and nfin = (L.build_sub
+                    (L.build_add
                         (L.build_mul f1 (L.build_add n2 one "++" b) "mult" b) (L.build_mul f2 (L.build_add n1 one "++" b) "mult" b)
-                    "add" b) 
+                    "add" b)
                   (L.build_mul f1 f2 "mul" b) "sub" b) in
 
       (*Define llvm "array types"*)
@@ -434,10 +445,12 @@ let translate (globals, _, functions) =
                                    let _  = L.build_store e' (lookup s) builder in e'
       | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
       | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf"   builder
+      | SCall ("printc",    [e]) -> L.build_call printf_func   [| char_format_cr ; (expr builder e)    |] "printf"   builder
       | SCall ("printdfa", [e]) -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf"   builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder
+      (* | SCall ("printc",   [e]) -> L.build_call printc_func   [| (expr builder e) |] "printc" builder *)
       (* | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
        *)
@@ -448,6 +461,12 @@ let translate (globals, _, functions) =
                                                       A.TUnit -> ""
                                                     | _       -> f ^ "_result")
                                    in L.build_call fdef (Array.of_list actuals) result builder
+      | SStringIndex(a,b) -> L.build_call strindex_func [| (L.build_load (lookup a) a builder);  (expr builder b) |] "strindex" builder
+      | SStringAppend(a,b) ->  L.build_global_stringptr a "string" builder
+      
+
+
+
     in
 
     (* Each basic block in a program ends with a "terminator" instruction i.e.

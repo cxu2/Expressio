@@ -17,6 +17,13 @@ and sx =
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
   | SDFA       of int * char list * int * int list * tranf list
+  | SStringIndex of string * sexpr 
+  | SStringAppend of string * sexpr
+  | SIntList of expr list  
+  | SCharList of expr list 
+  | SBoolList of expr list 
+  | SStringList of expr list 
+  | STupleList of (expr * expr * expr) list 
   | SNoexpr
 
 type sstmt =

@@ -31,6 +31,15 @@ int printb(bool res) {
   return 0;
 }
 
+int printc(char c){
+  printf("%c\n",c);
+  return 0;
+}
+
+char strindex(const char * str, int i) {
+  return str[i];
+}
+
 
 int printr_helper(tree_t* regex_ptr) {
   if (regex_ptr -> operator == 'n') {
