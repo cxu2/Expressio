@@ -32,6 +32,7 @@ type expr =
   | Assign    of string * expr
   | Call      of string * expr list
   | DFA       of int * char list * int * int list * tranf list
+  | StringIndex of expr 
   | Noexpr
 
 type stmt =
@@ -140,6 +141,7 @@ let rec string_of_expr = function
                             "\n start : "       ^ string_of_int c     ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
+  | StringIndex(a)      -> string_of_expr a                        
   | Noexpr              -> ""
 
 let rec string_of_stmt = function
