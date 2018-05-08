@@ -148,22 +148,22 @@ stmt:
   | BREAK SEMI                              { Break                 }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
   | CASE expr       COLON
-    REEMPTY         CASETO expr COMMA /* TODO can probably make this a list later, but enforcing the correct length (8, one for each of the RegExp constructors) as it is done now may be the better idea  if keeping case expressions restricted to RegExp */
+    REEMPTY         CASETO expr COMMA
     REEPS           CASETO expr COMMA
     RELIT expr      CASETO expr COMMA
     expr REAND expr CASETO expr COMMA
     expr REOR  expr CASETO expr COMMA
     expr RECAT expr CASETO expr COMMA
     RECOMP expr     CASETO expr COMMA
-    expr RESTAR     CASETO expr SEMI        { Case ($2, [(RE (RegExp.Zero),               $6 );
-                                                         (RE (RegExp.One),                $10);
+    expr RESTAR     CASETO expr SEMI        { Case ($2, [(RE RegExp.Zero,                 $6 );
+                                                         (RE RegExp.One,                  $10);
                                                          (Unop  (     URELit,       $13), $15);
                                                          (Binop ($17, BREIntersect, $19), $21);
                                                          (Binop ($23, BREUnion,     $25), $27);
                                                          (Binop ($29, BREConcat,    $31), $33);
                                                          (Unop  (     UREComp,      $36), $38);
                                                          (Unop  (     UREStar,      $40), $43)
-                                                         ]) }
+                                                         ])         }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
   | FOR expr SEMI expr SEMI expr for_body
