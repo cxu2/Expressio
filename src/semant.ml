@@ -34,7 +34,7 @@ open Prelude.Prelude
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
-    in let built_in_decls : func_decl string_map =
+    and built_in_decls : func_decl string_map =
     let add_bind ((ty, name) : bind) : (string * func_decl) = (name, { typ     = TUnit
                                                                      ; fname   = name
                                                                      ; formals = [(ty, "x")]
@@ -62,7 +62,7 @@ open Prelude.Prelude
 
   in let _ = find_func "main" (* Ensure "main" is defined *)
 
-  in let check_function (func : func_decl) : sfunc_decl =
+  and check_function (func : func_decl) : sfunc_decl =
     (* Make sure no formals or locals are void or duplicates *)
     let formals' : bind list = check_binds "formal" func.formals
     and locals'  : bind list = check_binds "local"  func.locals
@@ -125,8 +125,8 @@ open Prelude.Prelude
                                     (* check transition table is actually a function (one to one mapping) *)
                                     and     oneToOne map = function
                                       []                 -> false
-                                    | (t1, t2, t3) :: tl -> let    combo      = string_of_int t1 ^ String.make 1 t2
-                                                            in let finalState = string_of_int t3
+                                    | (t1, t2, t3) :: tl -> let combo      = string_of_int t1 ^ String.make 1 t2
+                                                            and finalState = string_of_int t3
                                                             in if StringMap.mem combo map then true else oneToOne (StringMap.add combo finalState map) tl
                                  in if checkStart &&  checkFinal && checkTran && oneToOne StringMap.empty tran
                                     then error "DFA invalid"

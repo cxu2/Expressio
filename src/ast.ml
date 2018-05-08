@@ -107,9 +107,8 @@ let rec string_of_intlist = function
   | [last]        -> string_of_int last
   | first :: rest -> string_of_int first ^ ", " ^ string_of_intlist rest
 
-let string_of_tranf tranf =
-  let (one, two, three) = tranf in
-  "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
+let string_of_tranf (one, two, three) =
+    "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
 
 let rec string_of_tlist = function
     []            -> ""
