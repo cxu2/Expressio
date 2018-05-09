@@ -211,6 +211,7 @@ expr:
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)               }
   | NOT expr                                { Unop (UNot, $2)               }
   | expr RESTAR                             { Unop (UREStar, $1)            }
+  | RECOMP expr                             { Unop (UREComp, $2)            }
   | ID ASSIGN expr                          { Assign ($1, $3)               }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)                 }
   | LPAREN expr RPAREN                      { $2                            }

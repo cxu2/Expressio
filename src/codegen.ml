@@ -112,6 +112,9 @@ let translate (globals, _, functions) =
   in let dfaunion_t = L.function_type i32_t [| (L.pointer_type dfa_t); (L.pointer_type dfa_t); (L.pointer_type dfa_t) |]
   in let dfaunion_func = L.declare_function "dfaunion" dfaunion_t the_module
 
+  in let dfaconcat_t = L.function_type i32_t [| (L.pointer_type dfa_t); (L.pointer_type dfa_t); (L.pointer_type dfa_t) |]
+  in let dfaconcat_func = L.declare_function "dfaconcat" dfaconcat_t the_module
+
   in let accepts_t = L.function_type i1_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let accepts_func = L.declare_function "accepts" accepts_t the_module
 
@@ -134,6 +137,8 @@ let translate (globals, _, functions) =
 
 (*   in let strappend_t = L.function_type i32_t [| L.pointer_type i8_t; i32_t|]
   in let strappend_func = L.declare_function "strappend" strappend_t the_module *)
+  in let len_t = L.function_type i32_t [| L.pointer_type i8_t |]
+  in let len_func = L.declare_function "len" len_t the_module
 
   in
   (**********************
@@ -158,7 +163,7 @@ let translate (globals, _, functions) =
     let (the_function, _) = StringMap.find fdecl.sfname function_decls
     in let builder = L.builder_at_end context (L.entry_block the_function)
 
-    in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
+    in let int_format_str = L.build_global_stringptr "%i\n" "fmt" builder
     in let string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
     in let char_format_cr = L.build_global_stringptr "%c\n" "fmt" builder
 
@@ -394,6 +399,42 @@ let translate (globals, _, functions) =
       ignore(L.build_call dfaunion_func [| d1_ptr; d2_ptr; dfa_ptr |] "dfaunion" b);
       L.build_load dfa_ptr "dfa_loaded" b in
 
+    let build_dfaconcat d1 d2 b =
+      let d1_ptr = get_ptr d1 b
+      and d2_ptr = get_ptr d2 b in
+
+      let n1 =   L.build_load (get_struct_idx d1_ptr 0 b) "d1.nstates"  b
+      and n2 =   L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates"  b
+      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"  b
+      and f1 =   L.build_load (get_struct_idx d1_ptr 5 b) "d2.nsfin"  b
+      and f2 =   L.build_load (get_struct_idx d2_ptr 5 b) "d2.nfin"  b in
+
+      let one = L.const_int i32_t 1 in
+
+      let ns = (L.build_add n1 (L.build_mul (L.build_sub n2 one "minus" b) f1 "mul" b) "add" b)
+      and nfin = (L.build_mul f1 f2 "mult" b) in
+
+      (*Define llvm "array types"*)
+      let alpha_t = L.array_type i8_t 1
+      and fin_t = L.array_type i32_t 1 in
+      let delta_t = L.array_type i32_t 1 in
+
+      (*Allocating space and getting pointers*)
+      let dfa_ptr = L.build_malloc dfa_t "dfa" b in
+      let alpha_ptr = L.build_array_malloc alpha_t nsym "alpha" b in
+      let fin_ptr = L.build_array_malloc fin_t nfin "fin" b in
+      let delta_ptr = L.build_array_malloc delta_t (L.build_mul ns nsym "mul" b) "delta" b in
+
+      ignore(L.build_store ns                    (get_struct_idx dfa_ptr 0 b) b);
+      ignore(L.build_store (arr_ptr alpha_ptr b) (get_struct_idx dfa_ptr 1 b) b);
+      ignore(L.build_store nsym                  (get_struct_idx dfa_ptr 2 b) b);
+      ignore(L.build_store (arr_ptr fin_ptr   b) (get_struct_idx dfa_ptr 4 b) b);
+      ignore(L.build_store nfin                  (get_struct_idx dfa_ptr 5 b) b);
+      ignore(L.build_store (arr_ptr delta_ptr b) (get_struct_idx dfa_ptr 6 b) b);
+      ignore(L.build_call dfaconcat_func [| d1_ptr; d2_ptr; dfa_ptr |] "dfaconcat" b);
+      L.build_load dfa_ptr "dfa_loaded" b in
+
+
     (*************************
      *   Expression Builder  *
      *************************)
@@ -421,7 +462,7 @@ let translate (globals, _, functions) =
       | STernary (s,e1,e2,_)           -> L.build_call trans_func [| (lookup s); expr builder e1;  (expr builder e2)   |] "trans"   builder
       | SBinop (_,  A.BCase,          _) -> raise (Prelude.TODO "implement codegen")
       | SBinop (e1, A.BDFAUnion,     e2) -> build_dfaunion (expr builder e1) (expr builder e2)                builder
-      | SBinop (_, A.BDFAConcat,    _) -> raise (Prelude.TODO "implement codegen")
+      | SBinop (e1, A.BDFAConcat,    e2) -> build_dfaconcat (expr builder e1) (expr builder e2)                builder
       | SBinop (e1, A.BDFAAccepts,   e2) -> L.build_call accepts_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
       | SBinop (e1, A.BDFASimulates, e2) -> L.build_call simulates_func [| (get_ptr (expr builder e1) builder); (expr builder e2) |] "accepts" builder
       | SBinop (e1, A.BREMatches,    e2) -> L.build_call matches_func [| get_ptr (expr builder e1) builder ; (expr builder e2) |] "matches" builder
@@ -456,7 +497,7 @@ let translate (globals, _, functions) =
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder
-      (* | SCall ("printc",   [e]) -> L.build_call printc_func   [| (expr builder e) |] "printc" builder *)
+      | SCall ("len",      [e]) -> L.build_call len_func   [| (expr builder e) |] "len"   builder
       (* | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
        *)
