@@ -67,7 +67,7 @@ tree_t* lefttok(tree_t* regex_ptr) {
     printf("lit does not have a left token\n");
     exit(1);
   }
-  printf("top operator is %c\n", regex_ptr -> operator);
+  // printf("top operator is %c\n", regex_ptr -> operator);
   return (tree_t *)(regex_ptr -> left);
 }
 
@@ -87,7 +87,7 @@ char litchar(tree_t* regex_ptr) {
     printf("cannot get char from non-lit regexp, operator has type %d\n", regex_ptr -> operator);
     exit(1);
   } else {
-    printf("char is: %c\n", regex_ptr -> character);
+    // printf("char is: %c\n", regex_ptr -> character);
     return regex_ptr -> character;
   }
 }
