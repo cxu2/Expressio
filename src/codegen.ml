@@ -112,13 +112,14 @@ let translate (globals, _, functions) =
   and lefttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
   in let lefttok_func = L.declare_function "lefttok" lefttok_t the_module
 
-  and righttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
+  and righttok_t = L.function_type (ltype_of_typ TRE) [| L.pointer_type tree_t |]
   in let righttok_func = L.declare_function "righttok" righttok_t the_module
 
-  in let litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
+  and litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 
-
+  and outer_t = L.function_type (ltype_of_typ TChar) [| L.pointer_type (ltype_of_typ TRE) |]
+  in let outer_func = L.declare_function "outer" outer_t the_module
   (**********************
    *   Build Functions  *
    **********************)
@@ -441,6 +442,7 @@ let translate (globals, _, functions) =
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e)                     |] "printb"   builder
+      | SCall ("outer",    [e]) -> L.build_call outer_func    [| raise (Prelude.TODO "")              |] "outer"    builder
 
       | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
