@@ -149,8 +149,8 @@ open RegExp
       | Unop (UREStar, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREStar ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Unop (UREComp, e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
       | Unop (UREComp, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
-      | Unop (UREOut,  e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
-      | Unop (UREOut,  e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREOut  ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
+      (* | Unop (UREOut,  e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e)) *)
+      (* | Unop (UREOut,  e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREOut  ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex) *)
       | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2
@@ -170,7 +170,7 @@ open RegExp
                         | BGeq          when same      && t1 = TInt    -> TBool
                         | BAnd
                         | BOr           when same      && t1 = TBool   -> TBool
-                        | BREEqual      when same      && t1 = TRE     -> TBool
+                        (* | BREEqual      when same      && t1 = TRE     -> TBool *)
                         | BREUnion
                         | BREConcat
                         | BREIntersect  when same      && t1 = TRE     -> TRE
