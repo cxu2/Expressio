@@ -42,12 +42,12 @@ open RegExp
                                                                          ; locals  = []
                                                                          ; body    = []
                                                                          })
-    in let built_ins : (string * func_decl) list = List.map add_bind [ (TUnit, TInt, "print");
-                                                                      (TUnit, TRE, "printr");
-                                                                      (TUnit, TDFA, "printdfa");
+    in let built_ins : (string * func_decl) list = List.map add_bind [(TUnit, TInt,    "print");
+                                                                      (TUnit, TRE,     "printr");
+                                                                      (TUnit, TDFA,    "printdfa");
                                                                       (TUnit, TString, "printf");
-                                                                      (TChar, TRE, "litchar");
-                                                                      (TUnit, TBool, "printb") ]
+                                                                      (TChar, TRE,     "litchar");
+                                                                      (TUnit, TBool,   "printb") ]
     in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
                                                                 ; fname = "matches"
                                                                 ; formals = [(TString, "x") ; (TRE, "y")]
@@ -146,7 +146,7 @@ open RegExp
       | Unop (UREComp, e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
       | Unop (UREComp, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Unop (UREOut,  e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
-      | Unop (UREOut,  e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREOut ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
+      | Unop (UREOut,  e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREOut  ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2
