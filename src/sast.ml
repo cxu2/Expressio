@@ -17,12 +17,8 @@ and sx =
   | SAssign    of string * sexpr
   | SCall      of string * sexpr list
   | SDFA       of int * char list * int * int list * tranf list
-  | SStringIndex of string * sexpr 
-  | SIntList of expr list  
-  | SCharList of expr list 
-  | SBoolList of expr list 
-  | SStringList of expr list 
-  | STupleList of (expr * expr * expr) list 
+  | SStringIndex of string * sexpr
+  | STernary  of string * sexpr * sexpr * top
   | SNoexpr
 
 type sstmt =
@@ -134,6 +130,8 @@ let rec string_of_sexpr (t, e) =
                                                               "\n final : "       ^ string_of_intlist d ^
                                                               "\n transitions : " ^ string_of_tlist e   ^ "\n }"
                                     | SNoexpr            -> ""
+                                    | SStringIndex(_,_)       -> ""
+                                    | STernary(_,_,_,_)           -> ""
                                    ) ^ ")"
 
 (* let rec string_of_stmt = function

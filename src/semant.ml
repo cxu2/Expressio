@@ -42,8 +42,8 @@ open Prelude.Prelude
                                                                          ; body    = []
                                                                          })
     in let built_ins : (string * func_decl) list = List.map add_bind [ (TUnit, TInt, "print");
-                                                                      (TUnit, TRE, "printr"); 
-                                                                      (TUnit, TDFA, "printdfa"); 
+                                                                      (TUnit, TRE, "printr");
+                                                                      (TUnit, TDFA, "printdfa");
                                                                       (TUnit, TString, "printf");
                                                                       (TChar, TRE, "litchar");
                                                                       (TUnit, TChar, "printc");
@@ -177,13 +177,18 @@ open Prelude.Prelude
                         | BDFAAccepts   when t1 = TDFA && t2 = TString -> TBool
                         | BDFASimulates when t1 = TDFA && t2 = TString -> TInt
                         | BDFAUnion     when t1 = TDFA && t2 = TDFA    -> TDFA
-                        | BStrAppend    when t1 = TString && t2 = TString -> TString
+                        (* | BStrAppend    when t1 = TString && t2 = TString -> TString *)
                         | BCase        -> raise (TODO "implement BCase in semant")
                         | _ -> error ("illegal binary operator " ^
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                       string_of_typ t2 ^ " in " ^ string_of_expr e)
         in (ty, SBinop ((t1, e1'), op, (t2, e2')))
-      | StringIndex(a,b) ->  
+      | Ternary(s,e1,e2,op) ->
+          let (t1, e1') = expr e1
+          and (t2, e2') = expr e2
+          (* and (t3, e3') = expr e3 *)
+          in (TInt,STernary (s,(t1, e1'), (t2, e2'),op))
+      | StringIndex(a,b) ->
                                  let (rt, e') = expr b
                                  in let err = "bad string index"
                                in let _ = check_assign TInt rt err
@@ -192,38 +197,6 @@ open Prelude.Prelude
                                  in let err = "bad string index"
                                in let _ = check_assign TString rt err
                                  in (TString, SStringAppend (a, (rt, e'))) *)
-      | IntList(a) -> (*Check all values in list are int *)
-                    let err = "bad int list" 
-                    in let rec checkTypes = function
-                                   []                       -> check_assign TInt TInt err
-                                 | x :: _                   -> let (rt, e') = expr x in check_assign TInt rt err
-                                 | _ :: tl                  -> checkTypes tl
-                    in let _ = checkTypes a 
-                    in  (TIntList, SIntList (a))
-      | CharList(a) -> (*Check all values in list are int *)
-                    let err = "bad char list" 
-                    in let rec checkTypes = function
-                                   []                       -> check_assign TChar TChar err
-                                 | x :: _                   -> let (rt, e') = expr x in check_assign TChar rt err
-                                 | _ :: tl                  -> checkTypes tl
-                    in let _ = checkTypes a 
-                    in  (TCharList, SCharList (a))
-      | BoolList(a) -> (*Check all values in list are int *)
-                    let err = "bad bool list" 
-                    in let rec checkTypes = function
-                                   []                       -> check_assign TBool TBool err
-                                 | x :: _                   -> let (rt, e') = expr x in check_assign TBool rt err
-                                 | _ :: tl                  -> checkTypes tl
-                    in let _ = checkTypes a 
-                    in  (TBoolList, SBoolList (a))
-      | StringList(a) -> (*Check all values in list are int *)
-                    let err = "bad string list" 
-                    in let rec checkTypes = function
-                                   []                       -> check_assign TString TString err
-                                 | x :: _                   -> let (rt, e') = expr x in check_assign TString rt err
-                                 | _ :: tl                  -> checkTypes tl
-                    in let _ = checkTypes a 
-                    in  (TStringList, SStringList (a))
       | Call (fname, args) as call ->
           let fd              = find_func fname
           in let param_length = List.length fd.formals

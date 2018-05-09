@@ -50,7 +50,6 @@ rule token = parse
 | '/'           { DIVIDE }
 | '='           { ASSIGN }
 | "=="          { EQ }
-| "+="			{ APPEND }
 | "!="          { NEQ }
 | '<'           { LT }
 | "<="          { LEQ }

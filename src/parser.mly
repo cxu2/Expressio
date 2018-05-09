@@ -6,7 +6,7 @@ open RegExp
 open Prelude
 %}
 
-%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE APPEND ASSIGN 
+%token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token INTLIST CHARLIST BOOLLIST STRINGLIST TRANFLIST
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR UNIT BOOL CHAR INT STRING
@@ -38,6 +38,7 @@ infixr 8 `closure`
 %nonassoc NOELSE
 %nonassoc ELSE
 %right ASSIGN
+%right APPEND
 
 %right CASE
 /* %<assoc> CASETO */
@@ -173,17 +174,6 @@ expr_opt:
     /* nothing */                           { Noexpr }
   | expr                                    { $1 }
 
-expr_list:
-  | expr                                    { [$1] }
-  | expr_list COMMA expr                    { $3 :: $1 }
-
-tranf:
-   LPAREN expr COMMA expr COMMA expr RPAREN        { ($2, $4, $6) }
-tranf_list:
-    /* nothing */                           { [] }
-  | tranf                                    { [$1] }
-  | tranf_list COMMA tranf                    { $3 :: $1 }
-
 
 expr:
     INTLIT                                  { IntLit ($1)                   }
@@ -194,6 +184,7 @@ expr:
   | RELIT expr                              { Unop (URELit, $2)             }
   | REEMPTY                                 { RE RegExp.Zero                }
   | REEPS                                   { RE RegExp.One                 }
+  | LPAREN expr COMMA expr RPAREN ARROW ID  { Ternary($7,$2,$4,Tick) }
   | expr PLUS       expr                    { Binop ($1, BAdd,          $3) }
   | expr MINUS      expr                    { Binop ($1, BSub,          $3) }
   | expr TIMES      expr                    { Binop ($1, BMult,         $3) }
@@ -214,7 +205,7 @@ expr:
   | expr DFACONCAT  expr                    { Binop ($1, BDFAConcat,    $3) }
   | expr DFASIM     expr                    { Binop ($1, BDFASimulates, $3) }
   | expr DFAACCEPTS expr                    { Binop ($1, BDFAAccepts,   $3) }
-  | expr APPEND expr                        { Binop ($1, BStrAppend,   $3) }
+  //| expr APPEND expr                        { Binop ($1, BStrAppend,   $3) }
   /* The line which follows should probably be CASE X OF Y, but this is tough to add without conflicts */
   | expr CASE COLON expr                    { Binop ($1, BCase,         $4) }
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)               }
@@ -224,11 +215,6 @@ expr:
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)                 }
   | LPAREN expr RPAREN                      { $2                            }
   | ID LBRAC expr RBRAC                     { StringIndex($1,$3)}
-  | INTLIST LBRAC expr_list RBRAC             { IntList(List.rev $3)}
-  | BOOLLIST LBRAC expr_list RBRAC             { BoolList(List.rev $3)}
-  | CHARLIST LBRAC expr_list RBRAC             { CharList(List.rev $3)}
-  | STRINGLIST LBRAC expr_list RBRAC             { StringList(List.rev $3)}
-  | TRANFLIST LBRAC tranf_list RBRAC             { TupleList(List.rev $3)}
   | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
   INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
                                             { DFA ($4, $8, $12, $16, $21)  }

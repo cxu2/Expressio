@@ -98,7 +98,7 @@ let translate (globals, _, functions) =
   in let printb_func = L.declare_function "printb" printb_t the_module
 
   in let printc_t = L.function_type i32_t [| i8_t |]
-  in let printc_func = L.declare_function "printc" printc_t the_module
+  in let _ = L.declare_function "printc" printc_t the_module
 
   in let printr_t = L.function_type i32_t [| L.pointer_type tree_t |]
   in let printr_func = L.declare_function "printr" printr_t the_module
@@ -207,7 +207,7 @@ let translate (globals, _, functions) =
 
     in let arr_ptr a b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t 0|] "arr" b
     in let get_arr_idx a i b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t i|] "arr" b
-  in let string_indexing a i b =  L.build_in_bounds_gep a [| L.const_int i32_t 0; i|] "arr" b
+  (* in let string_indexing a i b =  L.build_in_bounds_gep a [| L.const_int i32_t 0; i|] "arr" b *)
     in let insert_elt a v i b = L.build_store v (get_arr_idx a i b) b
 
     in let get_struct_idx s i b = L.build_struct_gep s i "structelt" b
@@ -418,6 +418,7 @@ let translate (globals, _, functions) =
       | SRE (Mult (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREConcat,    (TRE, SRE b)))
       | SRE (And  (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREIntersect, (TRE, SRE b)))
       | SRE (Plus (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREUnion,     (TRE, SRE b)))
+      | STernary (s,e1,e2,_)           -> L.build_call trans_func [| (lookup s); expr builder e1;  (expr builder e2)   |] "trans"   builder
       | SBinop (_,  A.BCase,          _) -> raise (Prelude.TODO "implement codegen")
       | SBinop (e1, A.BDFAUnion,     e2) -> build_dfaunion (expr builder e1) (expr builder e2)                builder
       | SBinop (_, A.BDFAConcat,    _) -> raise (Prelude.TODO "implement codegen")
@@ -468,10 +469,10 @@ let translate (globals, _, functions) =
                                    in L.build_call fdef (Array.of_list actuals) result builder
       | SStringIndex(a,b) -> L.build_call strindex_func [| (L.build_load (lookup a) a builder);  (expr builder b) |] "strindex" builder
       (* | SStringAppend(a,b) ->  L.build_global_stringptr a "string" builder *)
-  (*     | SIntList(a) -> 
-      | SCharList(a) -> 
-      | SBoolList(a) ->  
-      | SStringList(a) ->  
+  (*     | SIntList(a) ->
+      | SCharList(a) ->
+      | SBoolList(a) ->
+      | SStringList(a) ->
       | STupleList(a) ->   *)
 
     in
