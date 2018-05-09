@@ -11,6 +11,9 @@ main : -> int {
   regexp w;
   regexp s;
 
+  regexp i;
+  regexp j;
+
   zero  = {.};
   one = {{.}};
   printr(zero);
@@ -24,7 +27,10 @@ main : -> int {
   w = y & t;
   s = w **;
 
-  printr(s);
+  i = 'x;
+  j = s & i;
+
+  printr(j);
 
   return (0);
 }

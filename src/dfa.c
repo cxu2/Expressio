@@ -92,6 +92,9 @@ void destruct(struct dfa_t d){
 //returns if state is in dfa
 int hasState(struct dfa_t *dfa, int id){
   if(id < dfa->nstates){
+    if(id < 0){
+      return 0;
+    }
     return 1;
   }
   return 0;
@@ -128,9 +131,9 @@ int link(struct dfa_t dfa, int from, int to, char sym){
 // follows transition from s on input
 // returns a pointer to the resulting state
 // returns -1 when no transition exists
-int transition(struct dfa_t *d, int curr_state, char input){
+int trans(struct dfa_t *d, int curr_state, char input){
   int sym_pos = IntOfSymbol(d, input);
-  if(hasState(d, curr_state && (sym_pos != -1))){
+  if(hasState(d, curr_state) && (sym_pos != -1)){
     return d->delta[idx(curr_state, sym_pos, d->nsym)];
   }
   return -1;
@@ -141,7 +144,7 @@ int simulates(struct dfa_t *dfa, char *input){
   int nxt = dfa->init;
   for(int i = 0; i < strlen(input); i++){
     if(nxt != -1) {
-      nxt = transition(dfa, nxt, input[i]);
+      nxt = trans(dfa, nxt, input[i]);
     } else {
      // printf("Sent to failure state\n");
       return -1;
@@ -400,8 +403,8 @@ int main(){
   printf("PASS\n");
 
   printf("Transitions...\n");
-  assert(transition(&test3, 1, 'e') == 2);
-  assert(transition(&test3, 1, 'q') == -1);
+  assert(trans(&test3, 1, 'e') == 2);
+  assert(trans(&test3, 1, 'q') == -1);
   printf("PASS\n");
 
   printf("Evaluate...\n");

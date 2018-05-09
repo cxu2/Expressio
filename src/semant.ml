@@ -41,13 +41,13 @@ open Prelude.Prelude
                                                                          ; locals  = []
                                                                          ; body    = []
                                                                          })
-    in let built_ins : (string * func_decl) list = List.map add_bind [(TUnit, TInt,    "print");
-                                                                      (TUnit, TRE,     "printr"); 
-                                                                      (TUnit, TDFA,    "printdfa"); 
+    in let built_ins : (string * func_decl) list = List.map add_bind [ (TUnit, TInt, "print");
+                                                                      (TUnit, TRE, "printr");
+                                                                      (TUnit, TDFA, "printdfa");
                                                                       (TUnit, TString, "printf");
-                                                                      (TChar, TRE,     "litchar");
-                                                                      (TUnit, TBool,   "printb");
-                                                                      (TInt,  TString, "len") ]
+                                                                      (TChar, TRE, "litchar");
+                                                                      (TUnit, TChar, "printc");
+                                                                      (TUnit, TBool, "printb") ]
     in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
                                                                 ; fname = "matches"
                                                                 ; formals = [(TString, "x") ; (TRE, "y")]
@@ -102,7 +102,6 @@ open Prelude.Prelude
 
 
     (* Return a semantically-checked expression, i.e., with a type *)
-    (* in let rec expr = function *)
     in let rec expr (ex : expr) : sexpr = match ex with
         IntLit  l                                 -> (TInt,    SIntLit l)
       | CharLit c                                 -> (TChar,   SCharLit c)
@@ -184,6 +183,20 @@ open Prelude.Prelude
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                       string_of_typ t2 ^ " in " ^ string_of_expr e)
         in (ty, SBinop ((t1, e1'), op, (t2, e2')))
+      | Ternary(s,e1,e2,op) ->
+          let (t1, e1') = expr e1
+          and (t2, e2') = expr e2
+          (* and (t3, e3') = expr e3 *)
+          in (TInt,STernary (s,(t1, e1'), (t2, e2'),op))
+      | StringIndex(a,b) ->
+                                 let (rt, e') = expr b
+                                 in let err = "bad string index"
+                               in let _ = check_assign TInt rt err
+                                 in (TChar, SStringIndex (a, (rt, e')))
+(*       | StringAppend(a,b) -> let (rt, e') = expr b
+                                 in let err = "bad string index"
+                               in let _ = check_assign TString rt err
+                                 in (TString, SStringAppend (a, (rt, e'))) *)
       | Call (fname, args) as call ->
           let fd              = find_func fname
           in let param_length = List.length fd.formals

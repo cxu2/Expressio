@@ -95,7 +95,10 @@ let translate (globals, _, functions) =
   in let printf_func = L.declare_function "printf" printf_t the_module
 
   in let printb_t = L.function_type i32_t [| i1_t |]
-  in let printb_func = L.declare_function "printb" printb_t the_module 
+  in let printb_func = L.declare_function "printb" printb_t the_module
+
+  in let printc_t = L.function_type i32_t [| i8_t |]
+  in let _ = L.declare_function "printc" printc_t the_module
 
   in let printr_t = L.function_type i32_t [| L.pointer_type tree_t |]
   in let printr_func = L.declare_function "printr" printr_t the_module
@@ -111,12 +114,15 @@ let translate (globals, _, functions) =
 
   in let dfaconcat_t = L.function_type i32_t [| (L.pointer_type dfa_t); (L.pointer_type dfa_t); (L.pointer_type dfa_t) |]
   in let dfaconcat_func = L.declare_function "dfaconcat" dfaconcat_t the_module
- 
+
   in let accepts_t = L.function_type i1_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let accepts_func = L.declare_function "accepts" accepts_t the_module
 
   in let simulates_t = L.function_type i32_t [| L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let simulates_func = L.declare_function "simulates" simulates_t the_module
+
+  in let trans_t = L.function_type i32_t [| L.pointer_type dfa_t;  i32_t; i8_t |]
+  in let trans_func = L.declare_function "trans" trans_t the_module
 
 (*   in let lefttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
   in let lefttok_func = L.declare_function "lefttok" lefttok_t the_module
@@ -126,6 +132,11 @@ let translate (globals, _, functions) =
   in let litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 
+  in let strindex_t = L.function_type i8_t [| L.pointer_type i8_t; i32_t|]
+  in let strindex_func = L.declare_function "strindex" strindex_t the_module
+
+(*   in let strappend_t = L.function_type i32_t [| L.pointer_type i8_t; i32_t|]
+  in let strappend_func = L.declare_function "strappend" strappend_t the_module *)
   in let len_t = L.function_type i32_t [| L.pointer_type i8_t |]
   in let len_func = L.declare_function "len" len_t the_module
 
@@ -157,6 +168,7 @@ let translate (globals, _, functions) =
 
     in let int_format_str = L.build_global_stringptr "%i\n" "fmt" builder
     in let string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
+    in let char_format_cr = L.build_global_stringptr "%c\n" "fmt" builder
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -203,6 +215,7 @@ let translate (globals, _, functions) =
 
     in let arr_ptr a b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t 0|] "arr" b
     in let get_arr_idx a i b = L.build_in_bounds_gep a [| L.const_int i32_t 0;  L.const_int i32_t i|] "arr" b
+  (* in let string_indexing a i b =  L.build_in_bounds_gep a [| L.const_int i32_t 0; i|] "arr" b *)
     in let insert_elt a v i b = L.build_store v (get_arr_idx a i b) b
 
     in let get_struct_idx s i b = L.build_struct_gep s i "structelt" b
@@ -216,6 +229,12 @@ let translate (globals, _, functions) =
       let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
       ignore(L.build_store (L.const_int i8_t (int_of_char '#')) char_ptr b);
 
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) left_ptr_ptr b);
+
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) right_ptr_ptr b);
+
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
 
@@ -227,6 +246,12 @@ let translate (globals, _, functions) =
 
       let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
       ignore(L.build_store (L.const_int i8_t (int_of_char '@')) char_ptr b);
+
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) left_ptr_ptr b);
+
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) right_ptr_ptr b);
 
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
@@ -243,6 +268,12 @@ let translate (globals, _, functions) =
       let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
       ignore(L.build_store character char_ptr b);
 
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) left_ptr_ptr b);
+
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) right_ptr_ptr b);
+
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
 
@@ -254,11 +285,17 @@ let translate (globals, _, functions) =
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
 
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
+      ignore(L.build_store (L.const_int i8_t 0) char_ptr b);
+
       (* storing left tree *)
       let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
       let left_tree_ptr = get_ptr regexp b in
       let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b in
       ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
+
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) right_ptr_ptr b);
 
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
@@ -270,6 +307,9 @@ let translate (globals, _, functions) =
       (* storing the operator *)
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
+
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
+      ignore(L.build_store (L.const_int i8_t 0) char_ptr b);
 
       (* storing left tree *)
       let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
@@ -350,23 +390,23 @@ let translate (globals, _, functions) =
       L.build_load dfa_ptr "dfa_loaded" b in
 
 
-    let build_dfaunion d1 d2 b = 
+    let build_dfaunion d1 d2 b =
       let d1_ptr = get_ptr d1 b
       and d2_ptr = get_ptr d2 b in
 
       let n1 =   L.build_load (get_struct_idx d1_ptr 0 b) "d1.nstates"  b
-      and n2 =   L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates"  b 
-      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"  b 
+      and n2 =   L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates"  b
+      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"  b
       and f1 =   L.build_load (get_struct_idx d1_ptr 5 b) "d2.nsfin"  b
       and f2 =   L.build_load (get_struct_idx d2_ptr 5 b) "d2.nfin"  b in
 
       let one = L.const_int i32_t 1 in
 
       let ns = (L.build_mul (L.build_add n1 one "++" b) (L.build_add n2 one "++" b) "mul" b)
-      and nfin = (L.build_sub 
-                    (L.build_add 
+      and nfin = (L.build_sub
+                    (L.build_add
                         (L.build_mul f1 (L.build_add n2 one "++" b) "mult" b) (L.build_mul f2 (L.build_add n1 one "++" b) "mult" b)
-                    "add" b) 
+                    "add" b)
                   (L.build_mul f1 f2 "mul" b) "sub" b) in
 
       (*Define llvm "array types"*)
@@ -389,13 +429,13 @@ let translate (globals, _, functions) =
       ignore(L.build_call dfaunion_func [| d1_ptr; d2_ptr; dfa_ptr |] "dfaunion" b);
       L.build_load dfa_ptr "dfa_loaded" b in
 
-    let build_dfaconcat d1 d2 b = 
+    let build_dfaconcat d1 d2 b =
       let d1_ptr = get_ptr d1 b
       and d2_ptr = get_ptr d2 b in
 
       let n1 =   L.build_load (get_struct_idx d1_ptr 0 b) "d1.nstates"  b
-      and n2 =   L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates"  b 
-      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"  b 
+      and n2 =   L.build_load (get_struct_idx d2_ptr 0 b) "d2.nstates"  b
+      and nsym = L.build_load (get_struct_idx d2_ptr 2 b) "d2.nsym"  b
       and f1 =   L.build_load (get_struct_idx d1_ptr 5 b) "d2.nsfin"  b
       and f2 =   L.build_load (get_struct_idx d2_ptr 5 b) "d2.nfin"  b in
 
@@ -449,6 +489,7 @@ let translate (globals, _, functions) =
       | SRE (Mult (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREConcat,    (TRE, SRE b)))
       | SRE (And  (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREIntersect, (TRE, SRE b)))
       | SRE (Plus (a, b))                -> expr builder (TRE, SBinop ((TRE, SRE a), A.BREUnion,     (TRE, SRE b)))
+      | STernary (s,e1,e2,_)           -> L.build_call trans_func [| (lookup s); expr builder e1;  (expr builder e2)   |] "trans"   builder
       | SBinop (_,  A.BCase,          _) -> raise (Prelude.TODO "implement codegen")
       | SBinop (e1, A.BDFAUnion,     e2) -> build_dfaunion (expr builder e1) (expr builder e2)                builder
       | SBinop (e1, A.BDFAConcat,    e2) -> build_dfaconcat (expr builder e1) (expr builder e2)                builder
@@ -470,6 +511,7 @@ let translate (globals, _, functions) =
       | SBinop (e1, A.BLeq,          e2) -> L.build_icmp L.Icmp.Sle (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGreater,      e2) -> L.build_icmp L.Icmp.Sgt (expr builder e1) (expr builder e2) "tmp" builder
       | SBinop (e1, A.BGeq,          e2) -> L.build_icmp L.Icmp.Sge (expr builder e1) (expr builder e2) "tmp" builder
+      (* | SBinop (e1, A.BStrAppend,    e2) -> TODO *)
       | SUnop (A.UNeg,    e)             -> L.build_neg             (expr builder e)                    "tmp" builder
       | SUnop (A.UNot,    e)             -> L.build_not             (expr builder e)                    "tmp" builder
       | SUnop (A.URELit,  e)             -> build_lit 'l'           (expr builder e)                          builder
@@ -479,7 +521,9 @@ let translate (globals, _, functions) =
                                    let _  = L.build_store e' (lookup s) builder in e'
       | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
       | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf"   builder
+      | SCall ("printc",    [e]) -> L.build_call printf_func   [| char_format_cr ; (expr builder e)    |] "printf"   builder
       | SCall ("printdfa", [e]) -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf"   builder
+      | SCall ("trans", [e1; e2; e3]) -> L.build_call trans_func [| get_ptr (expr builder e1) builder;  (expr builder e2) ; (expr builder e3)   |] "trans"   builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder
@@ -495,6 +539,14 @@ let translate (globals, _, functions) =
                                                       A.TUnit -> ""
                                                     | _       -> f ^ "_result")
                                    in L.build_call fdef (Array.of_list actuals) result builder
+      | SStringIndex(a,b) -> L.build_call strindex_func [| (L.build_load (lookup a) a builder);  (expr builder b) |] "strindex" builder
+      (* | SStringAppend(a,b) ->  L.build_global_stringptr a "string" builder *)
+  (*     | SIntList(a) ->
+      | SCharList(a) ->
+      | SBoolList(a) ->
+      | SStringList(a) ->
+      | STupleList(a) ->   *)
+
     in
 
     (* Each basic block in a program ends with a "terminator" instruction i.e.
@@ -517,102 +569,110 @@ let translate (globals, _, functions) =
 
 
 
-    (* Build the code for the given statement; return the builder for
-       the statement's successor (i.e., the next instruction will be built
-       after the one generated by this call) *)
-    (* Imperative nature of statement processing entails imperative OCaml *)
-    (* let rec stmt (builder : L.llbuilder) (x : sstmt) : L.llbuilder = match x with *)
-    let rec stmt (builder,callStack) = function
-    	      SBlock sl -> List.fold_left stmt (builder,callStack) sl
-            (* Generate code for this expression, return resulting builder *)
-          | SExpr e   -> let _ = expr builder e in (builder,callStack)
-          | SReturn e -> let _ = match fdecl.styp with
-                                    (* Special "return nothing" instr *)
-                                    A.TUnit -> L.build_ret_void builder
-                                    (* Build return statement *)
-                                  | _       -> L.build_ret (expr builder e) builder
-                         in (builder,callStack)
-          (* The order that we create and add the basic blocks for an If statement
-          doesnt 'really' matter (seemingly). What hooks them up in the right order
-          are the build_br functions used at the end of the then and else blocks (if
-          they don't already have a terminator) and the build_cond_br function at
-          the end, which adds jump instructions to the "then" and "else" basic blocks *)
-          | SIf (predicate, then_stmt, else_stmt) ->
-             let bool_val        = expr builder predicate
-             (* Add "merge" basic block to our function's list of blocks *)
-    	       in let merge_bb     = L.append_block context "merge" the_function
-             (* Partial function used to generate branch to merge block *)
-             in let branch_instr = L.build_br merge_bb
-             (* Same for "then" basic block *)
-    	       in let then_bb      = L.append_block context "then" the_function
-             (* Position builder in "then" block and build the statement *)
-             in let (then_builder,_) = stmt ((L.builder_at_end context then_bb),callStack) then_stmt
-             (* Add a branch to the "then" block (to the merge block)
-               if a terminator doesn't already exist for the "then" block *)
-    	       in let ()           = add_terminal then_builder branch_instr
-             (* Identical to stuff we did for "then" *)
-    	       in let else_bb      = L.append_block context "else" the_function
-             in let (else_builder,_) = stmt ((L.builder_at_end context else_bb),callStack) else_stmt
-    	       in let ()           = add_terminal else_builder branch_instr
-             (* Generate initial branch instruction perform the selection of "then"
-             or "else". Note we're using the builder we had access to at the start
-             of this alternative. *)
-    	       in let _            = L.build_cond_br bool_val then_bb else_bb builder
-             (* Move to the merge block for further instruction building *)
-    	       in (L.builder_at_end context merge_bb,callStack)
-          | SWhile (lastInstr, predicate, body) ->
-              (* Get the last instruction and revise body *)
+     (* Build the code for the given statement; return the builder for
+            the statement's successor (i.e., the next instruction will be built
+            after the one generated by this call) *)
+         (* Imperative nature of statement processing entails imperative OCaml *)
+         (* let rec stmt (builder : L.llbuilder) (x : sstmt) : L.llbuilder = match x with *)
+         let rec stmt (builder,callStack,breakStack) = function
+         	      SBlock sl -> List.fold_left stmt (builder,callStack,breakStack) sl
+                 (* Generate code for this expression, return resulting builder *)
+               | SExpr e   -> let _ = expr builder e in (builder,callStack,breakStack)
+               | SReturn e -> let _ = match fdecl.styp with
+                                         (* Special "return nothing" instr *)
+                                         A.TUnit -> L.build_ret_void builder
+                                         (* Build return statement *)
+                                       | _       -> L.build_ret (expr builder e) builder
+                              in (builder,callStack,breakStack)
+               (* The order that we create and add the basic blocks for an If statement
+               doesnt 'really' matter (seemingly). What hooks them up in the right order
+               are the build_br functions used at the end of the then and else blocks (if
+               they don't already have a terminator) and the build_cond_br function at
+               the end, which adds jump instructions to the "then" and "else" basic blocks *)
+               | SIf (predicate, then_stmt, else_stmt) ->
+                  let bool_val        = expr builder predicate
+                  (* Add "merge" basic block to our function's list of blocks *)
+         	       in let merge_bb     = L.append_block context "merge" the_function
+                  (* Partial function used to generate branch to merge block *)
+                  in let branch_instr = L.build_br merge_bb
+                  (* Same for "then" basic block *)
+         	       in let then_bb      = L.append_block context "then" the_function
+                  (* Position builder in "then" block and build the statement *)
+                  in let (then_builder,_,_) = stmt ((L.builder_at_end context then_bb),callStack,breakStack) then_stmt
+                  (* Add a branch to the "then" block (to the merge block)
+                    if a terminator doesn't already exist for the "then" block *)
+         	       in let ()           = add_terminal then_builder branch_instr
+                  (* Identical to stuff we did for "then" *)
+         	       in let else_bb      = L.append_block context "else" the_function
+                  in let (else_builder,_,_) = stmt ((L.builder_at_end context else_bb),callStack,breakStack) else_stmt
+         	       in let ()           = add_terminal else_builder branch_instr
+                  (* Generate initial branch instruction perform the selection of "then"
+                  or "else". Note we're using the builder we had access to at the start
+                  of this alternative. *)
+         	       in let _            = L.build_cond_br bool_val then_bb else_bb builder
+                  (* Move to the merge block for further instruction building *)
+         	       in (L.builder_at_end context merge_bb,callStack,breakStack)
+               | SWhile (lastInstr, predicate, body) ->
+                   (* Get the last instruction and revise body *)
 
-              (* First create basic block for condition instructions -- this will
-              serve as destination in the case of a loop *)
-              let pred_bb          = L.append_block context "while" the_function
-              (* In current block, branch to predicate to execute the condition *)
-              in let _             = L.build_br pred_bb builder
-              in let int_bb        = L.append_block context "int_bb" the_function
-              (* Create the body's block, generate the code for it, and add a branch
-              back to the predicate block (we always jump back at the end of a while
-              loop's body, unless we returned or something) *)
-              in let body_bb       = L.append_block context "while_body" the_function
-              in let callStack = callStack @ [int_bb]
-              in let (while_builder,_) = stmt ((L.builder_at_end context body_bb),callStack) body
+                   (* First create basic block for condition instructions -- this will
+                   serve as destination in the case of a loop *)
+                   let pred_bb          = L.append_block context "while" the_function
+                   in let merge_bb      = L.append_block context "merge" the_function
+                   (* In current block, branch to predicate to execute the condition *)
+                   in let _             = L.build_br pred_bb builder
+                   in let int_bb        = L.append_block context "int_bb" the_function
+                   (* Create the body's block, generate the code for it, and add a branch
+                   back to the predicate block (we always jump back at the end of a while
+                   loop's body, unless we returned or something) *)
+                   in let body_bb       = L.append_block context "while_body" the_function
+                   in let callStack = callStack @ [int_bb]
+                   in let breakStack = breakStack @ [merge_bb]
+                   in let (while_builder,_,_) = stmt ((L.builder_at_end context body_bb),callStack,breakStack) body
 
-              (* in let int_bb        = L.append_block context "int_bb" the_function  *)
-              in let ()            = add_terminal while_builder (L.build_br int_bb)
-              in let int_builder = L.builder_at_end context int_bb
-              (* in let i3         = expr int_builder lastInstr *)
-              in let (int_builder2,_) = stmt (int_builder,callStack) lastInstr
-              in let ()            = add_terminal int_builder2 (L.build_br pred_bb)
-              (* Generate the predicate code in the predicate block *)
-              in let pred_builder  = L.builder_at_end context pred_bb
-              in let bool_val      = expr pred_builder predicate
-              (* Hook everything up *)
-              in let merge_bb      = L.append_block context "merge" the_function
-              in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
-              in (L.builder_at_end context merge_bb,callStack)
-          | SInfloop (body) -> stmt (builder,callStack) ( SBlock [SWhile (SNostmt, (A.TBool ,SBoolLit(true)), SBlock [body]) ] )
-          (* Implement for loops as while loops! *)
-          | SFor (e1, e2, e3, body) -> stmt (builder,callStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
-          | SContinue               ->
-              if List.length callStack = 0 then (builder,callStack)
-              else
-              let continue_bb       = L.append_block context "continue_bb" the_function
-              in let () = add_terminal builder (L.build_br continue_bb)
-              in let b = L.builder_at_end context continue_bb
-              (* in let _ = L.build_br continue_bb b *)
+                   (* in let int_bb        = L.append_block context "int_bb" the_function  *)
+                   in let ()            = add_terminal while_builder (L.build_br int_bb)
+                   in let int_builder = L.builder_at_end context int_bb
+                   (* in let i3         = expr int_builder lastInstr *)
+                   in let (int_builder2,_,_) = stmt (int_builder,callStack,breakStack) lastInstr
+                   in let ()            = add_terminal int_builder2 (L.build_br pred_bb)
+                   (* Generate the predicate code in the predicate block *)
+                   in let pred_builder  = L.builder_at_end context pred_bb
+                   in let bool_val      = expr pred_builder predicate
+                   (* Hook everything up *)
+                   in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
+                   in (L.builder_at_end context merge_bb,callStack,breakStack)
+               | SInfloop (body) -> stmt (builder,callStack,breakStack) ( SBlock [SWhile (SNostmt, (A.TBool ,SBoolLit(true)), SBlock [body]) ] )
+               (* Implement for loops as while loops! *)
+               | SFor (e1, e2, e3, body) -> stmt (builder,callStack,breakStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
+               | SContinue               ->
+                   if List.length callStack = 0 then (builder,callStack,breakStack)
+                   else
+                   let continue_bb       = L.append_block context "continue_bb" the_function
+                   in let () = add_terminal builder (L.build_br continue_bb)
+                   in let b = L.builder_at_end context continue_bb
+                   (* in let _ = L.build_br continue_bb b *)
 
-              in let _ = L.build_br (List.hd (List.rev callStack)) b
-              (* in let int_bb       = L.append_block context "int_bb" the_function
-              in let c = L.builder_at_end context int_bb *)
+                   in let _ = L.build_br (List.hd (List.rev callStack)) b
+                   (* in let int_bb       = L.append_block context "int_bb" the_function
+                   in let c = L.builder_at_end context int_bb *)
 
-              in let callStack = List.rev (List.tl (List.rev callStack))
-              in (b,callStack)
-          | SBreak                  -> raise (Prelude.TODO "implement")
-          | SNostmt                 -> (builder,callStack)
-        (* Build the code for each statement in the function *)
-        in let (builder,_) = stmt (builder,[]) (SBlock fdecl.sbody)
-        (* Add a return if the last block falls off the end *)
-        in add_terminal builder (match fdecl.styp with
-            A.TUnit -> L.build_ret_void
-          | t       -> L.build_ret (L.const_int (ltype_of_typ t) 0))
-      in List.iter build_function_body functions;
-      the_module
+                   in let callStack = List.rev (List.tl (List.rev callStack))
+                   in (b,callStack,breakStack)
+               | SBreak                  ->
+                 let break_bb          = L.append_block context "break_bb" the_function
+                 in let _             = L.build_br break_bb builder
+                 in let ()            = add_terminal builder (L.build_br break_bb)
+                 in let b = L.builder_at_end context break_bb
+                 in let _ = L.build_br (List.hd (List.rev breakStack)) b
+                 in let breakStack = List.rev (List.tl (List.rev breakStack))
+                 in (builder,callStack,breakStack)
+               | SNostmt                 -> (builder,callStack,breakStack)
+             (* Build the code for each statement in the function *)
+             in let (builder,_,_) = stmt (builder,[],[]) (SBlock fdecl.sbody)
+             (* Add a return if the last block falls off the end *)
+             in add_terminal builder (match fdecl.styp with
+                 A.TUnit -> L.build_ret_void
+               | t       -> L.build_ret (L.const_int (ltype_of_typ t) 0))
+           in List.iter build_function_body functions;
+           the_module
