@@ -107,10 +107,10 @@ int IntOfSymbol(struct dfa_t *dfa, char sym){
   return -1;
 }
 
-int link(struct dfa_t *dfa, int from, int to, char sym){
+int link(struct dfa_t *dfa, int from, char sym, int to){
   int sym_pos = IntOfSymbol(dfa, sym);
   if(hasState(dfa, from) && hasState(dfa, to) && (sym_pos != -1)){
-    printf("Linkng (%i, %c) -> %i || %i\n", from, sym, to, sym-1);
+    //printf("Linkng (%i, %c) -> %i || %i\n", from, sym, to, sym-1);
     dfa->delta[idx(from, sym_pos, dfa->nsym)]=to;
     return 1;
   }
