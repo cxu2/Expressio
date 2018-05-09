@@ -300,7 +300,7 @@ open RegExp
                                                                                                                                         then8 SBlock [(SAssign s9); (SExpr e8)]
                                                                                                                                         else8 raise ABSURD
                                                                                               *)
-                                                                                              in let todo = (expr Noexpr)
+                                                                                              in let todo : sexpr = (expr Noexpr)
                                                                                               in let pred8 : sexpr = (TBool, (SBinop (outer, BEqual, star_c)))
                                                                                               in let pred7 : sexpr = (TBool, (SBinop (outer, BEqual, comp_c)))
                                                                                               in let pred6 : sexpr = (TBool, (SBinop (outer, BEqual, cat_c)))
@@ -309,34 +309,31 @@ open RegExp
                                                                                               in let pred3 : sexpr = (TBool, (SBinop (outer, BEqual, lit_c)))
                                                                                               in let pred2 : sexpr = (TBool, (SBinop (outer, BEqual, one_c)))
                                                                                               in let pred1 : sexpr = (TBool, (SBinop (outer, BEqual, zero_c)))
-                                                                                              (*
-in let then8 : sstmt = SBlock [ SExpr ((TRE, SAssign (s9, ((TRE, SCall ("lefttok", [(expr e8)]))))))
-                                                                                              *)
-                                                                                              in let then8 : sstmt = SBlock [ SExpr ((TRE, SAssign (s9, todo)))
+                                                                                              in let then8 : sstmt = SBlock [ SExpr ((TRE, SAssign (s9, ((TRE, SCall ("lefttok",  [(expr e)]))))))
                                                                                                                             ; SExpr (expr e8)
                                                                                                                             ]
-                                                                                              in let then7 : sstmt = SBlock [ SExpr ((TRE, SAssign (s8, todo)))
+                                                                                              in let then7 : sstmt = SBlock [ SExpr ((TRE, SAssign (s8, ((TRE, SCall ("lefttok",  [(expr e)]))))))
                                                                                                                             ; SExpr (expr e7)
                                                                                                                             ]
-                                                                                              in let then6 : sstmt = SBlock [ SExpr ((TRE, SAssign (s6, todo)))
-                                                                                                                            ; SExpr ((TRE, SAssign (s7, todo)))
+                                                                                              in let then6 : sstmt = SBlock [ SExpr ((TRE, SAssign (s6, ((TRE, SCall ("lefttok",  [(expr e)]))))))
+                                                                                                                            ; SExpr ((TRE, SAssign (s7, ((TRE, SCall ("righttok", [(expr e)]))))))
                                                                                                                             ; SExpr (expr e6)
                                                                                                                             ]
-                                                                                              in let then5 : sstmt = SBlock [ SExpr ((TRE, SAssign (s4, todo)))
-                                                                                                                            ; SExpr ((TRE, SAssign (s5, todo)))
+                                                                                              in let then5 : sstmt = SBlock [ SExpr ((TRE, SAssign (s4, ((TRE, SCall ("lefttok",  [(expr e)]))))))
+                                                                                                                            ; SExpr ((TRE, SAssign (s5, ((TRE, SCall ("righttok", [(expr e)]))))))
                                                                                                                             ; SExpr (expr e5)
                                                                                                                             ]
-                                                                                              in let then4 : sstmt = SBlock [ SExpr ((TRE, SAssign (s2, todo)))
-                                                                                                                            ; SExpr ((TRE, SAssign (s3, todo)))
+                                                                                              in let then4 : sstmt = SBlock [ SExpr ((TRE, SAssign (s2, ((TRE, SCall ("lefttok",  [(expr e)]))))))
+                                                                                                                            ; SExpr ((TRE, SAssign (s3, ((TRE, SCall ("righttok", [(expr e)]))))))
                                                                                                                             ; SExpr (expr e4)
                                                                                                                             ]
-                                                                                              in let then3 : sstmt = SBlock [ SExpr ((TRE, SAssign (s1, todo)))
+                                                                                              in let then3 : sstmt = SBlock [ SExpr ((TRE, SAssign (s1, ((TRE, SCall ("lefttok",  [(expr e)]))))))
                                                                                                                             ; SExpr (expr e3)
                                                                                                                             ]
                                                                                               in let then2 : sstmt = SExpr (expr e2)
                                                                                               in let then1 : sstmt = SExpr (expr e1)
-
-                                                                                              in let if8 : sstmt = SIf (pred8, then8, SExpr todo)
+                                                                                              (* in let if8 : sstmt = SIf (pred8, then8, SExpr (expr Noexpr)) *)
+                                                                                              in let if8 : sstmt = SIf (pred8, then8, SExpr (raise ABSURD))
                                                                                               in let if7 : sstmt = SIf (pred7, then7, if8)
                                                                                               in let if6 : sstmt = SIf (pred6, then6, if7)
                                                                                               in let if5 : sstmt = SIf (pred5, then5, if6)
