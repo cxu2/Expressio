@@ -70,6 +70,13 @@ struct dfa_t construct(int nstates, char * alphabet, int nsym, int init, int *fi
   return self;
 }
 
+int memsetz(int * arr, int len){
+  for(int i = 0; i < len; i++){
+    arr[i] = -1;
+  }
+  return 0;
+}
+
 // free memory associated with DFA
 // assume final and alphabet were malloc'd
 void destruct(struct dfa_t d){

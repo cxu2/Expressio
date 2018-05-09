@@ -107,7 +107,10 @@ let translate (globals, _, functions) =
   in let accepts_func = L.declare_function "accepts" accepts_t the_module
 
   in let simulates_t = L.function_type i32_t [|L.pointer_type dfa_t;  L.pointer_type i8_t |]
-  in let simulates_func = L.declare_function "simulates" simulates_t the_module in
+  in let simulates_func = L.declare_function "simulates" simulates_t the_module
+
+  in let memsetz_t = L.function_type i32_t [| L.pointer_type i32_t; i32_t |]
+  in let memsetz_func = L.declare_function "memsetz" memsetz_t the_module in
 
   (**********************
    *   Build Functions  *
@@ -277,7 +280,7 @@ let translate (globals, _, functions) =
       let rec get_char_index c (elts, idx) =
         if (List.hd elts) = c then idx else get_char_index c ((List.tl elts), idx+1) in
 
-      (*fill the table with special value -1 to indicate no transition*)
+      (*fill the table with special value -1 to indicate no transition
       let zero = itol 0 in
       let rec build_memset len arr fill = match len with
         zero -> arr
@@ -285,7 +288,9 @@ let translate (globals, _, functions) =
 
       let filler = (build_memset (L.const_mul n nsym) [-1] (-1)) in
       let llvm_filler = List.map ll_of_int filler in
-      ignore(List.fold_left copy_list_to_array (delta_ptr, 0, b) llvm_filler);
+      ignore(List.fold_left copy_list_to_array (delta_ptr, 0, b) llvm_filler);*)
+
+      ignore(L.build_call memsetz_func [| arr_ptr delta_ptr builder; (L.const_mul n nsym) |] "memsetz" builder);
 
       let copy_by_index (arr, lst, localb) (from_s, ch, to_s) =
         (ignore(insert_elt arr (L.const_int i32_t to_s) (from_s*len_a + (get_char_index ch (lst, 0))) localb); arr, lst, localb) in
