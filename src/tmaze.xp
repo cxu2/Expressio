@@ -1,0 +1,43 @@
+
+main : -> int {
+
+int curr;
+int next;
+int i;
+int c;
+
+char step;
+
+string walk;
+dfa maze;
+
+maze = {
+ states : 7
+ alphabet : ['L', 'R', 'D', 'U']
+ start : 0
+ final : [6]
+ transitions : [ (0 'R' 1), (1 'U' 2), (1 'L' 0), (2 'R' 3), 
+                 (2 'U' 4), (2 'D' 1), (4 'L' 5), (4 'D' 2), 
+                 (5 'R' 4), (3 'L' 2), (3 'R' 6) ]
+};
+
+walk = "RUUULRDRR";
+
+curr = 0;
+i = 0;
+c = 3;
+
+for i=0; i < len(walk)  ;i = i+1  {
+    next = (curr, walk[i])->maze;
+    if(next != -1){
+       curr = next;
+    } else {
+       printf("Hit a wall!");
+    }
+    print(curr);
+}
+
+
+
+return 0;
+}

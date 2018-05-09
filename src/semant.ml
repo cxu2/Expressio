@@ -58,7 +58,27 @@ open Prelude.Prelude
                                                                                     ; (TChar, TRE,     "outer")
                                                                                     ; (TRE,   TRE,     "righttok")
                                                                                     ; (TRE,   TRE,     "lefttok")
+                                                                                    ; (TUnit, TChar,   "printc")
+                                                                                    ; (TInt,  TString, "len")
                                                                                     ])
+    in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
+                                                                ; fname = "matches"
+                                                                ; formals = [(TString, "x") ; (TRE, "y")]
+                                                                ; locals = []
+                                                                ; body = []
+                                                                }) :: built_ins
+    in let built_ins : (string * func_decl) list = ("link", { typ = TInt
+                                                            ; fname = "link"
+                                                            ; formals = [(TDFA, "x") ; (TInt, "y"); (TChar, "z"); (TInt, "w")]
+                                                            ; locals = []
+                                                            ; body = []
+                                                            }) :: built_ins
+    in let built_ins : (string * func_decl) list = ("randomr", { typ = TInt
+                                                            ; fname = "randomr"
+                                                            ; formals = [(TInt, "y")]
+                                                            ; locals = []
+                                                            ; body = []
+                                                            }) :: built_ins
     in fromList (built_ins)
 
 
@@ -179,10 +199,25 @@ open Prelude.Prelude
                         | BDFAAccepts   when t1 = TDFA && t2 = TString -> TBool
                         | BDFASimulates when t1 = TDFA && t2 = TString -> TInt
                         | BDFAUnion     when t1 = TDFA && t2 = TDFA    -> TDFA
+                        | BDFAConcat    when t1 = TDFA && t2 = TDFA    -> TDFA
                         | _ -> error ("illegal binary operator " ^
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                       string_of_typ t2 ^ " in " ^ string_of_expr e)
         in (ty, SBinop ((t1, e1'), op, (t2, e2')))
+      | Ternary(s,e1,e2,op) ->
+          let (t1, e1') = expr e1
+          and (t2, e2') = expr e2
+          (* and (t3, e3') = expr e3 *)
+          in (TInt,STernary (s,(t1, e1'), (t2, e2'),op))
+      | StringIndex(a,b) ->
+                                 let (rt, e') = expr b
+                                 in let err = "bad string index"
+                               in let _ = check_assign TInt rt err
+                                 in (TChar, SStringIndex (a, (rt, e')))
+(*       | StringAppend(a,b) -> let (rt, e') = expr b
+                                 in let err = "bad string index"
+                               in let _ = check_assign TString rt err
+                                 in (TString, SStringAppend (a, (rt, e'))) *)
       | Call (fname, args) as call ->
           let fd              = find_func fname
           in let param_length = List.length fd.formals

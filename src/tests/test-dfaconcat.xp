@@ -1,0 +1,48 @@
+main : -> int {
+int ans;
+dfa zz;
+dfa oo;
+dfa u;
+zz  = {
+ states : 3
+ alphabet : ['0', '1']
+ start : 0
+ final : [2]
+ transitions : [ (0 '0' 1), (1 '0' 2)] 
+};
+
+oo = {
+ states : 3
+ alphabet : ['0', '1']
+ start : 0
+ final : [2]
+ transitions : [ (0 '1' 1), (1 '1' 2) ]
+};
+
+printdfa(zz);
+printdfa(oo);
+u = zz concat oo;
+
+printdfa(u);
+
+if(u accepts "00"){
+  printf("u accepts 00");
+}  else {
+   printf("u rejects 00");
+}
+
+if(u accepts "0011"){
+  printf("u accepts 0011");
+}  else	    {
+   printf("u rejects 0011");
+}
+
+
+if(u accepts "11"){
+  printf("u accepts 11");
+}  else	    {
+   printf("u rejects 11");
+}
+
+return 0;
+}

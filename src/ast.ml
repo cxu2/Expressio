@@ -12,6 +12,8 @@ type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater 
 (* Unary operators *)
 type uop = UNeg | UNot | URELit | UREStar | UREComp (* | UREOut *)
 
+type top = Tick
+
 (* Types within the Expressio language *)
 type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE
 
@@ -19,6 +21,7 @@ type bind = typ * string
 
 (* transition function *)
 type tranf = int * char * int
+
 
 type expr =
     IntLit    of int
@@ -32,6 +35,8 @@ type expr =
   | Assign    of string * expr
   | Call      of string * expr list
   | DFA       of expr * char list * expr * int list * tranf list
+  | StringIndex of string * expr
+  | Ternary   of string * expr * expr * top
   | Noexpr
 
 type stmt =
@@ -127,6 +132,7 @@ let rec string_of_expr = function
   | CharLit c           -> String.make 1 c
   | StringLit s         -> s
   | Id s                -> s
+  | Ternary(_,_,_,_)  -> ""
   | Binop (e1, o, e2)   -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   (* prefix *)
   | Unop (UNeg,    e)   -> string_of_uop UNeg    ^ string_of_expr e
@@ -143,7 +149,7 @@ let rec string_of_expr = function
                             "\n start : "       ^ string_of_expr c    ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
-
+  | StringIndex(_,_)      -> ""
   | Noexpr              -> ""
 
 let rec string_of_stmt = function

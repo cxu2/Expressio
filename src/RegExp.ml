@@ -78,7 +78,7 @@ module RegExp = struct
     | Plus (a, b) -> (nullable a) || (nullable b)
     | Mult (a, b) -> (nullable a) && (nullable b)
     | Star _      -> true
-    | And (a, b)  -> (nullable a) || (nullable b)
+    | And (a, b)  -> (nullable a) && (nullable b)
     | Comp a      -> not (nullable a)
   let constant (r : 'a regexp) : 'a regexp = if nullable r then One else Zero
   (* Check if the the regular expression, r, produces a finite language.

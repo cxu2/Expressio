@@ -7,6 +7,7 @@ open Prelude
 %}
 
 %token PERIOD SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token INTLIST CHARLIST BOOLLIST STRINGLIST TRANFLIST
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR UNIT BOOL CHAR INT STRING
 %token CONTINUE BREAK
@@ -28,6 +29,7 @@ open Prelude
 %nonassoc NOELSE
 %nonassoc ELSE
 %right ASSIGN
+%right APPEND
 
 %left OR
 %left AND
@@ -197,6 +199,7 @@ expr_opt:
     /* nothing */                           { Noexpr }
   | expr                                    { $1 }
 
+
 expr:
     INTLIT                                  { IntLit ($1)                   }
   | BLIT                                    { BoolLit ($1)                  }
@@ -206,6 +209,7 @@ expr:
   | RELIT expr                              { Unop (URELit, $2)             }
   | REEMPTY                                 { RE RegExp.Zero                }
   | REEPS                                   { RE RegExp.One                 }
+  | LPAREN expr COMMA expr RPAREN ARROW ID  { Ternary($7,$2,$4,Tick) }
   | expr PLUS       expr                    { Binop ($1, BAdd,          $3) }
   | expr MINUS      expr                    { Binop ($1, BSub,          $3) }
   | expr TIMES      expr                    { Binop ($1, BMult,         $3) }
@@ -226,6 +230,7 @@ expr:
   | expr DFACONCAT  expr                    { Binop ($1, BDFAConcat,    $3) }
   | expr DFASIM     expr                    { Binop ($1, BDFASimulates, $3) }
   | expr DFAACCEPTS expr                    { Binop ($1, BDFAAccepts,   $3) }
+  /* | expr APPEND expr                        { Binop ($1, BStrAppend,   $3) } */
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)               }
   | NOT expr                                { Unop (UNot, $2)               }
   | expr RESTAR                             { Unop (UREStar, $1)            }
@@ -233,6 +238,7 @@ expr:
   | ID ASSIGN expr                          { Assign ($1, $3)               }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)                 }
   | LPAREN expr RPAREN                      { $2                            }
+  | ID LBRAC expr RBRAC                     { StringIndex ($1 ,$3)          }
   | LBRACE
       STATES COLON expr
       ALPH   COLON LBRAC char_opt   RBRAC

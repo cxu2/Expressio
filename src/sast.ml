@@ -18,6 +18,8 @@ and sx =
   (* SCall takes the name of the function, and a list of arguments *)
   | SCall      of string * sexpr list
   | SDFA       of int * char list * int * int list * tranf list
+  | SStringIndex of string * sexpr
+  | STernary  of string * sexpr * sexpr * top
   | SNoexpr
 
 type sstmt =
@@ -172,6 +174,8 @@ and     string_of_sx = function
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
   | SNoexpr            -> ""
+  | SStringIndex (_,_)  -> ""
+  | STernary (_,_,_,_)           -> ""
 
 (* let rec string_of_stmt = function
    Block stmts         -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
