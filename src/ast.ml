@@ -5,12 +5,12 @@ open RegExp
 
 (* Binary operators *)
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq | BAnd | BOr
-         | BREEqual (* Structural equality of RegExp *)
+         (* | BREEqual (* Structural equality of RegExp *) *)
          | BREUnion  | BREConcat  | BREMatches  | BREIntersect
          | BDFAUnion | BDFAConcat | BDFAAccepts | BDFASimulates
 
 (* Unary operators *)
-type uop = UNeg | UNot | URELit | UREStar | UREComp | UREOut
+type uop = UNeg | UNot | URELit | UREStar | UREComp (* | UREOut *)
 
 (* Types within the Expressio language *)
 type typ = TInt | TBool | TChar | TUnit | TString | TDFA | TRE
@@ -83,7 +83,7 @@ let string_of_op = function
   | BGeq          -> ">="
   | BAnd          -> "&&"
   | BOr           -> "||"
-  | BREEqual      -> "" (* TODO operator charactor or do string/word? *)
+  (* | BREEqual      -> "" (* TODO operator charactor or do string/word? *) *)
   | BREUnion      -> "|"
   | BREConcat     -> "^"
   | BREMatches    -> "matches"
@@ -99,7 +99,7 @@ let string_of_uop = function
   | URELit  -> "lit"
   | UREStar -> "**"
   | UREComp -> "'"
-  | UREOut  -> "outer"
+  (* | UREOut  -> "outer" *)
 
 let rec string_of_clist = function
     []            -> ""
@@ -133,7 +133,7 @@ let rec string_of_expr = function
   | Unop (UNot,    e)   -> string_of_uop UNot    ^ string_of_expr e
   | Unop (UREComp, e)   -> string_of_uop UREComp ^ string_of_expr e
   | Unop (URELit,  e)   -> string_of_uop URELit  ^ string_of_expr e
-  | Unop (UREOut,  e)   -> string_of_uop UREOut  ^ string_of_expr e
+  (* | Unop (UREOut,  e)   -> string_of_uop UREOut  ^ string_of_expr e *)
   (* postfix *)
   | Unop (UREStar, e)   -> string_of_expr e      ^ string_of_uop UREStar
   | Assign (v, e)       -> v ^ " = " ^ string_of_expr e
@@ -157,7 +157,7 @@ let rec string_of_stmt = function
   | Infloop (s)         -> "for " ^ string_of_stmt s
   (*raise (Prelude.TODO "string_of case")*)
   (* FIXME this is not correct but I'll keep it here for now while I make my own branch *)
-  | Case (e, cs)        -> let cases = String.concat "\n" (List.map (fun ((x, y), z) -> string_of_expr x ^ " -> " ^ string_of_expr y) cs)
+  | Case (e, cs)        -> let cases = String.concat "\n" (List.map (fun ((x, y), z) -> "(" ^ string_of_expr x ^ ", " ^ string_of_expr y ^ ") -> " ^ string_of_expr z) cs)
                            in "case " ^ string_of_expr e ^ ":\n" ^ cases ^ (error "unfinished")
   | Break               -> "break;"
   | Continue            -> "continue;"
