@@ -1,0 +1,19 @@
+main : -> int {
+  regexp r;
+  regexp s;
+  regexp t;
+  char c;
+  c = 'a';
+  t = {.};
+  r = (lit 'a');
+  case r :
+      {.}     >> s = {.},
+      {{.}}   >> s = {{.}},
+      lit c   >> s = lit 'c',
+      a & b   >> s = a,
+      a | b   >> s = a,
+      a ^ b   >> s = a,
+      ' a     >> s = a,
+      a **    >> s = a;
+  return 0;
+}
