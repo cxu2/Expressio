@@ -47,7 +47,9 @@ open Prelude.Prelude
                                                                       (TUnit, TString, "printf");
                                                                       (TChar, TRE, "litchar");
                                                                       (TUnit, TChar, "printc");
-                                                                      (TUnit, TBool, "printb") ]
+                                                                      (TUnit, TBool, "printb"); 
+                                                                       (TInt, TString, "len");
+                                                                       ]
     in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
                                                                 ; fname = "matches"
                                                                 ; formals = [(TString, "x") ; (TRE, "y")]
@@ -57,6 +59,12 @@ open Prelude.Prelude
     in let built_ins : (string * func_decl) list = ("link", { typ = TInt
                                                             ; fname = "link"
                                                             ; formals = [(TDFA, "x") ; (TInt, "y"); (TChar, "z"); (TInt, "w")]
+                                                            ; locals = []
+                                                            ; body = []
+                                                            }) :: built_ins
+      in let built_ins : (string * func_decl) list = ("randomr", { typ = TInt
+                                                            ; fname = "randomr"
+                                                            ; formals = [(TInt, "y")]
                                                             ; locals = []
                                                             ; body = []
                                                             }) :: built_ins

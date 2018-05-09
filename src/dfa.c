@@ -385,6 +385,10 @@ int len(const char * str){
   return strlen(str);
 }
 
+int randomr(int i){
+  return rand() % i;
+}
+
 #ifdef BUILD_TEST
 int main(){
   printf("Test3---------\n");

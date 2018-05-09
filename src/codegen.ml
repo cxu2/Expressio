@@ -109,6 +109,9 @@ let translate (globals, _, functions) =
   in let printdfa_t = L.function_type i32_t [| L.pointer_type dfa_t |]
   in let printdfa_func = L.declare_function "printdfa" printdfa_t the_module
 
+  in let randomr_t = L.function_type i32_t [| i32_t |]
+  in let randomr_func = L.declare_function "randomr" randomr_t the_module
+
   in let dfaunion_t = L.function_type i32_t [| (L.pointer_type dfa_t); (L.pointer_type dfa_t); (L.pointer_type dfa_t) |]
   in let dfaunion_func = L.declare_function "dfaunion" dfaunion_t the_module
 
@@ -527,7 +530,8 @@ let translate (globals, _, functions) =
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder
-      | SCall ("len",      [e]) -> L.build_call len_func   [| (expr builder e) |] "len"   builder
+      | SCall ("randomr",   [e]) -> L.build_call randomr_func   [| (expr builder e) |] "randomr"   builder
+      | SCall ("len",   [e]) -> L.build_call len_func   [| (expr builder e) |] "len"   builder
       | SCall ("link",     [e1; e2; e3; e4]) -> L.build_call link_func   [| get_ptr (expr builder e1) builder; (expr builder e2); (expr builder e3); (expr builder e4) |] "link"   builder
       (* | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
