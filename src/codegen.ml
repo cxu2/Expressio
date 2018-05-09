@@ -118,6 +118,9 @@ let translate (globals, _, functions) =
   in let simulates_t = L.function_type i32_t [| L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let simulates_func = L.declare_function "simulates" simulates_t the_module
 
+  in let trans_t = L.function_type i32_t [| L.pointer_type dfa_t;  i32_t; i8_t |]
+  in let trans_func = L.declare_function "trans" trans_t the_module
+
 (*   in let lefttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
   in let lefttok_func = L.declare_function "lefttok" lefttok_t the_module
 
@@ -126,7 +129,7 @@ let translate (globals, _, functions) =
   in let litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 
-   in let strindex_t = L.function_type i8_t [| L.pointer_type i8_t; i32_t|]
+  in let strindex_t = L.function_type i8_t [| L.pointer_type i8_t; i32_t|]
   in let strindex_func = L.declare_function "strindex" strindex_t the_module
 
 (*   in let strappend_t = L.function_type i32_t [| L.pointer_type i8_t; i32_t|]
@@ -448,6 +451,7 @@ let translate (globals, _, functions) =
       | SCall ("print",    [e]) -> L.build_call printf_func   [| int_format_str ; (expr builder e)    |] "printf"   builder
       | SCall ("printc",    [e]) -> L.build_call printf_func   [| char_format_cr ; (expr builder e)    |] "printf"   builder
       | SCall ("printdfa", [e]) -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf"   builder
+      | SCall ("trans", [e1; e2; e3]) -> L.build_call trans_func [| get_ptr (expr builder e1) builder;  (expr builder e2) ; (expr builder e3)   |] "trans"   builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder

@@ -54,6 +54,12 @@ open Prelude.Prelude
                                                                 ; locals = []
                                                                 ; body = []
                                                                 }) :: built_ins
+    in let built_ins : (string * func_decl) list = ("trans", { typ = TInt
+                                                              ; fname = "trans"
+                                                              ; formals = [(TDFA, "x") ; (TInt, "y"); (TChar, "y")]
+                                                              ; locals = []
+                                                              ; body = []
+                                                              }) :: built_ins
     in fromList (built_ins)
 
 
