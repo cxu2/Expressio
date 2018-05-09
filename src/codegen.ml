@@ -138,8 +138,8 @@ let translate (globals, _, functions) =
     let (the_function, _) = StringMap.find fdecl.sfname function_decls
     in let builder = L.builder_at_end context (L.entry_block the_function)
 
-    in let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
+    in let int_format_str    = L.build_global_stringptr "%d\n" "fmt" builder
+       and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -187,28 +187,28 @@ let translate (globals, _, functions) =
     and get_struct_idx s i b = L.build_struct_gep s i "structelt" b
 
     in let build_zero b =
-      let tree_ptr = L.build_alloca tree_t "tree_space" b in
+      let tree_ptr = L.build_alloca tree_t "tree_space" b
 
-      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
-      ignore(L.build_store (L.const_int i8_t (int_of_char 'n')) operator_ptr b);
+      in let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b
+      in ignore(L.build_store (L.const_int i8_t (int_of_char 'n')) operator_ptr b);
 
-      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
-      ignore(L.build_store (L.const_int i8_t (int_of_char '#')) char_ptr b);
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b
+      in ignore(L.build_store (L.const_int i8_t (int_of_char '#')) char_ptr b);
 
-      let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
-      tree_loaded
+      let tree_loaded = L.build_load tree_ptr "tree_loaded" b
+      in tree_loaded
 
     in let build_one b =
-      let tree_ptr = L.build_alloca tree_t "tree_space" b in
+      let tree_ptr = L.build_alloca tree_t "tree_space" b
 
-      let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
-      ignore(L.build_store (L.const_int i8_t (int_of_char 'n')) operator_ptr b);
+      in let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b
+      in ignore(L.build_store (L.const_int i8_t (int_of_char 'n')) operator_ptr b);
 
-      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
-      ignore(L.build_store (L.const_int i8_t (int_of_char '@')) char_ptr b);
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b
+      in ignore(L.build_store (L.const_int i8_t (int_of_char '@')) char_ptr b);
 
-      let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
-      tree_loaded
+      let tree_loaded = L.build_load tree_ptr "tree_loaded" b
+      in tree_loaded
 
 
     and build_lit op character b =
@@ -292,7 +292,7 @@ let translate (globals, _, functions) =
       in let list_of_llvm_char : llvalue list = List.map ll_of_char a
 
       and ll_of_int fint = L.const_int i32_t fint
-      in let list_of_llvm_int =  List.map ll_of_int f
+      in let list_of_llvm_int = List.map ll_of_int f
 
       (* copy over the values to the llvm arrays *)
       and copy_list_to_array (arr, i, localb) value = (ignore(insert_elt arr value i localb); arr, i + 1, localb)
@@ -314,8 +314,8 @@ let translate (globals, _, functions) =
       in ignore(List.fold_left copy_list_to_array (delta_ptr, 0, b) llvm_filler);
 
       let copy_by_index (arr, lst, localb) (from_s, ch, to_s) =
-        (ignore(insert_elt arr (L.const_int i32_t to_s) (from_s*len_a + (get_char_index ch (lst, 0))) localb); arr, lst, localb) in
-      ignore(List.fold_left copy_by_index (delta_ptr, a, b) d);
+        (ignore(insert_elt arr (L.const_int i32_t to_s) (from_s*len_a + (get_char_index ch (lst, 0))) localb); arr, lst, localb)
+      in ignore(List.fold_left copy_by_index (delta_ptr, a, b) d);
 
       (* Stuff everything in the dfa struct *)
       ignore(L.build_store ns                    (get_struct_idx dfa_ptr 0 b) b);
