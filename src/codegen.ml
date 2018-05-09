@@ -213,6 +213,12 @@ let translate (globals, _, functions) =
       let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
       ignore(L.build_store (L.const_int i8_t (int_of_char '#')) char_ptr b);
 
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) left_ptr_ptr b);
+
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) right_ptr_ptr b);
+
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
 
@@ -224,6 +230,12 @@ let translate (globals, _, functions) =
 
       let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
       ignore(L.build_store (L.const_int i8_t (int_of_char '@')) char_ptr b);
+
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) left_ptr_ptr b);
+
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) right_ptr_ptr b);
 
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
@@ -240,6 +252,12 @@ let translate (globals, _, functions) =
       let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
       ignore(L.build_store character char_ptr b);
 
+      let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) left_ptr_ptr b);
+
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) right_ptr_ptr b);
+
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
 
@@ -251,11 +269,17 @@ let translate (globals, _, functions) =
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
 
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
+      ignore(L.build_store (L.const_int i8_t 0) char_ptr b);
+
       (* storing left tree *)
       let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
       let left_tree_ptr = get_ptr regexp b in
       let left_tree_op_ptr = L.build_in_bounds_gep left_tree_ptr [| itol 0; itol 0 |] "left_tree_op_ptr" b in
       ignore(L.build_store left_tree_op_ptr left_ptr_ptr b);
+
+      let right_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 3 |] "right_ptr_ptr" b in
+      ignore(L.build_store (L.const_null (L.pointer_type i8_t)) right_ptr_ptr b);
 
       let tree_loaded = L.build_load tree_ptr "tree_loaded" b in
       tree_loaded
@@ -267,6 +291,9 @@ let translate (globals, _, functions) =
       (* storing the operator *)
       let operator_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 0 |] "operator_ptr" b in
       ignore(L.build_store (L.const_int i8_t (int_of_char op)) operator_ptr b);
+
+      let char_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 1 |] "char_ptr" b in
+      ignore(L.build_store (L.const_int i8_t 0) char_ptr b);
 
       (* storing left tree *)
       let left_ptr_ptr = L.build_in_bounds_gep tree_ptr [| itol 0; itol 2 |] "left_ptr_ptr" b in
