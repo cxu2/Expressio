@@ -62,11 +62,11 @@ open Prelude.Prelude
                                                                                     ; (TInt,  TString, "len")
                                                                                     ])
     in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
-                                                                ; fname = "matches"
-                                                                ; formals = [(TString, "x") ; (TRE, "y")]
-                                                                ; locals = []
-                                                                ; body = []
-                                                                }) :: built_ins
+                                                               ; fname = "matches"
+                                                               ; formals = [(TString, "x") ; (TRE, "y")]
+                                                               ; locals = []
+                                                               ; body = []
+                                                               }) :: built_ins
     in let built_ins : (string * func_decl) list = ("link", { typ = TInt
                                                             ; fname = "link"
                                                             ; formals = [(TDFA, "x") ; (TInt, "y"); (TChar, "z"); (TInt, "w")]
