@@ -185,13 +185,13 @@ and     string_of_sx = function
  | Continue            -> "continue;" *)
 let rec string_of_sstmt = function
     SBlock stmts          -> "{\n" ^ String.concat "" (List.map string_of_sstmt stmts) ^ "}\n"
-  | SExpr expr            -> string_of_sexpr expr ^ ";\n";
-  | SReturn expr          -> "return " ^ string_of_sexpr expr ^ ";\n";
-  | SIf (e, s, SBlock []) -> "if " ^ string_of_sexpr e ^ "\n" ^ string_of_sstmt s
-  | SIf (e, s1, s2)       -> "if " ^ string_of_sexpr e ^ "\n" ^ string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2
-  | SFor (e1, e2, e3, s)  -> "for " ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
-  | SWhile (_, e, s)      -> "for " ^ string_of_sexpr e ^ " " ^ string_of_sstmt s
-  | SInfloop (s)          -> "for " ^ string_of_sstmt s
+  | SExpr e               ->             string_of_sexpr e  ^ ";\n"
+  | SReturn e             -> "return " ^ string_of_sexpr e  ^ ";\n"
+  | SIf (e, s, SBlock []) -> "if "     ^ string_of_sexpr e  ^  "\n" ^ string_of_sstmt s
+  | SIf (e, s1, s2)       -> "if "     ^ string_of_sexpr e  ^  "\n" ^ string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2
+  | SFor (e1, e2, e3, s)  -> "for "    ^ string_of_sexpr e1 ^ " ; " ^ string_of_sexpr e2 ^ " ; "    ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
+  | SWhile (_, e, s)      -> "for "    ^ string_of_sexpr e  ^ " "   ^ string_of_sstmt s
+  | SInfloop (s)          -> "for "    ^ string_of_sstmt s
   | SCase (e, cases)      -> string_of_stmt (Case (e, cases))
   | SBreak                -> string_of_stmt Break
   | SContinue             -> string_of_stmt Continue

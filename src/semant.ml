@@ -37,23 +37,25 @@ open RegExp
   (* Collect function declarations for built-in functions: no bodies *)
   and built_in_decls : func_decl string_map =
     let add_bind ((rt, ty, name)) : (string * func_decl) = (name, { typ     = rt
-                                                                         ; fname   = name
-                                                                         ; formals = [(ty, "x")]
-                                                                         ; locals  = []
-                                                                         ; body    = []
-                                                                         })
-    in let built_ins : (string * func_decl) list = List.map add_bind [(TUnit, TInt,    "print");
-                                                                      (TUnit, TRE,     "printr");
-                                                                      (TUnit, TDFA,    "printdfa");
-                                                                      (TUnit, TString, "printf");
-                                                                      (TChar, TRE,     "litchar");
-                                                                      (TUnit, TBool,   "printb") ]
-    in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
-                                                                ; fname = "matches"
-                                                                ; formals = [(TString, "x") ; (TRE, "y")]
-                                                                ; locals = []
-                                                                ; body = []
-                                                                }) :: built_ins
+                                                                  ; fname   = name
+                                                                  ; formals = [(ty, "x")]
+                                                                  ; locals  = []
+                                                                  ; body    = []
+                                                                  })
+    (* manually define the `matches` function because it is not as basic as the rest of the built-in functions *)
+    and matches_fn : (string * func_decl) = ("matches", { typ      = TBool
+                                                        ; fname   = "matches"
+                                                        ; formals = [(TString, "x") ; (TRE, "y")]
+                                                        ; locals  = []
+                                                        ; body    = []
+                                                        })
+    in let built_ins : (string * func_decl) list = matches_fn :: (List.map add_bind [ (TUnit, TInt,    "print")
+                                                                                    ; (TUnit, TRE,     "printr")
+                                                                                    ; (TUnit, TDFA,    "printdfa")
+                                                                                    ; (TUnit, TString, "printf")
+                                                                                    ; (TChar, TRE,     "litchar")
+                                                                                    ; (TUnit, TBool,   "printb")
+                                                                                    ])
     in fromList (built_ins)
 
 
@@ -205,15 +207,15 @@ open RegExp
       | (true,    Continue)                                              -> (true,    SContinue)
       (* | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock []) *)
       (* | (looping, Case (e, cases)) when fst (expr e) = TRE               -> let lhs = List.map fst cases *)
-      | (looping, (Case (e, ([(RE RegExp.Zero,                e1);
-                             (RE RegExp.One,                  e2);
-                             (Unop (URELit, c),               e3);
-                             (Binop (e4, BREIntersect,  e5),  e6);
-                             (Binop (e7, BREUnion,      e8),  e9);
-                             (Binop (e10, BREConcat,   e11), e12);
-                             (Unop (UREComp, e13),           e14);
-                             (Unop (UREStar, e15),           e16)]
-                             as cases)))) when fst (expr e) = TRE        ->
+      | (looping, (Case (e, ([ (RE RegExp.Zero,                 e1)
+                             ; (RE RegExp.One,                  e2)
+                             ; (Unop (URELit, c),               e3)
+                             ; (Binop (e4, BREIntersect,  e5),  e6)
+                             ; (Binop (e7, BREUnion,      e8),  e9)
+                             ; (Binop (e10, BREConcat,   e11), e12)
+                             ; (Unop (UREComp, e13),           e14)
+                             ; (Unop (UREStar, e15),           e16)
+                             ] as cases)))) when fst (expr e) = TRE        ->
                                                                             let lhs = List.map fst cases
                                                                             and rhs = List.map snd cases
                                                                             and e'  : sx = snd (expr e)
