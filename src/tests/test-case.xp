@@ -4,6 +4,7 @@ main : -> int {
   regexp t;
   char c;
   regexp a;
+  regexp b;
   c = 'a';
   t = {.};
   r = (lit 'a');
