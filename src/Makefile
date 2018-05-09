@@ -29,7 +29,7 @@ prelude.native :
 .PHONY : clean
 clean :
 	ocamlbuild -clean
-	rm -rf testall.log *.diff express scanner.ml parser.ml parser.mli
+	rm -rf testall.log *.diff express scanner.ml parser.ml parser.mli testll
 	rm -rf printbig
 	rm -rf *.cmx *.cmi *.cmo *.cmx *.o *.s *.ll *.out *.exe
 

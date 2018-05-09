@@ -20,6 +20,7 @@ typedef struct {
   char * right;
 } tree_t;
 
+
 int printb(bool res) {
   if (res == true) {
     printf("true\n");
@@ -29,14 +30,17 @@ int printb(bool res) {
   return 0;
 }
 
+
 int printc(char c){
   printf("%c\n",c);
   return 0;
 }
 
+
 char strindex(const char * str, int i) {
   return str[i];
 }
+
 
 int printr_helper(tree_t* regex_ptr) {
   if (regex_ptr -> operator == 'n') {
@@ -71,25 +75,52 @@ int printr(tree_t* regex_ptr) {
   return 0;
 }
 
-tree_t* lefttok(tree_t* regex_ptr) {
-  if (regex_ptr -> operator == 'l') {
-    printf("lit does not have a left token\n");
-    exit(1);
+
+void free_regex(tree_t* t) {
+  if (t == NULL) {
+    // printf("*********free_null**********\n");
+    return;
   }
-  // printf("top operator is %c\n", regex_ptr -> operator);
+  if (t -> operator == 'n' || t -> operator == 'l') {
+    // printf("*********free_nullary_lit**********\n");
+    free(t);
+    t = NULL;
+  } else if (t -> operator == '*' || t -> operator == '\'') {
+    // printf("*********free_star_comp**********\n");
+    free_regex((tree_t*)(t -> left));
+    free(t);
+    t = NULL;
+  } else {
+    // printf("*********free_binary**********\n");
+    free_regex((tree_t*)(t -> left));
+    free_regex((tree_t*)(t -> right));
+    free(t);
+    t = NULL;
+  }
+}
+
+
+tree_t* lefttok(tree_t* regex_ptr) {
+  if (regex_ptr -> operator == 'n' || regex_ptr -> operator == 'l') {
+    printf("nullary or lit does not have a left token\n");
+    return NULL;
+  }
+  printf("top operator is %c\n", regex_ptr -> operator);
   return (tree_t *)(regex_ptr -> left);
 }
 
 tree_t* righttok(tree_t* regex_ptr) {
-  if (regex_ptr -> operator == 'r') {
-    printf("lit does not have a right token\n");
-    exit(1);
-  } else if (regex_ptr -> operator == '*') {
+  if (regex_ptr -> operator == 'n' || regex_ptr -> operator == 'l') {
+    printf("nullary or lit does not have a right token\n");
+    return NULL;
+  } else if (regex_ptr -> operator == '*' || regex_ptr -> operator == '\'') {
     printf("Kleene star does not have a right token");
-    exit(1);
+    return NULL;
   }
   return (tree_t *)(regex_ptr -> right);
 }
+
+
 
 char litchar(tree_t* regex_ptr) {
   if (regex_ptr -> operator != 'l') {

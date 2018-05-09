@@ -27,9 +27,8 @@ main : -> int {
   w = y & t;
   s = w **;
 
-  i = 'x;
-  j = s & i;
 
+  j = s & 'x;
   printr(j);
 
   return (0);
