@@ -109,6 +109,7 @@ tree_t* lefttok(tree_t* regex_ptr) {
   return (tree_t *)(regex_ptr -> left);
 }
 
+
 tree_t* righttok(tree_t* regex_ptr) {
   if (regex_ptr -> operator == 'n' || regex_ptr -> operator == 'l') {
     printf("nullary or lit does not have a right token\n");
