@@ -234,18 +234,7 @@ open Prelude.Prelude
                                                                                 else *) (if (not (same_rhs rhs))
                                                                                       then error "all of RHS must have same type"
                                                                                       (* else (looping, (type_rhs, (SCase (e, cases)))))) *)
-                                                                               else (looping, (* let outer  : sexpr = (TChar, SCall ("outer", [expr e])) *)
-
-                                                                                              (*
-                                                                                              and zero_c : expr = CharLit '#'
-                                                                                              and one_c  : expr = CharLit '@'
-                                                                                              and lit_c  : expr = CharLit 'l'
-                                                                                              and and_c  : expr = CharLit '&'
-                                                                                              and or_c   : expr = CharLit '|'
-                                                                                              and cat_c  : expr = CharLit '^'
-                                                                                              and comp_c : expr = CharLit '\''
-                                                                                              and star_c : expr = CharLit '*'
-                                                                                              *)
+                                                                               else (looping,
                                                                                               (*
                                                                                               let o = outer r
                                                                                               if1 o = '#'  -- {.}
@@ -267,18 +256,6 @@ open Prelude.Prelude
                                                                                                                                         else8 raise ABSURD
                                                                                               *)
                                                                                               let outer  : expr = Call ("outer", [e])
-                                                                                              (* in let pred8 : expr = Binop (outer, BEqual, CharLit '*')
-                                                                                                 and pred7 : expr = Binop (outer, BEqual, CharLit '\'')
-                                                                                                 and pred6 : expr = Binop (outer, BEqual, CharLit '^')
-                                                                                                 and pred5 : expr = Binop (outer, BEqual, CharLit '|')
-                                                                                                 and pred4 : expr = Binop (outer, BEqual, CharLit '&')
-                                                                                                 and pred3 : expr = Binop (outer, BEqual, CharLit 'l')
-                                                                                                 and pred2 : expr = Binop (outer, BEqual, CharLit '@')
-                                                                                                 and pred1 : expr = Binop (outer, BEqual, CharLit '#') *)
-                                                                                              (* in let then8 : sstmt = SBlock [ SExpr ((TRE, SAssign (s9, ((TRE, SCall ("lefttok",  [(expr e)])))))) *)
-                                                                                              (* in let then8 : sstmt = snd (check_statement (false, (Block [ Expr (expr (Assign (s9, (Call ("lefttok",  [e])))))
-                                                                                                                            ; Expr (expr e8)
-                                                                                                                            ]))) *)
                                                                                               in let then8 : stmt = Block [ Expr (Assign (s9, (Call ("lefttok",  [e]))))
                                                                                                                           ; Expr e8
                                                                                                                           ]
@@ -300,16 +277,16 @@ open Prelude.Prelude
                                                                                               in let then3 : stmt = Block [ Expr (Assign (s1, (Call ("litchar",  [e]))))
                                                                                                                           ; Expr e3
                                                                                                                           ]
-                                                                                              in let then2 : stmt = Expr e2
-                                                                                              in let then1 : stmt = Expr e1
+                                                                                              (* in let then2 : stmt = Expr e2 *)
+                                                                                              (* in let then1 : stmt = Expr e1 *)
                                                                                               in let if8 : stmt = If (Binop (outer, BEqual, CharLit '*'),  then8, let _ = (error "umm... outer=" ^ (string_of_expr outer)) in Expr (raise ABSURD)) (* this `else` is unreachable if semantic checking worked *)
-                                                                                              in let if7 : stmt = If (Binop (outer, BEqual, CharLit '\''), then7, if8)
-                                                                                              in let if6 : stmt = If (Binop (outer, BEqual, CharLit '^'),  then6, if7)
-                                                                                              in let if5 : stmt = If (Binop (outer, BEqual, CharLit '|'),  then5, if6)
-                                                                                              in let if4 : stmt = If (Binop (outer, BEqual, CharLit '&'),  then4, if5)
-                                                                                              in let if3 : stmt = If (Binop (outer, BEqual, CharLit 'l'),  then3, if4)
-                                                                                              in let if2 : stmt = If (Binop (outer, BEqual, CharLit '@'),  then2, if3)
-                                                                                              in let if1 : stmt = If (Binop (outer, BEqual, CharLit '#'),  then1, if2)
+                                                                                              in let if7 : stmt = If (Binop (outer, BEqual, CharLit '\''), then7,   if8)
+                                                                                              in let if6 : stmt = If (Binop (outer, BEqual, CharLit '^'),  then6,   if7)
+                                                                                              in let if5 : stmt = If (Binop (outer, BEqual, CharLit '|'),  then5,   if6)
+                                                                                              in let if4 : stmt = If (Binop (outer, BEqual, CharLit '&'),  then4,   if5)
+                                                                                              in let if3 : stmt = If (Binop (outer, BEqual, CharLit 'l'),  then3,   if4)
+                                                                                              in let if2 : stmt = If (Binop (outer, BEqual, CharLit '@'),  Expr e2, if3)
+                                                                                              in let if1 : stmt = If (Binop (outer, BEqual, CharLit '#'),  Expr e1, if2)
                                                                                               in snd (check_statement (looping, if1)))))
       | (_,       Case (_, _))                                           -> error "case expressions currently only support regular expressions"
       | (looping, Expr e)                                                -> (looping, SExpr (expr e))
