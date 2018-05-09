@@ -62,25 +62,25 @@ int printr(tree_t* regex_ptr) {
   return 0;
 }
 
-// tree_t* lefttok(tree_t* regex_ptr) {
-//   if (regex_ptr -> operator == 'l') {
-//     printf("lit does not have a left token\n");
-//     exit(1);
-//   }
-//   printf("top operator is %c\n", regex_ptr -> operator);
-//   return (tree_t *)(regex_ptr -> left);
-// }
+tree_t* lefttok(tree_t* regex_ptr) {
+  if (regex_ptr -> operator == 'l') {
+    printf("lit does not have a left token\n");
+    exit(1);
+  }
+  printf("top operator is %c\n", regex_ptr -> operator);
+  return (tree_t *)(regex_ptr -> left);
+}
 
-// tree_t* righttok(tree_t* regex_ptr) {
-//   if (regex_ptr -> operator == 'r') {
-//     printf("lit does not have a right token\n");
-//     exit(1);
-//   } else if (regex_ptr -> operator == '*') {
-//     printf("Kleene star does not have a right token");
-//     exit(1);
-//   }
-//   return (tree_t *)(regex_ptr -> right);
-// }
+tree_t* righttok(tree_t* regex_ptr) {
+  if (regex_ptr -> operator == 'r') {
+    printf("lit does not have a right token\n");
+    exit(1);
+  } else if (regex_ptr -> operator == '*') {
+    printf("Kleene star does not have a right token");
+    exit(1);
+  }
+  return (tree_t *)(regex_ptr -> right);
+}
 
 char litchar(tree_t* regex_ptr) {
   if (regex_ptr -> operator != 'l') {
@@ -424,7 +424,7 @@ bool matches(tree_t* regex_ptr, char* str) {
 
 // return the outermost operation (checking for nullary operations too)
 char outer (tree_t* t) {
-  printf ("%s", "call from outer HELLO");
+  // printf ("%s", "call from outer HELLO");
   // printf(" %c ", regex_ptr -> operator);
   return (t -> operator == 'n') ? t -> character : t -> operator;
 }
