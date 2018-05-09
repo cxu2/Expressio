@@ -184,6 +184,7 @@ open Prelude.Prelude
                                       string_of_typ t2 ^ " in " ^ string_of_expr e)
         in (ty, SBinop ((t1, e1'), op, (t2, e2')))
       | Call (fname, args) as call ->
+      (* let _ = print_string "converting call to scall" in *)
           let fd              = find_func fname
           in let param_length = List.length fd.formals
           in if List.length args != param_length
@@ -216,47 +217,17 @@ open Prelude.Prelude
                              ; ((Id s6,  Id s7),  e6)
                              ; ((Noexpr, Id s8),  e7)
                              ; ((Noexpr, Id s9),  e8)
-                             ] as cases)))) when fst (expr e) = TRE     ->
-                                                                            (* let lhs = List.map fst cases *)
-                                                                            let rhs = List.map snd cases
-                                                                            (* and e'  : sx = snd (expr e) *)
-                                                                            (* TODO can also check if all cases are matched for basic types *)
+                             ] as cases)))) when fst (expr e) = TRE      -> let rhs = List.map snd cases
                                                                             and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
-                                                                            (* ensure that the type of the expression being matched fits into the LHS of the cases *)
-                                                                            (* in let same_lhs_and_e : bool = check_expressions_have_type (type_of_expr e) lhs *)
-                                                                               (* and type_rhs = type_of_expr (List.hd rhs) *)
-                                                                               (* ensure that the all the types on the RHS of the case are the same *)
-                                                                               in let same_rhs = function
+                                                                            (* ensure that the all the types on the RHS of the case are the same *)
+                                                                            in let same_rhs = function
                                                                                      []        -> true
                                                                                    | (e :: es) -> check_expressions_have_type (type_of_expr e) es
-                                                                            in ( (* if (not same_lhs_and_e)
-                                                                                then error "expression and all of LHS must have same type"
-                                                                                else *) (if (not (same_rhs rhs))
-                                                                                      then error "all of RHS must have same type"
-                                                                                      (* else (looping, (type_rhs, (SCase (e, cases)))))) *)
-                                                                               else (looping,
-                                                                                              (*
-                                                                                              let o = outer r
-                                                                                              if1 o = '#'  -- {.}
-                                                                                              then1 (SExpr e1)
-                                                                                              else1 if2 o = '@' -- {{.}}
-                                                                                                    then2 (SExpr e2)
-                                                                                                    else2 if3 o = 'l'
-                                                                                                          then3 SBlock [(SAssign s1); (SExpr e3)]
-                                                                                                          else3 if4 o = '&'
-                                                                                                                then4 SBlock [(SAssign s2); (SAssign s3); (SExpr e4)]
-                                                                                                                else4 if5 o = '|'
-                                                                                                                      then5 SBlock [(SAssign s4); (SAssign s5); (SExpr e5)]
-                                                                                                                      else5 if6 o = '^'
-                                                                                                                            then6 SBlock [(SAssign s6); (SAssign s7); (SExpr e6)]
-                                                                                                                            else6 if7 o = '\''
-                                                                                                                                  then7 SBlock [(SAssign s8); (SExpr e7)]
-                                                                                                                                  else7 if8 o = '*'
-                                                                                                                                        then8 SBlock [(SAssign s9); (SExpr e8)]
-                                                                                                                                        else8 raise ABSURD
-                                                                                              *)
-                                                                                              let outer  : expr = Call ("outer", [e])
-                                                                                              and then8 : stmt = Block [ Expr (Assign (s9, (Call ("lefttok",  [e]))))
+                                                                            in (if not (same_rhs rhs)
+                                                                                then error "all of RHS must have same type"
+                                                                                else (looping,
+                                                                                              (* let outer  : expr = Call ("outer", [e]) *)
+                                                                                              let then8 : stmt = Block [ Expr (Assign (s9, (Call ("lefttok",  [e]))))
                                                                                                                        ; Expr e8
                                                                                                                        ]
                                                                                               and then7 : stmt = Block [ Expr (Assign (s8, (Call ("lefttok",  [e]))))
@@ -274,10 +245,9 @@ open Prelude.Prelude
                                                                                                                        ; Expr (Assign (s3, (Call ("righttok", [e]))))
                                                                                                                        ; Expr e4
                                                                                                                        ]
-                                                                                              and then3 : stmt = Block [ Expr (Assign (s1, (Call ("litchar",  [e]))))
-                                                                                                                       ; Expr e3
-                                                                                                                       ]
-                                                                                              in let if8 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '*'),  then8, let _ = (error "umm... outer=" ^ (string_of_expr outer)) in Expr (raise ABSURD)) (* this `else` is unreachable if semantic checking worked *)
+                                                                                              and then3 : stmt = Block (List.map (fun e -> Expr e) [Assign (s1, (Call ("litchar",  [e]))); e3])
+                                                                                              (* in let if8 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '*'),  then8,   let _ = (error "umm... outer=" ^ (string_of_expr outer)) in Expr (raise ABSURD)) (* this `else` is unreachable if semantic checking worked *) *)
+                                                                                              in let if8 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '*'),  then8,   (Expr Noexpr)) (* this `else` is unreachable if semantic checking worked *)
                                                                                               in let if7 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '\''), then7,   if8)
                                                                                               in let if6 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '^'),  then6,   if7)
                                                                                               in let if5 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '|'),  then5,   if6)
@@ -285,7 +255,7 @@ open Prelude.Prelude
                                                                                               in let if3 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit 'l'),  then3,   if4)
                                                                                               in let if2 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '@'),  Expr e2, if3)
                                                                                               in let if1 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '#'),  Expr e1, if2)
-                                                                                              in snd (check_statement (looping, if1)))))
+                                                                                              in snd (check_statement (looping, if1))))
       | (_,       Case (_, _))                                           -> error "case expressions currently only support regular expressions"
       | (looping, Expr e)                                                -> (looping, SExpr (expr e))
       | (looping, If (p, b1, b2))                                        -> (looping, SIf (check_bool_expr p, snd (check_statement (looping, b1)), snd (check_statement (looping, b2))))

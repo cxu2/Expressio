@@ -148,23 +148,26 @@ stmt:
   | BREAK SEMI                              { Break                 }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
   /*
-  | CASE expr       COLON
-    REEMPTY         CASETO expr COMMA
-    REEPS           CASETO expr COMMA
-    RELIT expr      CASETO expr COMMA
-    expr REAND expr CASETO expr COMMA
-    expr REOR  expr CASETO expr COMMA
-    expr RECAT expr CASETO expr COMMA
-    RECOMP expr     CASETO expr COMMA
-    expr RESTAR     CASETO expr SEMI        { Case ($2, [(RE RegExp.Zero,                 $6 )
-                                                        ;(RE RegExp.One,                  $10)
-                                                        ; (Unop  (     URELit,       $13), $15)
-                                                        ; (Binop ($17, BREIntersect, $19), $21)
-                                                        ; (Binop ($23, BREUnion,     $25), $27)
-                                                        ; (Binop ($29, BREConcat,    $31), $33)
-                                                        ; (Unop  (     UREComp,      $36), $38)
-                                                        ; (Unop  (     UREStar,      $40), $43)
-                                                        ])         }
+  (*
+  let o = outer r
+  if1 o = '#'  -- {.}
+  then1 (SExpr e1)
+  else1 if2 o = '@' -- {{.}}
+        then2 (SExpr e2)
+        else2 if3 o = 'l'
+              then3 SBlock [(SAssign s1); (SExpr e3)]
+              else3 if4 o = '&'
+                    then4 SBlock [(SAssign s2); (SAssign s3); (SExpr e4)]
+                    else4 if5 o = '|'
+                          then5 SBlock [(SAssign s4); (SAssign s5); (SExpr e5)]
+                          else5 if6 o = '^'
+                                then6 SBlock [(SAssign s6); (SAssign s7); (SExpr e6)]
+                                else6 if7 o = '\''
+                                      then7 SBlock [(SAssign s8); (SExpr e7)]
+                                      else7 if8 o = '*'
+                                            then8 SBlock [(SAssign s9); (SExpr e8)]
+                                            else8 raise ABSURD
+  *)
   */
   | CASE expr   COLON
     REEMPTY     CASETO expr COMMA

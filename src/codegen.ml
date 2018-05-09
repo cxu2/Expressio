@@ -443,7 +443,7 @@ let translate (globals, _, functions) =
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e)                     |] "printb"   builder
-      | SCall ("outer",    [e]) -> L.build_call outer_func    [| get_ptr (expr builder e) builder     |] "outer"    builder
+      | SCall ("outer",    [e]) -> (* let _ = print_string "hahaha" in *) L.build_call outer_func    [| get_ptr (expr builder e) builder     |] "outer"    builder
 
       | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
