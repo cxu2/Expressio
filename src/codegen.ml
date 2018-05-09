@@ -538,8 +538,8 @@ let translate (globals, _, functions) =
           | SInfloop (body)         -> stmt (builder, callStack) (SBlock [SWhile (SNostmt, (A.TBool, SBoolLit (true)), SBlock [body]) ] )
           (* Implement for loops as while loops! *)
           | SFor (e1, e2, e3, body) -> stmt (builder, callStack) (SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
-          | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock [])
-          | SCase (_, _)                     -> raise Prelude.ABSURD (* If we get here semantic checking has an error *)
+          (* | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock []) *)
+          (* | SCase (_, _)                     -> raise Prelude.ABSURD (* If we get here semantic checking has an error *) *)
           | SContinue               ->
               if List.length callStack = 0
               then (builder, callStack)

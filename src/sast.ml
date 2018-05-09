@@ -24,7 +24,7 @@ type sstmt =
   | SExpr    of sexpr
   | SReturn  of sexpr
   | SIf      of sexpr * sstmt * sstmt
-  | SCase    of expr * ((expr * expr) list) (* TODO might delete this if SIf is sufficient *)
+  (* | SCase    of expr * ((expr * expr) list) (* TODO might delete this if SIf is sufficient *) *)
   | SFor     of sexpr * sexpr * sexpr * sstmt
   | SWhile   of sstmt * sexpr * sstmt
   | SInfloop of sstmt
@@ -192,7 +192,7 @@ let rec string_of_sstmt = function
   | SFor (e1, e2, e3, s)  -> "for "    ^ string_of_sexpr e1 ^ " ; " ^ string_of_sexpr e2 ^ " ; "    ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
   | SWhile (_, e, s)      -> "for "    ^ string_of_sexpr e  ^ " "   ^ string_of_sstmt s
   | SInfloop (s)          -> "for "    ^ string_of_sstmt s
-  | SCase (e, cases)      -> string_of_stmt (Case (e, cases))
+  (* | SCase (e, cases)      -> string_of_stmt (Case (e, cases)) *)
   | SBreak                -> string_of_stmt Break
   | SContinue             -> string_of_stmt Continue
   | SNostmt               -> ""

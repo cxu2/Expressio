@@ -147,6 +147,7 @@ stmt:
   | CONTINUE SEMI                           { Continue              }
   | BREAK SEMI                              { Break                 }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
+  /*
   | CASE expr       COLON
     REEMPTY         CASETO expr COMMA
     REEPS           CASETO expr COMMA
@@ -155,15 +156,33 @@ stmt:
     expr REOR  expr CASETO expr COMMA
     expr RECAT expr CASETO expr COMMA
     RECOMP expr     CASETO expr COMMA
-    expr RESTAR     CASETO expr SEMI        { Case ($2, [(RE RegExp.Zero,                 $6 );
-                                                         (RE RegExp.One,                  $10);
-                                                         (Unop  (     URELit,       $13), $15);
-                                                         (Binop ($17, BREIntersect, $19), $21);
-                                                         (Binop ($23, BREUnion,     $25), $27);
-                                                         (Binop ($29, BREConcat,    $31), $33);
-                                                         (Unop  (     UREComp,      $36), $38);
-                                                         (Unop  (     UREStar,      $40), $43)
-                                                         ])         }
+    expr RESTAR     CASETO expr SEMI        { Case ($2, [(RE RegExp.Zero,                 $6 )
+                                                        ;(RE RegExp.One,                  $10)
+                                                        ; (Unop  (     URELit,       $13), $15)
+                                                        ; (Binop ($17, BREIntersect, $19), $21)
+                                                        ; (Binop ($23, BREUnion,     $25), $27)
+                                                        ; (Binop ($29, BREConcat,    $31), $33)
+                                                        ; (Unop  (     UREComp,      $36), $38)
+                                                        ; (Unop  (     UREStar,      $40), $43)
+                                                        ])         }
+  */
+  | CASE expr   COLON
+    REEMPTY     CASETO expr COMMA
+    REEPS       CASETO expr COMMA
+    RELIT ID    CASETO expr COMMA
+    ID REAND ID CASETO expr COMMA
+    ID REOR  ID CASETO expr COMMA
+    ID RECAT ID CASETO expr COMMA
+    RECOMP ID   CASETO expr COMMA
+    ID RESTAR   CASETO expr SEMI            { Case ($2, [ ((Noexpr, RE RegExp.Zero), $6 )
+                                                        ; ((Noexpr, RE RegExp.One),  $10)
+                                                        ; ((Noexpr, Id $13),         $15)
+                                                        ; ((Id $17, Id $19),         $21)
+                                                        ; ((Id $23, Id $25),         $27)
+                                                        ; ((Id $29, Id $31),         $33)
+                                                        ; ((Noexpr, Id $36),         $38)
+                                                        ; ((Noexpr, Id $40),         $43)
+                                                        ])         }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
   | FOR expr SEMI expr SEMI expr for_body

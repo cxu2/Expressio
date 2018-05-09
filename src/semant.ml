@@ -207,6 +207,10 @@ open RegExp
       | (true,    Continue)                                              -> (true,    SContinue)
       (* | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock []) *)
       (* | (looping, Case (e, cases)) when fst (expr e) = TRE               -> let lhs = List.map fst cases *)
+
+
+
+      (*
       | (looping, (Case (e, ([ (RE RegExp.Zero,                 e1)
                              ; (RE RegExp.One,                  e2)
                              ; (Unop (URELit, c),               e3)
@@ -216,21 +220,51 @@ open RegExp
                              ; (Unop (UREComp, e13),           e14)
                              ; (Unop (UREStar, e15),           e16)
                              ] as cases)))) when fst (expr e) = TRE      ->
-                                                                            let lhs = List.map fst cases
-                                                                            and rhs = List.map snd cases
+                             *)
+
+                             (*
+                             | CASE expr   COLON
+                               REEMPTY     CASETO expr COMMA
+                               REEPS       CASETO expr COMMA
+                               RELIT ID    CASETO expr COMMA
+                               ID REAND ID CASETO expr COMMA
+                               ID REOR  ID CASETO expr COMMA
+                               ID RECAT ID CASETO expr COMMA
+                               RECOMP ID   CASETO expr COMMA
+                               ID RESTAR   CASETO expr SEMI            { Case ($2, [ ((Noexpr, RE RegExp.Zero), $6 )
+                                                                                   ; ((Noexpr, RE RegExp.One),  $10)
+                                                                                   ; ((Noexpr, Id $13),         $15)
+                                                                                   ; ((Id $17, Id $19),         $21)
+                                                                                   ; ((Id $23, Id $25),         $27)
+                                                                                   ; ((Id $29, Id $31),         $33)
+                                                                                   ; ((Noexpr, Id $36),         $38)
+                                                                                   ; ((Noexpr, Id $40),         $43)
+                                                                                   ])         }
+                                                                                   *)
+     | (looping, (Case (e, ([ ((Noexpr, RE RegExp.Zero), e1)
+                            ; ((Noexpr, RE RegExp.One),  e2)
+                            ; ((Noexpr, Id s1),          e3)
+                            ; ((Id s2,  Id s3),          e4)
+                            ; ((Id s4,  Id s5),          e5)
+                            ; ((Id s6,  Id s7),          e6)
+                            ; ((Noexpr, Id s8),          e7)
+                            ; ((Noexpr, Id s9),          e8)
+                            ] as cases)))) when fst (expr e) = TRE      ->
+                                                                            (* let lhs = List.map fst cases *)
+                                                                            let rhs = List.map snd cases
                                                                             and e'  : sx = snd (expr e)
                                                                             (* TODO can also check if all cases are matched for basic types *)
                                                                             and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
                                                                             (* ensure that the type of the expression being matched fits into the LHS of the cases *)
-                                                                            in let same_lhs_and_e : bool = check_expressions_have_type (type_of_expr e) lhs
+                                                                            (* in let same_lhs_and_e : bool = check_expressions_have_type (type_of_expr e) lhs *)
                                                                                (* and type_rhs = type_of_expr (List.hd rhs) *)
                                                                                (* ensure that the all the types on the RHS of the case are the same *)
-                                                                               and same_rhs = function
+                                                                               in let same_rhs = function
                                                                                      []        -> true
                                                                                    | (e :: es) -> check_expressions_have_type (type_of_expr e) es
-                                                                            in (if (not same_lhs_and_e)
+                                                                            in ( (* if (not same_lhs_and_e)
                                                                                 then error "expression and all of LHS must have same type"
-                                                                                else (if (not (same_rhs rhs))
+                                                                                else *) (if (not (same_rhs rhs))
                                                                                       then error "all of RHS must have same type"
                                                                                       (* else (looping, (type_rhs, (SCase (e, cases)))))) *)
                                                                                       (*
@@ -255,13 +289,15 @@ open RegExp
                                                                                                                     else if r = a **
                                                                                                                           then e8
                                                                                                                           else raise ABSURD
+                                                                                                                          *)
                                                                                       (* TODO modify this to use new C function*)
+                                                                                      (*
                                                                                       if r = {.}
                                                                                       then e1
                                                                                       else if r = {{.}}
                                                                                            then e2
-                                                                                           else if (outer  r = lit 'a'
-                                                                                                then e3
+                                                                                           else if (outer  r) = 'l'
+                                                                                                then SBlock [(SAssign "some_name" ),e3]
                                                                                                 else if r = a & b
                                                                                                      then e4
                                                                                                      else if r = a | b
@@ -275,7 +311,7 @@ open RegExp
                                                                                                                           else raise ABSURD
                                                                                       *)
                                                                                       else (looping, let _ = ()
-                                                                                                     in let if3 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BREEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), raise (TODO "finish"))
+                                                                                                     in let if3 = SIf ((TBool, (let x : sx = (SUnop (UREOut, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), raise (TODO "finish"))
                                                                                                      in let if2 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BREEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), (if3))
                                                                                                      in let if1 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BREEqual, (TRE, SRE RegExp.Zero))) in x)), (SExpr (expr e1)), (if2))
                                                                                                      in let x = SBlock [if1 ; raise (TODO "")] (* SIf ((), (), ()) *)

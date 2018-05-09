@@ -1,6 +1,6 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-(* open Prelude *)
+open Prelude.Prelude
 open RegExp
 
 (* Binary operators *)
@@ -42,7 +42,8 @@ type stmt =
   | For     of expr * expr * expr * stmt
   | Infloop of stmt
   | While   of expr * stmt
-  | Case    of expr * ((expr * expr) list)
+  (* | Case    of expr * ((expr * expr) list) *)
+  | Case    of expr * (((expr * expr) * expr) list)
   | Continue
   | Break
 
@@ -156,8 +157,8 @@ let rec string_of_stmt = function
   | Infloop (s)         -> "for " ^ string_of_stmt s
   (*raise (Prelude.TODO "string_of case")*)
   (* FIXME this is not correct but I'll keep it here for now while I make my own branch *)
-  | Case (e, cs)        -> let cases = String.concat "\n" (List.map (fun (x, y) -> string_of_expr x ^ " -> " ^ string_of_expr y) cs)
-                           in "case " ^ string_of_expr e ^ ":\n" ^ cases
+  | Case (e, cs)        -> let cases = String.concat "\n" (List.map (fun ((x, y), z) -> string_of_expr x ^ " -> " ^ string_of_expr y) cs)
+                           in "case " ^ string_of_expr e ^ ":\n" ^ cases ^ (error "unfinished")
   | Break               -> "break;"
   | Continue            -> "continue;"
 
