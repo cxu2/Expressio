@@ -283,8 +283,8 @@ let translate (globals, _, functions) =
 
       (* Allocating space and getting pointers *)
       and dfa_ptr = L.build_malloc dfa_t "dfa" b
-      in let alpha_ptr = L.build_array_malloc alpha_t nsym "alpha" b
-         and fin_ptr   = L.build_array_malloc fin_t nfin "fin" b
+      in let alpha_ptr = L.build_array_malloc alpha_t nsym      "alpha" b
+         and fin_ptr   = L.build_array_malloc fin_t   nfin      "fin"   b
          and delta_ptr = L.build_array_malloc delta_t delta_len "delta" b
 
          (* preprocess our Ocaml lists so we can insert them into llvm arrays *)

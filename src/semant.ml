@@ -215,7 +215,7 @@ open RegExp
                              ; (Binop (e10, BREConcat,   e11), e12)
                              ; (Unop (UREComp, e13),           e14)
                              ; (Unop (UREStar, e15),           e16)
-                             ] as cases)))) when fst (expr e) = TRE        ->
+                             ] as cases)))) when fst (expr e) = TRE      ->
                                                                             let lhs = List.map fst cases
                                                                             and rhs = List.map snd cases
                                                                             and e'  : sx = snd (expr e)
