@@ -1,13 +1,11 @@
 /*
- * File: codegen.ml
+ * File: builtin.c
  * Date: 2018-03-26
  *
  * PLT Spring 2018
  * Expressio Project
- * Ian Treyball      <ict2102@columbia.edu>
- * Lalka Rieger      <ler2161@columbia.edu>
- * Chengtian Xu      <cx2168@columbia.edu>
- * David Han         <dth2126@columbia.edu>
+ *
+ * Created by Chengtian Xu <cx2168@columbia.edu>
  */
 
 #include <unistd.h>
@@ -21,6 +19,7 @@ typedef struct {
   char * left;
   char * right;
 } tree_t;
+
 
 int printb(bool res) {
   if (res == true) {
@@ -50,17 +49,20 @@ int printr_helper(tree_t* regex_ptr) {
     }
   } else if (regex_ptr -> operator == 'l') {
     printf("%c", regex_ptr -> character);
-  } else if (regex_ptr -> operator == '*' || regex_ptr -> operator == '\'') {
+  } else if (regex_ptr -> operator == '*') {
     printr_helper((tree_t *)(regex_ptr -> left));
-    printf(" %c ", regex_ptr -> operator); 
+    printf("%c ", regex_ptr -> operator);
+  } else if (regex_ptr -> operator == '\'') {
+    printf(" %c", regex_ptr -> operator);
+    printr_helper((tree_t *)(regex_ptr -> left));
   } else {
     printf("( ");
     printr_helper((tree_t *)(regex_ptr -> left));
-    printf(" %c ", regex_ptr -> operator);  
+    printf(" %c ", regex_ptr -> operator);
     printr_helper((tree_t *)(regex_ptr -> right));
     printf(" )");
   }
- 
+
 	return 0;
 }
 
@@ -70,6 +72,30 @@ int printr(tree_t* regex_ptr) {
   printf("\n");
   return 0;
 }
+
+void free_regex(tree_t* t) {
+  if (t == NULL) {
+    // printf("*********free_null**********\n");
+    return;
+  }
+  if (t -> operator == 'n' || t -> operator == 'l') {
+    // printf("*********free_nary_lit**********\n");
+    free(t);
+    t = NULL;
+  } else if (t -> operator == '*' || t -> operator == '\'') {
+    // printf("*********free_star_comp**********\n");
+    free_regex((tree_t*)(t -> left));
+    free(t);
+    t = NULL;
+  } else {
+    // printf("*********free_binary**********\n");
+    free_regex((tree_t*)(t -> left));
+    free_regex((tree_t*)(t -> right));
+    free(t);
+    t = NULL;
+  }
+}
+
 
 // tree_t* lefttok(tree_t* regex_ptr) {
 //   if (regex_ptr -> operator == 'l') {
@@ -102,18 +128,17 @@ char litchar(tree_t* regex_ptr) {
 }
 
 
-int identical(tree_t* r1, tree_t* r2) {
+bool identical(tree_t* r1, tree_t* r2) {
   if (r1 == NULL && r2 == NULL)
-    return 1;
+    return true;
 
   if (r1 != NULL && r2 != NULL) {
     return (r1 -> operator == r2 -> operator &&
             r1 -> character == r2 -> character &&
-            identical((tree_t*)r1 -> left, (tree_t*)r2 -> left) &&
-            identical((tree_t*)r1 -> right, (tree_t*)r2 -> right));
+            identical((tree_t*)(r1 -> left), (tree_t*)(r2 -> left)) &&
+            identical((tree_t*)(r1 -> right), (tree_t*)(r2 -> right)));
   }
-
-  return 0;
+  return false;
 }
 
 
@@ -125,6 +150,8 @@ tree_t* Zero(){
   }
   t -> operator = 'n';
   t -> character = '#';
+  t -> left = NULL;
+  t -> right = NULL;
   return t;
 }
 
@@ -136,6 +163,8 @@ tree_t* One() {
   }
   t -> operator = 'n';
   t -> character = '@';
+  t -> left = NULL;
+  t -> right = NULL;
   return t;
 }
 
@@ -146,6 +175,7 @@ tree_t* Mult(tree_t* left, tree_t* right) {
     exit(1);
   }
   t -> operator = '^';
+  t -> character = '\0';
   t -> left = &left -> operator;
   t -> right = &right -> operator;
   return t;
@@ -158,6 +188,7 @@ tree_t* Plus(tree_t* left, tree_t* right) {
     exit(1);
   }
   t -> operator = '|';
+  t -> character = '\0';
   t -> left = &left -> operator;
   t -> right = &right -> operator;
   return t;
@@ -170,6 +201,7 @@ tree_t* Star(tree_t* regex) {
     exit(1);
   }
   t -> operator = '*';
+  t -> character = '\0';
   t -> left = &regex -> operator;
   t -> right = NULL;
   return t;
@@ -182,15 +214,29 @@ tree_t* Comp(tree_t* regex) {
     exit(1);
   }
   t -> operator = '\'';
+  t -> character = '\0';
   t -> left = &regex -> operator;
   t -> right = NULL;
+  return t;
+}
+
+tree_t* And(tree_t* left, tree_t* right) {
+  tree_t* t = (tree_t*)malloc(sizeof(tree_t));
+  if (t == NULL) {
+    printf("malloc failed due to out of memory.");
+    exit(1);
+  }
+  t -> operator = '&';
+  t -> character = '\0';
+  t -> left = &left -> operator;
+  t -> right = &right -> operator;
   return t;
 }
 
 tree_t* clone(tree_t* regex_ptr) {
   if (regex_ptr -> operator == 'n') {
     return regex_ptr -> character == '#' ? Zero() : One();
-  } 
+  }
 
   tree_t* t;
   if (regex_ptr -> operator == 'l') {
@@ -201,6 +247,8 @@ tree_t* clone(tree_t* regex_ptr) {
     }
     t -> operator = 'l';
     t -> character = regex_ptr -> character;
+    t -> left = NULL;
+    t -> right = NULL;
   } else if (regex_ptr -> operator == '*' || regex_ptr -> operator == '\'') {
     t = (tree_t*)malloc(sizeof(tree_t));
     if (t == NULL) {
@@ -208,8 +256,10 @@ tree_t* clone(tree_t* regex_ptr) {
       exit(1);
     }
     t -> operator = regex_ptr -> operator;
+    t -> character = '\0';
     tree_t* leftTree = clone((tree_t*)(regex_ptr -> left));
     t -> left = &leftTree -> operator;
+    t -> right = NULL;
   } else {
     t = (tree_t*)malloc(sizeof(tree_t));
     if (t == NULL) {
@@ -217,6 +267,7 @@ tree_t* clone(tree_t* regex_ptr) {
       exit(1);
     }
     t -> operator = regex_ptr -> operator;
+    t -> character = '\0';
     tree_t* leftTree = clone((tree_t*)(regex_ptr -> left));
     t -> left = &leftTree -> operator;
     tree_t* rightTree = clone((tree_t*)(regex_ptr -> right));
@@ -340,6 +391,18 @@ tree_t* comp(tree_t* r) {
   return Comp(r);
 }
 
+
+tree_t* intersect(tree_t* r1, tree_t* r2) {
+  if (r1 -> operator == 'n' && r1 -> character == '#'){
+    return Zero();
+  } else if (r1 -> operator == '\'' && identical((tree_t*)(r1 -> left), Zero())) {
+    return r2;
+  } else {
+    return And(r1, r2);
+  }
+}
+
+
 int nullable(tree_t* r) {
   if (r -> operator == 'n' && r -> character == '#') {
     return 0;
@@ -354,7 +417,7 @@ int nullable(tree_t* r) {
   } else if (r -> operator == '*') {
     return 1;
   } else if (r -> operator == '&') {
-    return nullable((tree_t*)(r -> left)) || nullable((tree_t*)(r -> right));
+    return nullable((tree_t*)(r -> left)) && nullable((tree_t*)(r -> right));
   } else if (r -> operator == '\'') {
     return !nullable((tree_t*)(r -> left));
   } else {
@@ -387,17 +450,21 @@ tree_t* derivative(tree_t* regex_ptr, char c) {
     // Mult
     case '^':
       // printf("case '^'\n");
-      return plus(mult(derivative((tree_t*)(regex_ptr -> left), c), (tree_t*)regex_ptr -> right), 
+      return plus(mult(derivative((tree_t*)(regex_ptr -> left), c), (tree_t*)regex_ptr -> right),
         mult(constant((tree_t*)(regex_ptr -> left)), derivative((tree_t*)(regex_ptr -> right), c)));
     case '\'':
       // printf("case '\''\n");
       return comp(derivative((tree_t*)(regex_ptr -> left), c));
+    case '&':
+      // printf("case '&'\n");
+      return intersect(derivative((tree_t*)(regex_ptr -> left), c), derivative((tree_t*)(regex_ptr -> right), c));
     default:
       return regex_ptr -> character == '#' ? Zero() : One();
   }
 }
 
 int matchesHelper(tree_t* regex_ptr, char* str) {
+  // printr(regex_ptr);
   if (regex_ptr -> operator == 'n' && regex_ptr -> character == '#') {
     // printf("Zero does not match with anything\n");
     free(regex_ptr);
@@ -414,7 +481,7 @@ int matchesHelper(tree_t* regex_ptr, char* str) {
     free(regex_ptr);
     free(constt);
     free(one);
-    
+
     return res == 0 ? 1 : 0;
   }
 
@@ -427,28 +494,6 @@ bool matches(tree_t* regex_ptr, char* str) {
   // empty language does not match with any string
   // printf("matches is called, matching string %s\n", str);
   tree_t* cloned = clone(regex_ptr);
-  // printr(cloned);
+  bool same = identical(regex_ptr, cloned);
   return matchesHelper(cloned, str) == 0 ? false : true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

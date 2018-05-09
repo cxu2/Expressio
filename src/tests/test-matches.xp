@@ -13,8 +13,18 @@ main : -> int {
 	regexp r9;
 	regexp r10;
 	regexp r11;
+	regexp r12;
+	regexp r13;
+	regexp r14;
+	regexp r15;
+	regexp r16;
+	regexp r17;
+	regexp r18;
+	regexp r19;
+	regexp r20;
 	bool m;
 
+~~ Test Lit
 	r1 = lit 'a';
 
 	m = r1 matches "a";
@@ -22,6 +32,7 @@ main : -> int {
 	m = r1 matches "";
 	printb(m);
 
+~~ Test Union
 	r2 = lit 'b';
 	r3 = r1 | r2;
 
@@ -34,6 +45,7 @@ main : -> int {
 	m = r3 matches "";
 	printb(m);
 
+~~ Test Kleene Star
 	r4 = r3 **;
 
 	m = r4 matches "a";
@@ -45,6 +57,7 @@ main : -> int {
 	m = r4 matches "";
 	printb(m);
 
+~~ Test Concat
 	r5 = lit 'c';
 	r6 = r4 ^ r5;
 
@@ -63,6 +76,7 @@ main : -> int {
 	m = r6 matches "cc";
 	printb(m);
 
+~~ More Kleene Star
 	r7 = r6 **;
 
 	m = r7 matches "a";
@@ -82,6 +96,7 @@ main : -> int {
 	m = r7 matches "cacbccbc";
 	printb(m);
 
+~~ Test Nullary
 	r8 = {.};
 	r9 = {{.}};
 
@@ -94,6 +109,49 @@ main : -> int {
 	m = r9 matches "";
 	printb(m);
 
-	
+~~ Test Complement
+	r10 = lit 'c';
+	r11 = 'r10;
+
+	m = r11 matches "a";
+	printb(m);
+	m = r11 matches "";
+	printb(m);
+	m = r11 matches "c";
+	printb(m);
+
+~~ Test And
+	r12 = lit 'a';
+	r13 = lit 'b';
+	r14 = r12 | r13;
+	r15 = lit 'c';
+	r16 = r13 | r15;
+	r17 = r14 & r16;
+
+	m = r17 matches "a";
+	printb(m);
+	m = r17 matches "b";
+	printb(m);
+	m = r17 matches "c";
+	printb(m);
+
+~~ Test And with Complement
+	r18 = r7 & r11;
+	m = r18 matches "a";
+	printb(m);
+	m = r18 matches "b";
+	printb(m);
+	m = r18 matches "";
+	printb(m);
+	m = r18 matches "c";
+	printb(m);
+	m = r18 matches "ac";
+	printb(m);
+	m = r18 matches "bc";
+	printb(m);
+	m = r18 matches "cc";
+	printb(m);
+	m = r18 matches "cacbccbc";
+	printb(m);
 
 }
