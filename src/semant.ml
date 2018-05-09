@@ -53,8 +53,10 @@ open RegExp
                                                                                     ; (TUnit, TRE,     "printr")
                                                                                     ; (TUnit, TDFA,    "printdfa")
                                                                                     ; (TUnit, TString, "printf")
-                                                                                    ; (TChar, TRE,     "litchar")
                                                                                     ; (TUnit, TBool,   "printb")
+                                                                                    ; (TChar, TRE,     "litchar")
+                                                                                    ; (TRE,   TRE,     "righttok")
+                                                                                    ; (TRE,   TRE,     "lefttok")
                                                                                     ])
     in fromList (built_ins)
 
@@ -205,51 +207,15 @@ open RegExp
       | (false,   Continue)                                              -> error "\'continue\' is outside of loop"
       | (true,    Break)                                                 -> (true,    SBreak)
       | (true,    Continue)                                              -> (true,    SContinue)
-      (* | SCase (e, [(e1, e2); (e3, e4); (e5, e6); (e7, e8)]) -> stmt (builder, callStack) (SBlock []) *)
-      (* | (looping, Case (e, cases)) when fst (expr e) = TRE               -> let lhs = List.map fst cases *)
-
-
-
-      (*
-      | (looping, (Case (e, ([ (RE RegExp.Zero,                 e1)
-                             ; (RE RegExp.One,                  e2)
-                             ; (Unop (URELit, c),               e3)
-                             ; (Binop (e4, BREIntersect,  e5),  e6)
-                             ; (Binop (e7, BREUnion,      e8),  e9)
-                             ; (Binop (e10, BREConcat,   e11), e12)
-                             ; (Unop (UREComp, e13),           e14)
-                             ; (Unop (UREStar, e15),           e16)
-                             ] as cases)))) when fst (expr e) = TRE      ->
-                             *)
-
-                             (*
-                             | CASE expr   COLON
-                               REEMPTY     CASETO expr COMMA
-                               REEPS       CASETO expr COMMA
-                               RELIT ID    CASETO expr COMMA
-                               ID REAND ID CASETO expr COMMA
-                               ID REOR  ID CASETO expr COMMA
-                               ID RECAT ID CASETO expr COMMA
-                               RECOMP ID   CASETO expr COMMA
-                               ID RESTAR   CASETO expr SEMI            { Case ($2, [ ((Noexpr, RE RegExp.Zero), $6 )
-                                                                                   ; ((Noexpr, RE RegExp.One),  $10)
-                                                                                   ; ((Noexpr, Id $13),         $15)
-                                                                                   ; ((Id $17, Id $19),         $21)
-                                                                                   ; ((Id $23, Id $25),         $27)
-                                                                                   ; ((Id $29, Id $31),         $33)
-                                                                                   ; ((Noexpr, Id $36),         $38)
-                                                                                   ; ((Noexpr, Id $40),         $43)
-                                                                                   ])         }
-                                                                                   *)
-     | (looping, (Case (e, ([ ((Noexpr, RE RegExp.Zero), e1)
-                            ; ((Noexpr, RE RegExp.One),  e2)
-                            ; ((Noexpr, Id s1),          e3)
-                            ; ((Id s2,  Id s3),          e4)
-                            ; ((Id s4,  Id s5),          e5)
-                            ; ((Id s6,  Id s7),          e6)
-                            ; ((Noexpr, Id s8),          e7)
-                            ; ((Noexpr, Id s9),          e8)
-                            ] as cases)))) when fst (expr e) = TRE      ->
+      | (looping, (Case (e, ([ ((Noexpr, RE RegExp.Zero), e1)
+                             ; ((Noexpr, RE RegExp.One),  e2)
+                             ; ((Noexpr, Id s1),          e3)
+                             ; ((Id s2,  Id s3),          e4)
+                             ; ((Id s4,  Id s5),          e5)
+                             ; ((Id s6,  Id s7),          e6)
+                             ; ((Noexpr, Id s8),          e7)
+                             ; ((Noexpr, Id s9),          e8)
+                             ] as cases)))) when fst (expr e) = TRE     ->
                                                                             (* let lhs = List.map fst cases *)
                                                                             let rhs = List.map snd cases
                                                                             (* and e'  : sx = snd (expr e) *)
@@ -267,10 +233,6 @@ open RegExp
                                                                                 else *) (if (not (same_rhs rhs))
                                                                                       then error "all of RHS must have same type"
                                                                                       (* else (looping, (type_rhs, (SCase (e, cases)))))) *)
-                                                                                      (*
-                                                                                      | SAssign    of string * sexpr
-                                                                                      | SIf      of sexpr * sstmt * sstmt
-                                                                                      *)
                                                                                else (looping, let outer  : sexpr = (TChar, SCall (("outer"), [expr e]))
                                                                                               and zero_c : sexpr = (TChar, SCharLit '#')
                                                                                               and one_c  : sexpr = (TChar, SCharLit '@')
@@ -300,7 +262,6 @@ open RegExp
                                                                                                                                         then8 SBlock [(SAssign s9); (SExpr e8)]
                                                                                                                                         else8 raise ABSURD
                                                                                               *)
-                                                                                              in let todo : sexpr = (expr Noexpr)
                                                                                               in let pred8 : sexpr = (TBool, (SBinop (outer, BEqual, star_c)))
                                                                                               in let pred7 : sexpr = (TBool, (SBinop (outer, BEqual, comp_c)))
                                                                                               in let pred6 : sexpr = (TBool, (SBinop (outer, BEqual, cat_c)))
@@ -327,13 +288,13 @@ open RegExp
                                                                                                                             ; SExpr ((TRE, SAssign (s3, ((TRE, SCall ("righttok", [(expr e)]))))))
                                                                                                                             ; SExpr (expr e4)
                                                                                                                             ]
-                                                                                              in let then3 : sstmt = SBlock [ SExpr ((TRE, SAssign (s1, ((TRE, SCall ("lefttok",  [(expr e)]))))))
+                                                                                              in let then3 : sstmt = SBlock [ SExpr ((TRE, SAssign (s1, ((TRE, SCall ("litchar",  [(expr e)]))))))
                                                                                                                             ; SExpr (expr e3)
                                                                                                                             ]
                                                                                               in let then2 : sstmt = SExpr (expr e2)
                                                                                               in let then1 : sstmt = SExpr (expr e1)
                                                                                               (* in let if8 : sstmt = SIf (pred8, then8, SExpr (expr Noexpr)) *)
-                                                                                              in let if8 : sstmt = SIf (pred8, then8, SExpr (raise ABSURD))
+                                                                                              in let if8 : sstmt = SIf (pred8, then8, SExpr (raise ABSURD)) (* this `else` is unreachable if semantic checking worked *)
                                                                                               in let if7 : sstmt = SIf (pred7, then7, if8)
                                                                                               in let if6 : sstmt = SIf (pred6, then6, if7)
                                                                                               in let if5 : sstmt = SIf (pred5, then5, if6)
@@ -342,7 +303,6 @@ open RegExp
                                                                                               in let if2 : sstmt = SIf (pred2, then2, if3)
                                                                                               in let if1 : sstmt = SIf (pred1, then1, if2)
                                                                                               in if1)))
-                                                     (* TODO is there an assert here or do I manually check with and and fail on false? *)
       | (_,       Case (_, _))                                           -> error "case expressions currently only support regular expressions"
       | (looping, Expr e)                                                -> (looping, SExpr (expr e))
       | (looping, If (p, b1, b2))                                        -> (looping, SIf (check_bool_expr p, snd (check_statement (looping, b1)), snd (check_statement (looping, b2))))

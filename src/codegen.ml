@@ -109,11 +109,12 @@ let translate (globals, _, functions) =
   and simulates_t = L.function_type i32_t [| L.pointer_type dfa_t;  L.pointer_type i8_t |]
   in let simulates_func = L.declare_function "simulates" simulates_t the_module
 
-(*   in let lefttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
+  and lefttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
   in let lefttok_func = L.declare_function "lefttok" lefttok_t the_module
 
-  in let righttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
-  in let righttok_func = L.declare_function "righttok" righttok_t the_module *)
+  and righttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
+  in let righttok_func = L.declare_function "righttok" righttok_t the_module
+
   in let litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 
@@ -426,10 +427,12 @@ let translate (globals, _, functions) =
       | SUnop (A.UREComp, e)             -> build_unop '\''          (expr builder e)                          builder
       | SUnop (A.UREStar, e)             -> build_unop '*'          (expr builder e)                          builder
       | SUnop (A.UREOut,  e)             -> raise (Prelude.TODO "codegen.ml expr UREOut case")
-      | SAssign(s, (((ty : typ), (SCall ("lefttok", []))) as e)) -> let e' = expr builder e
+      (*
+        | SAssign(s, (((ty : typ), (SCall ("lefttok", []))) as e)) -> let e' = expr builder e
                                             in let _  = L.build_store e' (lookup s) builder
                                             in e'
-      | SAssign (s, (e : sexpr))                   -> let e' = expr builder e
+                                            *)
+      | SAssign (s, (e : sexpr))         -> let e' = expr builder e
                                             in let _  = L.build_store e' (lookup s) builder
                                             in e'
       | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
@@ -437,11 +440,11 @@ let translate (globals, _, functions) =
       | SCall ("printdfa", [e]) -> L.build_call printdfa_func [| get_ptr (expr builder e) builder     |] "printf"   builder
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
-      | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder
+      | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e)                     |] "printb"   builder
 
       | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
-      
+
       | SCall ("litchar",  [e]) -> L.build_call litchar_func  [| get_ptr (expr builder e) builder     |] "litchar"  builder
       | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
                                    in let actuals = List.rev (List.map (expr builder) (List.rev act))
