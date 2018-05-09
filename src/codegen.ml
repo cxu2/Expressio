@@ -130,8 +130,7 @@ let translate (globals, _, functions) =
   and litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 
-  (* and outer_t = L.function_type (ltype_of_typ A.TChar) [| L.pointer_type (ltype_of_typ A.TRE) |] *)
-  and outer_t = L.function_type i8_t [| L.pointer_type (ltype_of_typ A.TRE) |]
+  and outer_t = L.function_type (ltype_of_typ A.TChar) [| L.pointer_type (ltype_of_typ A.TRE) |]
   in let outer_func = L.declare_function "outer" outer_t the_module
 
   and strindex_t = L.function_type i8_t [| L.pointer_type i8_t; i32_t|]
