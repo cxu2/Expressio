@@ -3,6 +3,7 @@ main : -> int {
   regexp s;
   regexp t;
   char c;
+  regexp a;
   c = 'a';
   t = {.};
   r = (lit 'a');
