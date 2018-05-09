@@ -27,10 +27,12 @@ curr = 0;
 i = 0;
 c = 3;
 
-for i=0; i < 9  ;i = i+1  {
+for i=0; i < len(walk)  ;i = i+1  {
     next = (curr, walk[i])->maze;
     if(next != -1){
        curr = next;
+    } else {
+       printf("Hit a wall!");
     }
     print(curr);
 }
