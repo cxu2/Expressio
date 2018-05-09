@@ -105,7 +105,6 @@ module RegExp = struct
     | Plus (a, b) -> plus (derivative a s) (derivative b s)
     | Mult (a, b) -> plus (mult (derivative a s) b) (mult (constant a) (derivative b s))
     | Star a      -> mult (derivative a s) (star a)
-    (* TODO double check *)
     | And (a, b)  -> intersect (derivative a s) (derivative b s)
     | Comp a      -> comp (derivative a s)
   let derivative' (r : 'a regexp) (word : 'a list) = List.fold_left derivative r word

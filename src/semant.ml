@@ -252,7 +252,7 @@ open RegExp
                             ] as cases)))) when fst (expr e) = TRE      ->
                                                                             (* let lhs = List.map fst cases *)
                                                                             let rhs = List.map snd cases
-                                                                            and e'  : sx = snd (expr e)
+                                                                            (* and e'  : sx = snd (expr e) *)
                                                                             (* TODO can also check if all cases are matched for basic types *)
                                                                             and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
                                                                             (* ensure that the type of the expression being matched fits into the LHS of the cases *)
@@ -268,54 +268,83 @@ open RegExp
                                                                                       then error "all of RHS must have same type"
                                                                                       (* else (looping, (type_rhs, (SCase (e, cases)))))) *)
                                                                                       (*
+                                                                                      | SAssign    of string * sexpr
                                                                                       | SIf      of sexpr * sstmt * sstmt
                                                                                       *)
-                                                                                      (*
+                                                                               else (looping, let outer  : sexpr = (TChar, SCall (("outer"), [expr e]))
+                                                                                              and zero_c : sexpr = (TChar, SCharLit '#')
+                                                                                              and one_c  : sexpr = (TChar, SCharLit '@')
+                                                                                              and lit_c  : sexpr = (TChar, SCharLit 'l')
+                                                                                              and and_c  : sexpr = (TChar, SCharLit '&')
+                                                                                              and or_c   : sexpr = (TChar, SCharLit '|')
+                                                                                              and cat_c  : sexpr = (TChar, SCharLit '^')
+                                                                                              and comp_c : sexpr = (TChar, SCharLit '\'')
+                                                                                              and star_c : sexpr = (TChar, SCharLit '*')
+                                                                                              (*
+                                                                                              let o = outer r
+                                                                                              if1 o = '#'  -- {.}
+                                                                                              then1 (SExpr e1)
+                                                                                              else1 if2 o = '@' -- {{.}}
+                                                                                                    then2 (SExpr e2)
+                                                                                                    else2 if3 o = 'l'
+                                                                                                          then3 SBlock [(SAssign s1); (SExpr e3)]
+                                                                                                          else3 if4 o = '&'
+                                                                                                                then4 SBlock [(SAssign s2); (SAssign s3); (SExpr e4)]
+                                                                                                                else4 if5 o = '|'
+                                                                                                                      then5 SBlock [(SAssign s4); (SAssign s5); (SExpr e5)]
+                                                                                                                      else5 if6 o = '^'
+                                                                                                                            then6 SBlock [(SAssign s6); (SAssign s7); (SExpr e6)]
+                                                                                                                            else6 if7 o = '\''
+                                                                                                                                  then7 SBlock [(SAssign s8); (SExpr e7)]
+                                                                                                                                  else7 if8 o = '*'
+                                                                                                                                        then8 SBlock [(SAssign s9); (SExpr e8)]
+                                                                                                                                        else8 raise ABSURD
+                                                                                              *)
+                                                                                              in let todo = (expr Noexpr)
+                                                                                              in let pred8 : sexpr = (TBool, (SBinop (outer, BEqual, star_c)))
+                                                                                              in let pred7 : sexpr = (TBool, (SBinop (outer, BEqual, comp_c)))
+                                                                                              in let pred6 : sexpr = (TBool, (SBinop (outer, BEqual, cat_c)))
+                                                                                              in let pred5 : sexpr = (TBool, (SBinop (outer, BEqual, or_c)))
+                                                                                              in let pred4 : sexpr = (TBool, (SBinop (outer, BEqual, and_c)))
+                                                                                              in let pred3 : sexpr = (TBool, (SBinop (outer, BEqual, lit_c)))
+                                                                                              in let pred2 : sexpr = (TBool, (SBinop (outer, BEqual, one_c)))
+                                                                                              in let pred1 : sexpr = (TBool, (SBinop (outer, BEqual, zero_c)))
+                                                                                              (*
+in let then8 : sstmt = SBlock [ SExpr ((TRE, SAssign (s9, ((TRE, SCall ("lefttok", [(expr e8)]))))))
+                                                                                              *)
+                                                                                              in let then8 : sstmt = SBlock [ SExpr ((TRE, SAssign (s9, todo)))
+                                                                                                                            ; SExpr (expr e8)
+                                                                                                                            ]
+                                                                                              in let then7 : sstmt = SBlock [ SExpr ((TRE, SAssign (s8, todo)))
+                                                                                                                            ; SExpr (expr e7)
+                                                                                                                            ]
+                                                                                              in let then6 : sstmt = SBlock [ SExpr ((TRE, SAssign (s6, todo)))
+                                                                                                                            ; SExpr ((TRE, SAssign (s7, todo)))
+                                                                                                                            ; SExpr (expr e6)
+                                                                                                                            ]
+                                                                                              in let then5 : sstmt = SBlock [ SExpr ((TRE, SAssign (s4, todo)))
+                                                                                                                            ; SExpr ((TRE, SAssign (s5, todo)))
+                                                                                                                            ; SExpr (expr e5)
+                                                                                                                            ]
+                                                                                              in let then4 : sstmt = SBlock [ SExpr ((TRE, SAssign (s2, todo)))
+                                                                                                                            ; SExpr ((TRE, SAssign (s3, todo)))
+                                                                                                                            ; SExpr (expr e4)
+                                                                                                                            ]
+                                                                                              in let then3 : sstmt = SBlock [ SExpr ((TRE, SAssign (s1, todo)))
+                                                                                                                            ; SExpr (expr e3)
+                                                                                                                            ]
+                                                                                              in let then2 : sstmt = SExpr (expr e2)
+                                                                                              in let then1 : sstmt = SExpr (expr e1)
 
-                                                                                      if r = {.}
-                                                                                      then e1
-                                                                                      else if r = {{.}}
-                                                                                           then e2
-                                                                                           else if r = lit 'a'
-                                                                                                then e3
-                                                                                                else if r = a & b
-                                                                                                     then e4
-                                                                                                     else if r = a | b
-                                                                                                          then e5
-                                                                                                          else if r = a ^ b
-                                                                                                               then e6
-                                                                                                               else if r = ' b
-                                                                                                                    then e7
-                                                                                                                    else if r = a **
-                                                                                                                          then e8
-                                                                                                                          else raise ABSURD
-                                                                                                                          *)
-                                                                                      (* TODO modify this to use new C function*)
-                                                                                      (*
-                                                                                      if r = {.}
-                                                                                      then e1
-                                                                                      else if r = {{.}}
-                                                                                           then e2
-                                                                                           else if (outer  r) = 'l'
-                                                                                                then SBlock [(SAssign "some_name" ),e3]
-                                                                                                else if r = a & b
-                                                                                                     then e4
-                                                                                                     else if r = a | b
-                                                                                                          then e5
-                                                                                                          else if r = a ^ b
-                                                                                                               then e6
-                                                                                                               else if r = ' b
-                                                                                                                    then e7
-                                                                                                                    else if r = a **
-                                                                                                                          then e8
-                                                                                                                          else raise ABSURD
-                                                                                      *)
-                                                                                      else (looping, let _ = ()
-                                                                                                     in let if3 = SIf ((TBool, (let x : sx = (SUnop (UREOut, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), raise (TODO "finish"))
-                                                                                                     in let if2 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BREEqual, (TRE, SRE RegExp.One))) in x)), (SExpr (expr e2)), (if3))
-                                                                                                     in let if1 = SIf ((TBool, (let x : sx = (SBinop ((TRE, e'), BREEqual, (TRE, SRE RegExp.Zero))) in x)), (SExpr (expr e1)), (if2))
-                                                                                                     in let x = SBlock [if1 ; raise (TODO "")] (* SIf ((), (), ()) *)
-                                                                                                     in x)))
+                                                                                              in let if8 : sstmt = SIf (pred8, then8, SExpr todo)
+                                                                                              in let if7 : sstmt = SIf (pred7, then7, if8)
+                                                                                              in let if6 : sstmt = SIf (pred6, then6, if7)
+                                                                                              in let if5 : sstmt = SIf (pred5, then5, if6)
+                                                                                              in let if4 : sstmt = SIf (pred4, then4, if5)
+                                                                                              in let if3 : sstmt = SIf (pred3, then3, if4)
+                                                                                              in let if2 : sstmt = SIf (pred2, then2, if3)
+                                                                                              in let if1 : sstmt = SIf (pred1, then1, if2)
+                                                                                              in if1)))
                                                      (* TODO is there an assert here or do I manually check with and and fail on false? *)
       | (_,       Case (_, _))                                           -> error "case expressions currently only support regular expressions"
       | (looping, Expr e)                                                -> (looping, SExpr (expr e))

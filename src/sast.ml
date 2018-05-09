@@ -15,6 +15,7 @@ and sx =
   | SBinop     of sexpr * bop * sexpr
   | SUnop      of uop * sexpr
   | SAssign    of string * sexpr
+  (* SCall takes the name of the function, and a list of arguments *)
   | SCall      of string * sexpr list
   | SDFA       of int * char list * int * int list * tranf list
   | SNoexpr

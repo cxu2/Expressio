@@ -174,14 +174,14 @@ stmt:
     ID REOR  ID CASETO expr COMMA
     ID RECAT ID CASETO expr COMMA
     RECOMP ID   CASETO expr COMMA
-    ID RESTAR   CASETO expr SEMI            { Case ($2, [ ((Noexpr, RE RegExp.Zero), $6 )
-                                                        ; ((Noexpr, RE RegExp.One),  $10)
-                                                        ; ((Noexpr, Id $13),         $15)
-                                                        ; ((Id $17, Id $19),         $21)
-                                                        ; ((Id $23, Id $25),         $27)
-                                                        ; ((Id $29, Id $31),         $33)
-                                                        ; ((Noexpr, Id $36),         $38)
-                                                        ; ((Noexpr, Id $40),         $43)
+    ID RESTAR   CASETO expr SEMI            { Case ($2, [ ((Noexpr, Noexpr), $6 )
+                                                        ; ((Noexpr, Noexpr), $10)
+                                                        ; ((Noexpr, Id $13), $15)
+                                                        ; ((Id $17, Id $19), $21)
+                                                        ; ((Id $23, Id $25), $27)
+                                                        ; ((Id $29, Id $31), $33)
+                                                        ; ((Noexpr, Id $36), $38)
+                                                        ; ((Noexpr, Id $40), $43)
                                                         ])         }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }

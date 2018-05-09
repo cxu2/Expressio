@@ -426,7 +426,10 @@ let translate (globals, _, functions) =
       | SUnop (A.UREComp, e)             -> build_unop '\''          (expr builder e)                          builder
       | SUnop (A.UREStar, e)             -> build_unop '*'          (expr builder e)                          builder
       | SUnop (A.UREOut,  e)             -> raise (Prelude.TODO "codegen.ml expr UREOut case")
-      | SAssign (s, e)                   -> let e' = expr builder e
+      | SAssign(s, (((ty : typ), (SCall ("lefttok", []))) as e)) -> let e' = expr builder e
+                                            in let _  = L.build_store e' (lookup s) builder
+                                            in e'
+      | SAssign (s, (e : sexpr))                   -> let e' = expr builder e
                                             in let _  = L.build_store e' (lookup s) builder
                                             in e'
       | SDFA (n, a, s, f, delta) -> build_dfa n a s f delta builder
@@ -435,9 +438,10 @@ let translate (globals, _, functions) =
       | SCall ("printf",   [e]) -> L.build_call printf_func   [| string_format_str ; (expr builder e) |] "printf"   builder
       | SCall ("printr",   [e]) -> L.build_call printr_func   [| get_ptr (expr builder e) builder     |] "printr"   builder
       | SCall ("printb",   [e]) -> L.build_call printb_func   [| (expr builder e) |] "printb" builder
-      (* | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
+
+      | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
-       *)
+      
       | SCall ("litchar",  [e]) -> L.build_call litchar_func  [| get_ptr (expr builder e) builder     |] "litchar"  builder
       | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
                                    in let actuals = List.rev (List.map (expr builder) (List.rev act))
