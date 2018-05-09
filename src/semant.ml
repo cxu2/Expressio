@@ -3,7 +3,7 @@
 open Ast
 open Sast
 open Prelude.Prelude
-open RegExp
+(* open RegExp *)
 
 (* module StringMap = Map.Make(String) *)
 (* Semantic checking of the AST. Returns an SAST if successful,
