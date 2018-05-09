@@ -424,7 +424,7 @@ let translate (globals, _, functions) =
       | SUnop (A.UNeg,    e)             -> L.build_neg             (expr builder e)                    "tmp" builder
       | SUnop (A.UNot,    e)             -> L.build_not             (expr builder e)                    "tmp" builder
       | SUnop (A.URELit,  e)             -> build_lit 'l'           (expr builder e)                          builder
-      | SUnop (A.UREComp, e)             -> build_unop '\''          (expr builder e)                          builder
+      | SUnop (A.UREComp, e)             -> build_unop '\''         (expr builder e)                          builder
       | SUnop (A.UREStar, e)             -> build_unop '*'          (expr builder e)                          builder
       (* | SUnop (A.UREOut,  e)             -> raise (Prelude.TODO "codegen.ml expr UREOut case") *)
       (*
