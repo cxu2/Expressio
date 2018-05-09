@@ -207,14 +207,14 @@ open RegExp
       | (false,   Continue)                                              -> error "\'continue\' is outside of loop"
       | (true,    Break)                                                 -> (true,    SBreak)
       | (true,    Continue)                                              -> (true,    SContinue)
-      | (looping, (Case (e, ([ ((Noexpr, RE RegExp.Zero), e1)
-                             ; ((Noexpr, RE RegExp.One),  e2)
-                             ; ((Noexpr, Id s1),          e3)
-                             ; ((Id s2,  Id s3),          e4)
-                             ; ((Id s4,  Id s5),          e5)
-                             ; ((Id s6,  Id s7),          e6)
-                             ; ((Noexpr, Id s8),          e7)
-                             ; ((Noexpr, Id s9),          e8)
+      | (looping, (Case (e, ([ ((Noexpr, Noexpr), e1)
+                             ; ((Noexpr, Noexpr), e2)
+                             ; ((Noexpr, Id s1),  e3)
+                             ; ((Id s2,  Id s3),  e4)
+                             ; ((Id s4,  Id s5),  e5)
+                             ; ((Id s6,  Id s7),  e6)
+                             ; ((Noexpr, Id s8),  e7)
+                             ; ((Noexpr, Id s9),  e8)
                              ] as cases)))) when fst (expr e) = TRE     ->
                                                                             (* let lhs = List.map fst cases *)
                                                                             let rhs = List.map snd cases
