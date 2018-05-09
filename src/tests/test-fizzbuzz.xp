@@ -1,0 +1,81 @@
+<~
+-- A number is divisible by 3 if and only if the sum of its digits is divisible by 3
+-- We add a single starting state (Nothing) to avoid accepting the empty string.
+-- The state we are in is the (running total % 3)
+-- So, add the (running total % 3) to the current digit, then (% 3) again
+by3 :: DFA (Maybe Mod3) Digits
+by3 = DFA { delta = Just . toEnum . (`mod` 3) . delta'
+          , q0    = Nothing
+          , fs    = singleton (Just IsZero)
+          } where delta' (q, digit) = q' + digit'
+                    where q'     = fromEnum (fromMaybe IsZero q)
+                          digit' = fromEnum digit
+
+
+-- A regular expression to match the language of the divisibleBy5 DFA
+-- TODO checkme
+-- [0-9]*[0+5]
+-- (((((((((((1+2)+3)+4)+5)+6)+7)+8)+9)+0))⋆.(0+5))
+div5 :: RE.RegExp Digits
+div5 = RE.closure
+        ( RE.literal One   RE.+
+          RE.literal Two   RE.+
+          RE.literal Three RE.+
+          RE.literal Four  RE.+
+
+          RE.literal Six   RE.+
+          RE.literal Five  RE.+
+
+          RE.literal Seven RE.+
+          RE.literal Eight RE.+
+          RE.literal Nine  RE.+
+          RE.literal Zero
+        ) RE.* (RE.literal Zero RE.+ RE.literal Five)
+~>
+toString : (x : int) -> string {
+  return "";
+}
+
+main : -> int {
+  int i;
+  regexp numeric;
+  regexp by5;
+  dfa by3;
+  by3 = {
+   states : 5
+   alphabet : ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+   start : 0
+   final : [1]
+   transitions : [ (0 '0' 1), (0 '1' 2), (0 '2' 3), (0 '3' 1), (0 '4' 2), (0 '5' 3), (0 '6' 1), (0 '7' 2), (0 '8' 3), (0 '9' 1)
+                 , (1 '0' 1), (1 '1' 2), (1 '2' 3), (1 '3' 1), (1 '4' 2), (1 '5' 3), (1 '6' 1), (1 '7' 2), (1 '8' 3), (1 '9' 1)
+                 , (2 '0' 2), (2 '1' 3), (2 '2' 1), (2 '3' 2), (2 '4' 3), (2 '5' 1), (2 '6' 2), (2 '7' 3), (2 '8' 1), (2 '9' 2)
+                 , (3 '0' 3), (3 '1' 1), (3 '2' 2), (3 '3' 3), (3 '4' 1), (3 '5' 2), (3 '6' 3), (3 '7' 1), (3 '8' 2), (3 '9' 3)
+                 ]
+  };
+  numeric = (lit '0' | lit '1' | lit '2' | lit '3' | lit '4' | lit '5' | lit '6' | lit '7' | lit '8' | lit '9') **;
+  by5 = numeric ^ (lit '0' | lit '5');
+  if (by3 accepts "33") {
+     print(1);
+  }
+
+  if (by3 accepts "66") {
+     print(1);
+  } else {
+    print(0);
+  }
+  <~
+  for i = 0; i <= 100; i = i + 1 {
+    if (by3 accepts i) {
+      printf("fizz");
+    } else {
+      if (by5 matches i) {
+        printf("buzz");
+      } else {
+        printi(i);
+      }
+    }
+    printf("\n");
+  }
+  ~>
+  return 0;
+}
