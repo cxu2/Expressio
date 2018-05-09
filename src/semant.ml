@@ -184,7 +184,6 @@ open Prelude.Prelude
                                       string_of_typ t2 ^ " in " ^ string_of_expr e)
         in (ty, SBinop ((t1, e1'), op, (t2, e2')))
       | Call (fname, args) as call ->
-      (* let _ = print_string "converting call to scall" in *)
           let fd              = find_func fname
           in let param_length = List.length fd.formals
           in if List.length args != param_length

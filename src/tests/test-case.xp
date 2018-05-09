@@ -5,17 +5,19 @@ main : -> int {
   char c;
   regexp a;
   regexp b;
+
   c = 'a';
   t = {.};
   r = (lit 'a');
   case r :
       {.}     >> s = {.},
       {{.}}   >> s = {{.}},
-      lit c   >> s = lit 'c',
+      lit c   >> s = lit c,
       a & b   >> s = a,
       a | b   >> s = a,
       a ^ b   >> s = a,
       ' a     >> s = a,
       a **    >> s = a;
+  printr(s);
   return 0;
 }
