@@ -541,7 +541,6 @@ let translate (globals, _, functions) =
       | SCall ("randomr",   [e]) -> L.build_call randomr_func   [| (expr builder e) |] "randomr"   builder
       | SCall ("len",   [e]) -> L.build_call len_func   [| (expr builder e) |] "len"   builder
       | SCall ("link",     [e1; e2; e3; e4]) -> L.build_call link_func   [| get_ptr (expr builder e1) builder; (expr builder e2); (expr builder e3); (expr builder e4) |] "link"   builder
-      (* | SCall ("lefttok",  [e]) -> L.build_call lefttok_func  [| get_ptr (expr builder e) builder     |] "lefttok"  builder *)
       | SCall ("righttok", [e]) -> L.build_call righttok_func [| get_ptr (expr builder e) builder     |] "righttok" builder
       | SCall ("litchar",  [e]) -> L.build_call litchar_func  [| get_ptr (expr builder e) builder     |] "litchar"  builder
       | SCall (f,          act) -> let (fdef, fdecl) = StringMap.find f function_decls
@@ -587,7 +586,7 @@ let translate (globals, _, functions) =
          (* let rec stmt (builder : L.llbuilder) (x : sstmt) : L.llbuilder = match x with *)
          in let rec stmt ((builder : llbuilder), (callStack : llbasicblock list), (breakStack)) (x : sstmt) : (llbuilder * (llbasicblock list) * (llbasicblock list)) = match x with
          (* let rec stmt (builder,callStack,breakStack) = function *)
-         	      SBlock sl -> List.fold_left stmt (builder,callStack,breakStack) sl
+         	      SBlock sl -> List.fold_left stmt (builder, callStack, breakStack) sl
                  (* Generate code for this expression, return resulting builder *)
                | SExpr e   -> let _ = expr builder e
                               in (builder, callStack, breakStack)
@@ -655,9 +654,9 @@ let translate (globals, _, functions) =
                    (* Hook everything up *)
                    in let _             = L.build_cond_br bool_val body_bb merge_bb pred_builder
                    in (L.builder_at_end context merge_bb, callStack, breakStack)
-               | SInfloop (body) -> stmt (builder,callStack,breakStack) ( SBlock [SWhile (SNostmt, (A.TBool ,SBoolLit(true)), SBlock [body]) ] )
+               | SInfloop (body) -> stmt (builder, callStack, breakStack) ( SBlock [SWhile (SNostmt, (A.TBool ,SBoolLit(true)), SBlock [body]) ] )
                (* Implement for loops as while loops! *)
-               | SFor (e1, e2, e3, body) -> stmt (builder,callStack,breakStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
+               | SFor (e1, e2, e3, body) -> stmt (builder, callStack, breakStack) ( SBlock [SExpr e1 ; SWhile (SExpr e3, e2, SBlock [body]) ] )
                | SContinue               ->
                    if List.length callStack = 0 then (builder, callStack, breakStack)
                    else
@@ -673,7 +672,7 @@ let translate (globals, _, functions) =
                    in let callStack = List.rev (List.tl (List.rev callStack))
                    in (b, callStack, breakStack)
                | SBreak                  ->
-                 let break_bb          = L.append_block context "break_bb" the_function
+                 let break_bb         = L.append_block context "break_bb" the_function
                  in let _             = L.build_br break_bb builder
                  in let ()            = add_terminal builder (L.build_br break_bb)
                  in let b = L.builder_at_end context break_bb
