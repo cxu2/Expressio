@@ -256,37 +256,35 @@ open Prelude.Prelude
                                                                                                                                         else8 raise ABSURD
                                                                                               *)
                                                                                               let outer  : expr = Call ("outer", [e])
-                                                                                              in let then8 : stmt = Block [ Expr (Assign (s9, (Call ("lefttok",  [e]))))
-                                                                                                                          ; Expr e8
-                                                                                                                          ]
-                                                                                              in let then7 : stmt = Block [ Expr (Assign (s8, (Call ("lefttok",  [e]))))
-                                                                                                                          ; Expr e7
-                                                                                                                          ]
-                                                                                              in let then6 : stmt = Block [ Expr (Assign (s6, (Call ("lefttok",  [e]))))
-                                                                                                                          ; Expr (Assign (s7, (Call ("righttok", [e]))))
-                                                                                                                          ; Expr e6
-                                                                                                                          ]
-                                                                                              in let then5 : stmt = Block [ Expr (Assign (s4, (Call ("lefttok",  [e]))))
-                                                                                                                          ; Expr (Assign (s5, (Call ("righttok", [e]))))
-                                                                                                                          ; Expr e5
-                                                                                                                          ]
-                                                                                              in let then4 : stmt = Block [ Expr (Assign (s2, (Call ("lefttok",  [e]))))
-                                                                                                                          ; Expr (Assign (s3, (Call ("righttok", [e]))))
-                                                                                                                          ; Expr e4
-                                                                                                                          ]
-                                                                                              in let then3 : stmt = Block [ Expr (Assign (s1, (Call ("litchar",  [e]))))
-                                                                                                                          ; Expr e3
-                                                                                                                          ]
-                                                                                              (* in let then2 : stmt = Expr e2 *)
-                                                                                              (* in let then1 : stmt = Expr e1 *)
-                                                                                              in let if8 : stmt = If (Binop (outer, BEqual, CharLit '*'),  then8, let _ = (error "umm... outer=" ^ (string_of_expr outer)) in Expr (raise ABSURD)) (* this `else` is unreachable if semantic checking worked *)
-                                                                                              in let if7 : stmt = If (Binop (outer, BEqual, CharLit '\''), then7,   if8)
-                                                                                              in let if6 : stmt = If (Binop (outer, BEqual, CharLit '^'),  then6,   if7)
-                                                                                              in let if5 : stmt = If (Binop (outer, BEqual, CharLit '|'),  then5,   if6)
-                                                                                              in let if4 : stmt = If (Binop (outer, BEqual, CharLit '&'),  then4,   if5)
-                                                                                              in let if3 : stmt = If (Binop (outer, BEqual, CharLit 'l'),  then3,   if4)
-                                                                                              in let if2 : stmt = If (Binop (outer, BEqual, CharLit '@'),  Expr e2, if3)
-                                                                                              in let if1 : stmt = If (Binop (outer, BEqual, CharLit '#'),  Expr e1, if2)
+                                                                                              and then8 : stmt = Block [ Expr (Assign (s9, (Call ("lefttok",  [e]))))
+                                                                                                                       ; Expr e8
+                                                                                                                       ]
+                                                                                              and then7 : stmt = Block [ Expr (Assign (s8, (Call ("lefttok",  [e]))))
+                                                                                                                       ; Expr e7
+                                                                                                                       ]
+                                                                                              and then6 : stmt = Block [ Expr (Assign (s6, (Call ("lefttok",  [e]))))
+                                                                                                                       ; Expr (Assign (s7, (Call ("righttok", [e]))))
+                                                                                                                       ; Expr e6
+                                                                                                                       ]
+                                                                                              and then5 : stmt = Block [ Expr (Assign (s4, (Call ("lefttok",  [e]))))
+                                                                                                                       ; Expr (Assign (s5, (Call ("righttok", [e]))))
+                                                                                                                       ; Expr e5
+                                                                                                                       ]
+                                                                                              and then4 : stmt = Block [ Expr (Assign (s2, (Call ("lefttok",  [e]))))
+                                                                                                                       ; Expr (Assign (s3, (Call ("righttok", [e]))))
+                                                                                                                       ; Expr e4
+                                                                                                                       ]
+                                                                                              and then3 : stmt = Block [ Expr (Assign (s1, (Call ("litchar",  [e]))))
+                                                                                                                       ; Expr e3
+                                                                                                                       ]
+                                                                                              in let if8 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '*'),  then8, let _ = (error "umm... outer=" ^ (string_of_expr outer)) in Expr (raise ABSURD)) (* this `else` is unreachable if semantic checking worked *)
+                                                                                              in let if7 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '\''), then7,   if8)
+                                                                                              in let if6 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '^'),  then6,   if7)
+                                                                                              in let if5 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '|'),  then5,   if6)
+                                                                                              in let if4 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '&'),  then4,   if5)
+                                                                                              in let if3 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit 'l'),  then3,   if4)
+                                                                                              in let if2 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '@'),  Expr e2, if3)
+                                                                                              in let if1 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '#'),  Expr e1, if2)
                                                                                               in snd (check_statement (looping, if1)))))
       | (_,       Case (_, _))                                           -> error "case expressions currently only support regular expressions"
       | (looping, Expr e)                                                -> (looping, SExpr (expr e))

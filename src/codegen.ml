@@ -112,13 +112,14 @@ let translate (globals, _, functions) =
   and lefttok_t = L.function_type tree_t [| L.pointer_type tree_t |]
   in let lefttok_func = L.declare_function "lefttok" lefttok_t the_module
 
-  and righttok_t = L.function_type (ltype_of_typ TRE) [| L.pointer_type tree_t |]
+  and righttok_t = L.function_type (ltype_of_typ A.TRE) [| L.pointer_type tree_t |]
   in let righttok_func = L.declare_function "righttok" righttok_t the_module
 
   and litchar_t = L.function_type i8_t [| L.pointer_type tree_t |]
   in let litchar_func = L.declare_function "litchar" litchar_t the_module
 
-  and outer_t = L.function_type (ltype_of_typ TChar) [| L.pointer_type (ltype_of_typ TRE) |]
+  (* and outer_t = L.function_type (ltype_of_typ A.TChar) [| L.pointer_type (ltype_of_typ A.TRE) |] *)
+  and outer_t = L.function_type i8_t [| L.pointer_type (ltype_of_typ A.TRE) |]
   in let outer_func = L.declare_function "outer" outer_t the_module
   (**********************
    *   Build Functions  *
