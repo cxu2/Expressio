@@ -424,5 +424,7 @@ bool matches(tree_t* regex_ptr, char* str) {
 
 // return the outermost operation (checking for nullary operations too)
 char outer (tree_t* t) {
+  printf ("%s", "call from outer HELLO");
+  // printf(" %c ", regex_ptr -> operator);
   return (t -> operator == 'n') ? t -> character : t -> operator;
 }
