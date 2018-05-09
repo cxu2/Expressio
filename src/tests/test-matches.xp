@@ -1,0 +1,99 @@
+~~ test matches
+
+main : -> int {
+	
+	regexp r1;
+	regexp r2;
+	regexp r3;
+	regexp r4;
+	regexp r5;
+	regexp r6;
+	regexp r7;
+	regexp r8;
+	regexp r9;
+	regexp r10;
+	regexp r11;
+	bool m;
+
+	r1 = lit 'a';
+
+	m = r1 matches "a";
+	printb(m);
+	m = r1 matches "";
+	printb(m);
+
+	r2 = lit 'b';
+	r3 = r1 | r2;
+
+	m = r3 matches "a";
+	printb(m);
+	m = r3 matches "b";
+	printb(m);
+	m = r3 matches "c";
+	printb(m);
+	m = r3 matches "";
+	printb(m);
+
+	r4 = r3 **;
+
+	m = r4 matches "a";
+	printb(m);
+	m = r4 matches "b";
+	printb(m);
+	m = r4 matches "c";
+	printb(m);
+	m = r4 matches "";
+	printb(m);
+
+	r5 = lit 'c';
+	r6 = r4 ^ r5;
+
+	m = r6 matches "a";
+	printb(m);
+	m = r6 matches "b";
+	printb(m);
+	m = r6 matches "";
+	printb(m);
+	m = r6 matches "c";
+	printb(m);
+	m = r6 matches "ac";
+	printb(m);
+	m = r6 matches "bc";
+	printb(m);
+	m = r6 matches "cc";
+	printb(m);
+
+	r7 = r6 **;
+
+	m = r7 matches "a";
+	printb(m);
+	m = r7 matches "b";
+	printb(m);
+	m = r7 matches "";
+	printb(m);
+	m = r7 matches "c";
+	printb(m);
+	m = r7 matches "ac";
+	printb(m);
+	m = r7 matches "bc";
+	printb(m);
+	m = r7 matches "cc";
+	printb(m);
+	m = r7 matches "cacbccbc";
+	printb(m);
+
+	r8 = {.};
+	r9 = {{.}};
+
+	m = r8 matches "a";
+	printb(m);
+	m = r8 matches "";
+	printb(m);
+	m = r9 matches "a";
+	printb(m);
+	m = r9 matches "";
+	printb(m);
+
+	
+
+}

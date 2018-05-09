@@ -1,7 +1,8 @@
 ~~ comment
 main : -> int {
  
-
+  regexp zero;
+  regexp one;
   regexp x;
   regexp y;
   regexp z;
@@ -9,6 +10,11 @@ main : -> int {
   regexp t;
   regexp w;
   regexp s;
+
+  zero  = {.};
+  one = {{.}};
+  printr(zero);
+  printr(one);
 
   x = lit 'c';
   y = lit 'a';
@@ -19,11 +25,6 @@ main : -> int {
   s = w **;
 
   printr(s);
-
-  x = lit 'b';
-
-~~ testing if w gets modified as well
-~~ printr(s);
 
   return (0);
 }

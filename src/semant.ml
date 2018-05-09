@@ -35,15 +35,27 @@ open RegExp
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
-    and built_in_decls : func_decl string_map =
-    let add_bind ((ty, name) : bind) : (string * func_decl) = (name, { typ     = TUnit
-                                                                     ; fname   = name
-                                                                     ; formals = [(ty, "x")]
-                                                                     ; locals  = []
-                                                                     ; body    = []
-                                                                     })
-    in let built_ins : (string * func_decl) list = List.map add_bind [(TInt, "print");(TRE, "printr"); (TDFA, "printdfa"); (TString, "printf")]
+  and built_in_decls : func_decl string_map =
+    let add_bind ((rt, ty, name)) : (string * func_decl) = (name, { typ     = rt
+                                                                         ; fname   = name
+                                                                         ; formals = [(ty, "x")]
+                                                                         ; locals  = []
+                                                                         ; body    = []
+                                                                         })
+    in let built_ins : (string * func_decl) list = List.map add_bind [ (TUnit, TInt, "print");
+                                                                      (TUnit, TRE, "printr");
+                                                                      (TUnit, TDFA, "printdfa");
+                                                                      (TUnit, TString, "printf");
+                                                                      (TChar, TRE, "litchar");
+                                                                      (TUnit, TBool, "printb") ]
+    in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
+                                                                ; fname = "matches"
+                                                                ; formals = [(TString, "x") ; (TRE, "y")]
+                                                                ; locals = []
+                                                                ; body = []
+                                                                }) :: built_ins
     in fromList (built_ins)
+
 
   (* Add function name to symbol table *)
   in let add_func map fd = if      StringMap.mem fd.fname built_in_decls
@@ -176,9 +188,11 @@ open RegExp
                   in (check_assign ft et err, e')
           in let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall (fname, args'))
+
     in let check_bool_expr e = match (expr e) with
                                 (TBool, e') -> (TBool, e')
                               | _           -> error ("expected Boolean expression in " ^ string_of_expr e)
+
     (* Return a semantically-checked statement i.e. containing sexprs *)
     (* this function was originally a simple `stmt -> sstmt` but with adding continue/break statements it is
        not possible to take any arbitrary `stmt` without more context to determine if said statement is semantically correct,
