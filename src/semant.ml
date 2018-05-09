@@ -272,25 +272,29 @@ open Prelude.Prelude
                                                                                               in let pred3 : sexpr = (TBool, (SBinop (outer, BEqual, lit_c)))
                                                                                               in let pred2 : sexpr = (TBool, (SBinop (outer, BEqual, one_c)))
                                                                                               in let pred1 : sexpr = (TBool, (SBinop (outer, BEqual, zero_c)))
-                                                                                              in let then8 : sstmt = SBlock [ SExpr ((TRE, SAssign (s9, ((TRE, SCall ("lefttok",  [(expr e)]))))))
-                                                                                                                            ; SExpr (expr e8)
-                                                                                                                            ]
-                                                                                              in let then7 : sstmt = SBlock [ SExpr ((TRE, SAssign (s8, ((TRE, SCall ("lefttok",  [(expr e)]))))))
+                                                                                              (* in let then8 : sstmt = SBlock [ SExpr ((TRE, SAssign (s9, ((TRE, SCall ("lefttok",  [(expr e)])))))) *)
+                                                                                              (* in let then8 : sstmt = snd (check_statement (false, (Block [ Expr (expr (Assign (s9, (Call ("lefttok",  [e])))))
+                                                                                                                            ; Expr (expr e8)
+                                                                                                                            ]))) *)
+                                                                                              in let then8 : sstmt = snd (check_statement (false, (Block [ Expr (Assign (s9, (Call ("lefttok",  [e]))))
+                                                                                                                            ; Expr e8
+                                                                                                                            ])))
+                                                                                              in let then7 : sstmt = Block [ SExpr (expr (Assign (s8, (Call ("lefttok",  [e])))))
                                                                                                                             ; SExpr (expr e7)
                                                                                                                             ]
-                                                                                              in let then6 : sstmt = SBlock [ SExpr ((TRE, SAssign (s6, ((TRE, SCall ("lefttok",  [(expr e)]))))))
-                                                                                                                            ; SExpr ((TRE, SAssign (s7, ((TRE, SCall ("righttok", [(expr e)]))))))
+                                                                                              in let then6 : sstmt = Block [ SExpr (expr (Assign (s6, (Call ("lefttok",  [e])))))
+                                                                                                                            ; SExpr (expr (Assign (s7, (Call ("righttok", [e])))))
                                                                                                                             ; SExpr (expr e6)
                                                                                                                             ]
-                                                                                              in let then5 : sstmt = SBlock [ SExpr ((TRE, SAssign (s4, ((TRE, SCall ("lefttok",  [(expr e)]))))))
-                                                                                                                            ; SExpr ((TRE, SAssign (s5, ((TRE, SCall ("righttok", [(expr e)]))))))
+                                                                                              in let then5 : sstmt = Block [ SExpr (expr (Assign (s4, (Call ("lefttok",  [e])))))
+                                                                                                                            ; SExpr (expr (Assign (s5, (Call ("righttok", [e])))))
                                                                                                                             ; SExpr (expr e5)
                                                                                                                             ]
-                                                                                              in let then4 : sstmt = SBlock [ SExpr ((TRE, SAssign (s2, ((TRE, SCall ("lefttok",  [(expr e)]))))))
-                                                                                                                            ; SExpr ((TRE, SAssign (s3, ((TRE, SCall ("righttok", [(expr e)]))))))
+                                                                                              in let then4 : sstmt = Block [ SExpr (expr (Assign (s2, (Call ("lefttok",  [e])))))
+                                                                                                                            ; SExpr (expr (Assign (s3, (Call ("righttok", [e])))))
                                                                                                                             ; SExpr (expr e4)
                                                                                                                             ]
-                                                                                              in let then3 : sstmt = SBlock [ SExpr ((TRE, SAssign (s1, ((TRE, SCall ("litchar",  [(expr e)]))))))
+                                                                                              in let then3 : sstmt = Block [ SExpr (expr (Assign (s1, (Call ("litchar",  [e])))))
                                                                                                                             ; SExpr (expr e3)
                                                                                                                             ]
                                                                                               in let then2 : sstmt = SExpr (expr e2)
