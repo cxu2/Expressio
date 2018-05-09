@@ -1,16 +1,16 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-(* open Prelude *)
+open Prelude.Prelude
 open RegExp
 
 (* Binary operators *)
 type bop = BAdd | BSub | BMult | BDiv | BEqual | BNeq | BLess | BLeq | BGreater | BGeq | BAnd | BOr
-         | BCase
+         (* | BREEqual (* Structural equality of RegExp *) *)
          | BREUnion  | BREConcat  | BREMatches  | BREIntersect
          | BDFAUnion | BDFAConcat | BDFAAccepts | BDFASimulates
 
 (* Unary operators *)
-type uop = UNeg | UNot | URELit | UREStar | UREComp
+type uop = UNeg | UNot | URELit | UREStar | UREComp (* | UREOut *)
 
 type top = Tick
 
@@ -34,7 +34,7 @@ type expr =
   | Unop      of uop * expr
   | Assign    of string * expr
   | Call      of string * expr list
-  | DFA       of int * char list * int * int list * tranf list
+  | DFA       of expr * char list * expr * int list * tranf list
   | StringIndex of string * expr
   | Ternary   of string * expr * expr * top
   | Noexpr
@@ -47,6 +47,8 @@ type stmt =
   | For     of expr * expr * expr * stmt
   | Infloop of stmt
   | While   of expr * stmt
+  (* | Case    of expr * ((expr * expr) list) *)
+  | Case    of expr * (((expr * expr) * expr) list)
   | Continue
   | Break
 
@@ -86,10 +88,10 @@ let string_of_op = function
   | BGeq          -> ">="
   | BAnd          -> "&&"
   | BOr           -> "||"
+  (* | BREEqual      -> "" (* TODO operator charactor or do string/word? *) *)
   | BREUnion      -> "|"
   | BREConcat     -> "^"
   | BREMatches    -> "matches"
-  | BCase         -> "case"
   | BREIntersect  -> "&"
   | BDFAUnion     -> "union"
   | BDFAConcat    -> "concat"
@@ -102,6 +104,7 @@ let string_of_uop = function
   | URELit  -> "lit"
   | UREStar -> "**"
   | UREComp -> "'"
+  (* | UREOut  -> "outer" *)
 
 let rec string_of_clist = function
     []            -> ""
@@ -113,9 +116,8 @@ let rec string_of_intlist = function
   | [last]        -> string_of_int last
   | first :: rest -> string_of_int first ^ ", " ^ string_of_intlist rest
 
-let string_of_tranf tranf =
-  let (one, two, three) = tranf in
-  "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
+let string_of_tranf (one, two, three) =
+    "( " ^ string_of_int one ^ ", " ^ String.make 1 two ^ ", " ^ string_of_int three ^ " )"
 
 let rec string_of_tlist = function
     []            -> ""
@@ -137,13 +139,14 @@ let rec string_of_expr = function
   | Unop (UNot,    e)   -> string_of_uop UNot    ^ string_of_expr e
   | Unop (UREComp, e)   -> string_of_uop UREComp ^ string_of_expr e
   | Unop (URELit,  e)   -> string_of_uop URELit  ^ string_of_expr e
+  (* | Unop (UREOut,  e)   -> string_of_uop UREOut  ^ string_of_expr e *)
   (* postfix *)
   | Unop (UREStar, e)   -> string_of_expr e      ^ string_of_uop UREStar
   | Assign (v, e)       -> v ^ " = " ^ string_of_expr e
   | Call (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | DFA (a, b, c, d, e) -> "{\n states : "      ^ string_of_int a     ^
+  | DFA (a, b, c, d, e) -> "{\n states : "      ^ string_of_expr a    ^
                             "\n alphabet : "    ^ string_of_clist b   ^
-                            "\n start : "       ^ string_of_int c     ^
+                            "\n start : "       ^ string_of_expr c    ^
                             "\n final : "       ^ string_of_intlist d ^
                             "\n transitions : " ^ string_of_tlist e   ^ "\n }"
   | StringIndex(_,_)      -> ""
@@ -155,9 +158,13 @@ let rec string_of_stmt = function
   | Return expr         -> "return " ^ string_of_expr expr ^ ";\n";
   | If (e, s, Block []) -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s
   | If (e, s1, s2)      -> "if " ^ string_of_expr e ^ "\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-  | For (e1, e2, e3, s) -> "for " ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^ string_of_expr e3 ^ "; " ^ string_of_stmt s
-  | While (e, s)        -> "for ;" ^ string_of_expr e ^ "; " ^ string_of_stmt s
+  | For (e1, e2, e3, s) -> "for " ^ string_of_expr e1  ^ "; " ^ string_of_expr e2 ^ "; " ^ string_of_expr e3 ^ "; " ^ string_of_stmt s
+  | While (e, s)        -> "for ; " ^ string_of_expr e ^ "; " ^ string_of_stmt s
   | Infloop (s)         -> "for " ^ string_of_stmt s
+  (*raise (Prelude.TODO "string_of case")*)
+  (* FIXME this is not correct but I'll keep it here for now while I make my own branch *)
+  | Case (e, cs)        -> let cases = String.concat "\n" (List.map (fun ((x, y), z) -> "(" ^ string_of_expr x ^ ", " ^ string_of_expr y ^ ") -> " ^ string_of_expr z) cs)
+                           in "case " ^ string_of_expr e ^ ":\n" ^ cases ^ (error "unfinished")
   | Break               -> "break;"
   | Continue            -> "continue;"
 

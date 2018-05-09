@@ -1,7 +1,7 @@
 (* Semantically-checked Abstract Syntax Tree and functions for printing it *)
 
 open Ast
-(* open Prelude *)
+open Prelude.Prelude
 open RegExp
 
 type sexpr = typ * sx
@@ -15,6 +15,7 @@ and sx =
   | SBinop     of sexpr * bop * sexpr
   | SUnop      of uop * sexpr
   | SAssign    of string * sexpr
+  (* SCall takes the name of the function, and a list of arguments *)
   | SCall      of string * sexpr list
   | SDFA       of int * char list * int * int list * tranf list
   | SStringIndex of string * sexpr
@@ -26,6 +27,7 @@ type sstmt =
   | SExpr    of sexpr
   | SReturn  of sexpr
   | SIf      of sexpr * sstmt * sstmt
+  (* | SCase    of expr * ((expr * expr) list) (* TODO might delete this if SIf is sufficient *) *)
   | SFor     of sexpr * sexpr * sexpr * sstmt
   | SWhile   of sstmt * sexpr * sstmt
   | SInfloop of sstmt
@@ -43,6 +45,45 @@ type sstmt =
     | While   of expr * stmt
     | Continue
     | Break *)
+
+
+(*
+  evaluate a semantically checked int expression by interpreting it
+   N.B. this assumes the semantic checking on `s` was done correctly.
+   TODO: if I were not under a time crunch, I would explore the idea of implementing this with map_accum_left :)
+*)
+let rec eval_sint (map : int string_map) (s : sx) : (int string_map * int) = match s with
+    SIntLit i                        -> (map, i)
+  | SId x                            -> (match (StringMap.find_opt x map) with
+                                           Some z -> (map, z)
+                                         | None -> error "internal error: var identifier look up failed for int expression")
+  | SAssign (str, (_, sx))           -> let (map', rhs) = eval_sint map sx
+                                        in eval_sint (StringMap.add str rhs map') sx
+  | SBinop ((_, e1), BAdd,  (_, e2)) -> let    (map',  left)  = eval_sint map  e1
+                                        in let (map'', right) = eval_sint map' e2
+                                        in (map'', left + right)
+  | SBinop ((_, e1), BSub,  (_, e2)) -> let    (map',  left)  = eval_sint map  e1
+                                        in let (map'', right) = eval_sint map' e2
+                                        in (map'', left - right)
+  | SBinop ((_, e1), BMult, (_, e2)) -> let    (map',  left)  = eval_sint map  e1
+                                        in let (map'', right) = eval_sint map' e2
+                                        in (map'', left * right)
+  | SBinop ((_, e1), BDiv,  (_, e2)) -> let    (map',  left)  = eval_sint map  e1
+                                        in let (map'', right) = eval_sint map' e2
+                                        in (map'', left / right)
+  | SBinop (_,          _,        _) -> error "internal error, unknown bop used in int expr"
+  | SUnop (UNeg, (_, sx))            -> let (map', x) = eval_sint map sx
+                                        in (map', (-x))
+  | _                                -> error "internal error" (* TODO *)
+  (*
+  | SCall _                          -> error "call"
+  | SCharLit _                       -> raise ABSURD
+  | SStringLit _                     -> raise ABSURD
+  | SRE        _                     -> raise ABSURD
+  | SBoolLit   _                     -> raise ABSURD
+  | SDFA       _                     -> raise ABSURD
+  | SNoexpr                          -> error "noexpr"
+  *)
 
 
 type sfunc_decl = {
@@ -105,34 +146,36 @@ type sprogram = bind list * sdfa_decl list * sfunc_decl list
   "\n transitions : " ^ string_of_tlist e ^ "\n }"
   | Noexpr            -> "" *)
 
+
 let rec string_of_sexpr (t, e) =
-  "(" ^ string_of_typ t ^ " : " ^ (match e with
-                                      SIntLit i            -> string_of_expr (IntLit i)
-                                    | SRE r                -> RegExp.string_of_re r
-                                    | SBoolLit true        -> string_of_expr (BoolLit true)
-                                    | SBoolLit false       -> string_of_expr (BoolLit false)
-                                    | SCharLit c           -> string_of_expr (CharLit c)
-                                    | SStringLit s         -> s
-                                    | SId s                -> s
-                                    | SBinop (e1, o, e2)   -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
-                                    (* prefix *)
-                                    | SUnop (UNeg,    e)   -> string_of_uop UNeg    ^ string_of_sexpr e
-                                    | SUnop (UNot,    e)   -> string_of_uop UNot    ^ string_of_sexpr e
-                                    | SUnop (UREComp, e)   -> string_of_uop UREComp ^ string_of_sexpr e
-                                    | SUnop (URELit,  e)   -> string_of_uop URELit  ^ string_of_sexpr e
-                                    (* postfix *)
-                                    | SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
-                                    | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
-                                    | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-                                    | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
-                                                              "\n alphabet : "    ^ string_of_clist b   ^
-                                                              "\n start : "       ^ string_of_int c     ^
-                                                              "\n final : "       ^ string_of_intlist d ^
-                                                              "\n transitions : " ^ string_of_tlist e   ^ "\n }"
-                                    | SNoexpr            -> ""
-                                    | SStringIndex(_,_)       -> ""
-                                    | STernary(_,_,_,_)           -> ""
-                                   ) ^ ")"
+  "(" ^ string_of_typ t ^ " : " ^ string_of_sx e ^ ")"
+and     string_of_sx = function
+    SIntLit i            -> string_of_int i
+  | SRE r                -> RegExp.string_of_re r
+  | SBoolLit true        -> string_of_expr (BoolLit true)
+  | SBoolLit false       -> string_of_expr (BoolLit false)
+  | SCharLit c           -> string_of_expr (CharLit c)
+  | SStringLit s         -> s
+  | SId s                -> s
+  | SBinop (e1, o, e2)   -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
+  (* prefix *)
+  | SUnop (UNeg,    e)   -> string_of_uop UNeg    ^ string_of_sexpr e
+  | SUnop (UNot,    e)   -> string_of_uop UNot    ^ string_of_sexpr e
+  | SUnop (UREComp, e)   -> string_of_uop UREComp ^ string_of_sexpr e
+  | SUnop (URELit,  e)   -> string_of_uop URELit  ^ string_of_sexpr e
+  (* | SUnop (UREOut,  e)   -> string_of_uop UREOut  ^ string_of_sexpr e *)
+  (* postfix *)
+  | SUnop (UREStar, e)   -> string_of_sexpr e     ^ string_of_uop UREStar
+  | SAssign (v, e)       -> v ^ " = " ^ string_of_sexpr e
+  | SCall (f, el)        -> f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
+  | SDFA (a, b, c, d, e) -> "{\n states : "     ^ string_of_int a     ^
+                            "\n alphabet : "    ^ string_of_clist b   ^
+                            "\n start : "       ^ string_of_int c     ^
+                            "\n final : "       ^ string_of_intlist d ^
+                            "\n transitions : " ^ string_of_tlist e   ^ "\n }"
+  | SNoexpr            -> ""
+  | SStringIndex (_,_)  -> ""
+  | STernary (_,_,_,_)           -> ""
 
 (* let rec string_of_stmt = function
    Block stmts         -> "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
@@ -147,13 +190,14 @@ let rec string_of_sexpr (t, e) =
  | Continue            -> "continue;" *)
 let rec string_of_sstmt = function
     SBlock stmts          -> "{\n" ^ String.concat "" (List.map string_of_sstmt stmts) ^ "}\n"
-  | SExpr expr            -> string_of_sexpr expr ^ ";\n";
-  | SReturn expr          -> "return " ^ string_of_sexpr expr ^ ";\n";
-  | SIf (e, s, SBlock []) -> "if " ^ string_of_sexpr e ^ "\n" ^ string_of_sstmt s
-  | SIf (e, s1, s2)       -> "if " ^ string_of_sexpr e ^ "\n" ^ string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2
-  | SFor (e1, e2, e3, s)  -> "for " ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
-  | SWhile (_, e, s)      -> "for " ^ string_of_sexpr e ^ " " ^ string_of_sstmt s
-  | SInfloop (s)          -> "for " ^ string_of_sstmt s
+  | SExpr e               ->             string_of_sexpr e  ^ ";\n"
+  | SReturn e             -> "return " ^ string_of_sexpr e  ^ ";\n"
+  | SIf (e, s, SBlock []) -> "if "     ^ string_of_sexpr e  ^  "\n" ^ string_of_sstmt s
+  | SIf (e, s1, s2)       -> "if "     ^ string_of_sexpr e  ^  "\n" ^ string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2
+  | SFor (e1, e2, e3, s)  -> "for "    ^ string_of_sexpr e1 ^ " ; " ^ string_of_sexpr e2 ^ " ; "    ^ string_of_sexpr e3  ^ " " ^ string_of_sstmt s
+  | SWhile (_, e, s)      -> "for "    ^ string_of_sexpr e  ^ " "   ^ string_of_sstmt s
+  | SInfloop (s)          -> "for "    ^ string_of_sstmt s
+  (* | SCase (e, cases)      -> string_of_stmt (Case (e, cases)) *)
   | SBreak                -> string_of_stmt Break
   | SContinue             -> string_of_stmt Continue
   | SNostmt               -> ""

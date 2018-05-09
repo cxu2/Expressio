@@ -23,15 +23,6 @@ open Prelude
 %token <string> ID
 %token EOF
 
-/* FIXME we will need to think about the correct precedence of these
-within the context of the entire language before adding */
-/*
-For reference, this is the correct precedence between RegExp operators in Haskell:
-infixl 6 + (Numeric.Additive.Class)
-infixl 7 * (Numeric.Algebra.Class)
-infixr 8 `closure`
-*/
-
 %start program
 %type <Ast.program> program
 
@@ -39,11 +30,6 @@ infixr 8 `closure`
 %nonassoc ELSE
 %right ASSIGN
 %right APPEND
-
-%right CASE
-/* %<assoc> CASETO */
-/* FIXME may need to change this in the future, for now this gets rid of shift/reduce conflicts */
-%nonassoc COLON
 
 %left OR
 %left AND
@@ -163,6 +149,45 @@ stmt:
   | CONTINUE SEMI                           { Continue              }
   | BREAK SEMI                              { Break                 }
   | LBRACE stmt_list RBRACE                 { Block (List.rev $2)   }
+  /*
+  (*
+  let o = outer r
+  if1 o = '#'  -- {.}
+  then1 (SExpr e1)
+  else1 if2 o = '@' -- {{.}}
+        then2 (SExpr e2)
+        else2 if3 o = 'l'
+              then3 SBlock [(SAssign s1); (SExpr e3)]
+              else3 if4 o = '&'
+                    then4 SBlock [(SAssign s2); (SAssign s3); (SExpr e4)]
+                    else4 if5 o = '|'
+                          then5 SBlock [(SAssign s4); (SAssign s5); (SExpr e5)]
+                          else5 if6 o = '^'
+                                then6 SBlock [(SAssign s6); (SAssign s7); (SExpr e6)]
+                                else6 if7 o = '\''
+                                      then7 SBlock [(SAssign s8); (SExpr e7)]
+                                      else7 if8 o = '*'
+                                            then8 SBlock [(SAssign s9); (SExpr e8)]
+                                            else8 raise ABSURD
+  *)
+  */
+  | CASE expr   COLON
+    REEMPTY     CASETO expr COMMA
+    REEPS       CASETO expr COMMA
+    RELIT ID    CASETO expr COMMA
+    ID REAND ID CASETO expr COMMA
+    ID REOR  ID CASETO expr COMMA
+    ID RECAT ID CASETO expr COMMA
+    RECOMP ID   CASETO expr COMMA
+    ID RESTAR   CASETO expr SEMI            { Case ($2, [ ((Noexpr, Noexpr), $6 )
+                                                        ; ((Noexpr, Noexpr), $10)
+                                                        ; ((Noexpr, Id $13), $15)
+                                                        ; ((Id $17, Id $19), $21)
+                                                        ; ((Id $23, Id $25), $27)
+                                                        ; ((Id $29, Id $31), $33)
+                                                        ; ((Noexpr, Id $36), $38)
+                                                        ; ((Noexpr, Id $40), $43)
+                                                        ])         }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If ($3, $5, Block []) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If ($3, $5, $7)       }
   | FOR expr SEMI expr SEMI expr for_body
@@ -205,9 +230,7 @@ expr:
   | expr DFACONCAT  expr                    { Binop ($1, BDFAConcat,    $3) }
   | expr DFASIM     expr                    { Binop ($1, BDFASimulates, $3) }
   | expr DFAACCEPTS expr                    { Binop ($1, BDFAAccepts,   $3) }
-  //| expr APPEND expr                        { Binop ($1, BStrAppend,   $3) }
-  /* The line which follows should probably be CASE X OF Y, but this is tough to add without conflicts */
-  | expr CASE COLON expr                    { Binop ($1, BCase,         $4) }
+  /* | expr APPEND expr                        { Binop ($1, BStrAppend,   $3) } */
   | MINUS expr %prec NEG                    { Unop (UNeg, $2)               }
   | NOT expr                                { Unop (UNot, $2)               }
   | expr RESTAR                             { Unop (UREStar, $1)            }
@@ -215,9 +238,14 @@ expr:
   | ID ASSIGN expr                          { Assign ($1, $3)               }
   | ID LPAREN args_opt RPAREN               { Call ($1, $3)                 }
   | LPAREN expr RPAREN                      { $2                            }
-  | ID LBRAC expr RBRAC                     { StringIndex($1,$3)}
-  | LBRACE STATES COLON INTLIT ALPH COLON LBRAC char_opt RBRAC START COLON
-  INTLIT FINAL COLON LBRAC int_opt RBRAC TRANF COLON LBRAC tfdecl_opt RBRAC RBRACE
+  | ID LBRAC expr RBRAC                     { StringIndex ($1 ,$3)          }
+  | LBRACE
+      STATES COLON expr
+      ALPH   COLON LBRAC char_opt   RBRAC
+      START  COLON expr
+      FINAL  COLON LBRAC int_opt    RBRAC
+      TRANF  COLON LBRAC tfdecl_opt RBRAC
+    RBRACE
                                             { DFA ($4, $8, $12, $16, $21)  }
 
 args_opt:

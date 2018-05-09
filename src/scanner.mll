@@ -21,7 +21,7 @@ rule token = parse
 | '^'           { RECAT }                    (* RegExp operator for concatenation *)
 | "**"          { RESTAR }                   (* RegExp operator for Kleene star (closure) *)
 | "lit"         { RELIT }                    (* RegExp operator for encapsulating a literal symbol *)
-| '''		    { RECOMP }	                 (* RegExp operator for complementing regular expression *)
+| '''		        { RECOMP }	                 (* RegExp operator for complementing regular expression *)
 | '&'           { REAND }                    (* RegExp operator for ANDing regular expression~A *)
 | "regexp"      { REGEXP }                   (* RegExp keyword for declaring a RegExp *)
 | "matches"     { REMATCH }                  (* RegExp operator for pattern matching an RE against a string *)
@@ -70,7 +70,6 @@ rule token = parse
 | "bool"        { BOOL }
 | "case"        { CASE }
 | ">>"          { CASETO }
-(* | "of"          { OF } *)
 | "unit"        { UNIT }
 | "true"        { BLIT(true)  }
 | "false"       { BLIT(false) }

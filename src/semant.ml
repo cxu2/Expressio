@@ -3,6 +3,7 @@
 open Ast
 open Sast
 open Prelude.Prelude
+(* open RegExp *)
 
 (* module StringMap = Map.Make(String) *)
 (* Semantic checking of the AST. Returns an SAST if successful,
@@ -11,7 +12,7 @@ open Prelude.Prelude
    Check each global variable, then check each function *)
 
 (* let check (globals, dfas, functions) = *)
-  let check (globals, _, functions) =
+  let check ((globals, _, functions) : program) : sprogram =
 
   (* Check if a certain kind of binding has void type or is a duplicate
      of another, previously checked binding *)
@@ -34,22 +35,32 @@ open Prelude.Prelude
   (**** Checking Functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
-  in let built_in_decls : func_decl string_map =
+  and built_in_decls : func_decl string_map =
     let add_bind ((rt, ty, name)) : (string * func_decl) = (name, { typ     = rt
-                                                                         ; fname   = name
-                                                                         ; formals = [(ty, "x")]
-                                                                         ; locals  = []
-                                                                         ; body    = []
-                                                                         })
-    in let built_ins : (string * func_decl) list = List.map add_bind [ (TUnit, TInt, "print");
-                                                                      (TUnit, TRE, "printr");
-                                                                      (TUnit, TDFA, "printdfa");
-                                                                      (TUnit, TString, "printf");
-                                                                      (TChar, TRE, "litchar");
-                                                                      (TUnit, TChar, "printc");
-                                                                      (TUnit, TBool, "printb"); 
-                                                                       (TInt, TString, "len");
-                                                                       ]
+                                                                  ; fname   = name
+                                                                  ; formals = [(ty, "x")]
+                                                                  ; locals  = []
+                                                                  ; body    = []
+                                                                  })
+    (* manually define the `matches` function because it is not as basic as the rest of the built-in functions *)
+    and matches_fn : (string * func_decl) = ("matches", { typ      = TBool
+                                                        ; fname   = "matches"
+                                                        ; formals = [(TString, "x") ; (TRE, "y")]
+                                                        ; locals  = []
+                                                        ; body    = []
+                                                        })
+    in let built_ins : (string * func_decl) list = matches_fn :: (List.map add_bind [ (TUnit, TInt,    "print")
+                                                                                    ; (TUnit, TRE,     "printr")
+                                                                                    ; (TUnit, TDFA,    "printdfa")
+                                                                                    ; (TUnit, TString, "printf")
+                                                                                    ; (TUnit, TBool,   "printb")
+                                                                                    ; (TChar, TRE,     "litchar")
+                                                                                    ; (TChar, TRE,     "outer")
+                                                                                    ; (TRE,   TRE,     "righttok")
+                                                                                    ; (TRE,   TRE,     "lefttok")
+                                                                                    ; (TUnit, TChar,   "printc")
+                                                                                    ; (TInt,  TString, "len")
+                                                                                    ])
     in let built_ins : (string * func_decl) list = ("matches", { typ = TBool
                                                                 ; fname = "matches"
                                                                 ; formals = [(TString, "x") ; (TRE, "y")]
@@ -62,7 +73,7 @@ open Prelude.Prelude
                                                             ; locals = []
                                                             ; body = []
                                                             }) :: built_ins
-      in let built_ins : (string * func_decl) list = ("randomr", { typ = TInt
+    in let built_ins : (string * func_decl) list = ("randomr", { typ = TInt
                                                             ; fname = "randomr"
                                                             ; formals = [(TInt, "y")]
                                                             ; locals = []
@@ -89,13 +100,13 @@ open Prelude.Prelude
 
   in let _ = find_func "main" (* Ensure "main" is defined *)
 
-  in let check_function (func : func_decl) : sfunc_decl =
+  and check_function (func : func_decl) : sfunc_decl =
     (* Make sure no formals or locals are void or duplicates *)
     let formals' : bind list = check_binds "formal" func.formals
     and locals'  : bind list = check_binds "local"  func.locals
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
-    in let check_assign lvaluet rvaluet err = if lvaluet = rvaluet
+    and check_assign (lvaluet : typ) (rvaluet : typ) err = if lvaluet = rvaluet
                                               then lvaluet
                                               else error err
     (* Build local symbol table of variables for this function *)
@@ -103,44 +114,44 @@ open Prelude.Prelude
     in let symbols : Ast.typ string_map = fromList (List.map swap bindings)
 
     (* Return a variable from our local symbol table *)
-    in let type_of_identifier s = match StringMap.find_opt s symbols with
+    in let type_of_identifier (s : string) : typ = match StringMap.find_opt s symbols with
         Some s' -> s'
       | None    -> error ("undeclared identifier " ^ s)
 
-
+    in let rec type_of_expr e = fst (expr e)
 
     (* Return a semantically-checked expression, i.e., with a type *)
-    in let rec expr (ex : expr) : sexpr = match ex with
+    (* in let rec expr = function *)
+    and expr (ex : expr) : sexpr = match ex with
         IntLit  l                                 -> (TInt,    SIntLit l)
       | CharLit c                                 -> (TChar,   SCharLit c)
       | StringLit s                               -> (TString, SStringLit s)
       | BoolLit l                                 -> (TBool,   SBoolLit l)
-      | DFA (states, alpha, start, final, tran)   ->
-                                 (* check states is greater than final states *)
-                                 let rec checkFinal maxVal = function
-                                   []                       -> false
-                                 | x :: _  when maxVal <= x -> true
-                                 | _ :: tl                  -> checkFinal maxVal tl
-
-                                 (* check states is greater than start/final in transition *)
-                                 and checkTran maxVal = function
-                                   []                                  -> false
-                                 | (t1, _,  _) :: _  when maxVal <= t1 -> true
-                                 | (_,  _, t3) :: _  when maxVal <= t3 -> true
-                                 | (_,  _,  _) :: tl                   -> checkTran maxVal tl
-
-                                 (* check transition table has one to one *)
-                                 and oneToOne sMap = function
-                                   []                 -> false
-                                 | (t1, t2, t3) :: tl -> let    combo      = string_of_int t1 ^ String.make 1 t2
-                                                         in let finalState = string_of_int t3
-                                                         in
-                                                         if StringMap.mem combo sMap then true else oneToOne (StringMap.add combo finalState sMap) tl in
-
-                                 (* also check that states is greater than start *)
-                                 if states <= start ||  checkFinal states final || checkTran states tran || oneToOne StringMap.empty tran
-                                 then error "DFA invalid"
-                                 else (TDFA, SDFA (states, alpha, start, final, tran))
+      (* TODO clean this up a bit *)
+      | DFA (states1, alpha, start1, final, tran) when fst (expr states1) = TInt
+                                                    && fst (expr start1)  = TInt ->
+                                 let states = match expr states1 with
+                                              (TInt,  sint) -> snd (eval_sint StringMap.empty sint)
+                                             | _            -> error ("internal error: DFA field failed to evaluate " ^ string_of_sexpr (expr states1))
+                                 and start = match expr start1 with
+                                              (TInt,  sint) -> snd (eval_sint StringMap.empty sint)
+                                             | _            -> error ("internal error: DFA field failed to evaluate " ^ string_of_sexpr (expr start1))
+                                 (* ensure all states used in the DFA definition are in bounds *)
+                                 in let in_bounds q = q <= states
+                                 in let rec checkFinal = List.for_all                    in_bounds final
+                                    and     checkStart =                                 in_bounds start
+                                    and     checkTran  = List.for_all (fun (q, _, p) -> (in_bounds q
+                                                                                      && in_bounds p)) tran
+                                    (* check transition table is actually a function (one to one mapping) *)
+                                    and     oneToOne map = function
+                                      []                 -> false
+                                    | (t1, t2, t3) :: tl -> let combo      = string_of_int t1 ^ String.make 1 t2
+                                                            and finalState = string_of_int t3
+                                                            in if StringMap.mem combo map then true else oneToOne (StringMap.add combo finalState map) tl
+                                 in if checkStart &&  checkFinal && checkTran && oneToOne StringMap.empty tran
+                                    then error "DFA invalid"
+                                    else (TDFA, SDFA (states, alpha, start, final, tran))
+      | DFA (_, _, _, _, _)   -> error "The expression for the given DFA's states/start was not an int"
       | RE r                  -> (* let check = raise (Prelude.TODO "implement any needed checking here")
                                  in*) (TRE, SRE r)
       | Noexpr                -> (TUnit, SNoexpr)
@@ -159,6 +170,8 @@ open Prelude.Prelude
       | Unop (UREStar, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREStar ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
       | Unop (UREComp, e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e))
       | Unop (UREComp, e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREComp ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex)
+      (* | Unop (UREOut,  e) when fst (expr e) = TRE   -> (TRE,   SUnop (UREComp, expr e)) *)
+      (* | Unop (UREOut,  e) as ex                     -> error ("illegal unary operator " ^ string_of_uop UREOut  ^ string_of_typ (fst (expr e)) ^ " in " ^ string_of_expr ex) *)
       | Binop (e1, op, e2) as e ->
           let (t1, e1') = expr e1
           and (t2, e2') = expr e2
@@ -178,6 +191,7 @@ open Prelude.Prelude
                         | BGeq          when same      && t1 = TInt    -> TBool
                         | BAnd
                         | BOr           when same      && t1 = TBool   -> TBool
+                        (* | BREEqual      when same      && t1 = TRE     -> TBool *)
                         | BREUnion
                         | BREConcat
                         | BREIntersect  when same      && t1 = TRE     -> TRE
@@ -186,7 +200,6 @@ open Prelude.Prelude
                         | BDFASimulates when t1 = TDFA && t2 = TString -> TInt
                         | BDFAUnion     when t1 = TDFA && t2 = TDFA    -> TDFA
                         | BDFAConcat    when t1 = TDFA && t2 = TDFA    -> TDFA
-                        | BCase        -> raise (TODO "implement BCase in semant")
                         | _ -> error ("illegal binary operator " ^
                                       string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                                       string_of_typ t2 ^ " in " ^ string_of_expr e)
@@ -220,7 +233,6 @@ open Prelude.Prelude
                                 (TBool, e') -> (TBool, e')
                               | _           -> error ("expected Boolean expression in " ^ string_of_expr e)
 
-
     (* Return a semantically-checked statement i.e. containing sexprs *)
     (* this function was originally a simple `stmt -> sstmt` but with adding continue/break statements it is
        not possible to take any arbitrary `stmt` without more context to determine if said statement is semantically correct,
@@ -231,6 +243,53 @@ open Prelude.Prelude
       | (false,   Continue)                                              -> error "\'continue\' is outside of loop"
       | (true,    Break)                                                 -> (true,    SBreak)
       | (true,    Continue)                                              -> (true,    SContinue)
+      | (looping, (Case (e, ([ ((Noexpr, Noexpr), e1)
+                             ; ((Noexpr, Noexpr), e2)
+                             ; ((Noexpr, Id s1),  e3)
+                             ; ((Id s2,  Id s3),  e4)
+                             ; ((Id s4,  Id s5),  e5)
+                             ; ((Id s6,  Id s7),  e6)
+                             ; ((Noexpr, Id s8),  e7)
+                             ; ((Noexpr, Id s9),  e8)
+                             ] as cases)))) when fst (expr e) = TRE      -> let rhs = List.map snd cases
+                                                                            and check_expressions_have_type (t : typ) = List.for_all (fun a -> type_of_expr a = t)
+                                                                            (* ensure that the all the types on the RHS of the case are the same *)
+                                                                            in let same_rhs = function
+                                                                                     []        -> true
+                                                                                   | (e :: es) -> check_expressions_have_type (type_of_expr e) es
+                                                                            in (if not (same_rhs rhs)
+                                                                                then error "all of RHS must have same type"
+                                                                                else (* let outer  : expr = Call ("outer", [e]) *)
+                                                                                     let then8 : stmt = Block [ Expr (Assign (s9, (Call ("lefttok",  [e]))))
+                                                                                                              ; Expr e8
+                                                                                                              ]
+                                                                                     and then7 : stmt = Block [ Expr (Assign (s8, (Call ("lefttok",  [e]))))
+                                                                                                              ; Expr e7
+                                                                                                              ]
+                                                                                     and then6 : stmt = Block [ Expr (Assign (s6, (Call ("lefttok",  [e]))))
+                                                                                                              ; Expr (Assign (s7, (Call ("righttok", [e]))))
+                                                                                                              ; Expr e6
+                                                                                                              ]
+                                                                                     and then5 : stmt = Block [ Expr (Assign (s4, (Call ("lefttok",  [e]))))
+                                                                                                              ; Expr (Assign (s5, (Call ("righttok", [e]))))
+                                                                                                              ; Expr e5
+                                                                                                              ]
+                                                                                     and then4 : stmt = Block [ Expr (Assign (s2, (Call ("lefttok",  [e]))))
+                                                                                                              ; Expr (Assign (s3, (Call ("righttok", [e]))))
+                                                                                                              ; Expr e4
+                                                                                                              ]
+                                                                                     and then3 : stmt = Block (List.map (fun e -> Expr e) [Assign (s1, (Call ("litchar",  [e]))); e3])
+                                                                                     (* in let if8 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '*'),  then8,   let _ = (error "umm... outer=" ^ (string_of_expr outer)) in Expr (raise ABSURD)) (* this `else` is unreachable if semantic checking worked *) *)
+                                                                                     in let if8 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '*'),  then8,   (Expr Noexpr)) (* this `else` is unreachable if semantic checking worked *)
+                                                                                     in let if7 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '\''), then7,   if8)
+                                                                                     in let if6 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '^'),  then6,   if7)
+                                                                                     in let if5 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '|'),  then5,   if6)
+                                                                                     in let if4 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '&'),  then4,   if5)
+                                                                                     in let if3 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit 'l'),  then3,   if4)
+                                                                                     in let if2 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '@'),  Expr e2, if3)
+                                                                                     in let if1 : stmt = If (Binop (Call ("outer", [e]), BEqual, CharLit '#'),  Expr e1, if2)
+                                                                                     in check_statement (looping, if1))
+      | (_,       Case (_, _))                                           -> error "case expressions currently only support regular expressions"
       | (looping, Expr e)                                                -> (looping, SExpr (expr e))
       | (looping, If (p, b1, b2))                                        -> (looping, SIf (check_bool_expr p, snd (check_statement (looping, b1)), snd (check_statement (looping, b2))))
       | (looping, For (e1, e2, e3, s))                                   -> (looping, SFor     (expr e1, check_bool_expr e2, expr e3, snd (check_statement (true, s))))
