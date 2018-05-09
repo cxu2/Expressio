@@ -33,11 +33,31 @@ div5 = RE.closure
         ) RE.* (RE.literal Zero RE.+ RE.literal Five)
 ~>
 toString : (x : int) -> string {
+  if (x == 1)  { return "1"; }
+  if (x == 2)  { return "2"; }
+  if (x == 3)  { return "3"; }
+  if (x == 4)  { return "4"; }
+  if (x == 5)  { return "5"; }
+  if (x == 6)  { return "6"; }
+  if (x == 7)  { return "7"; }
+  if (x == 8)  { return "8"; }
+  if (x == 9)  { return "9"; }
+  if (x == 10) { return "10"; }
+  if (x == 11) { return "11"; }
+  if (x == 12) { return "12"; }
+  if (x == 13) { return "13"; }
+  if (x == 14) { return "14"; }
+  if (x == 15) { return "15"; }
+  if (x == 16) { return "16"; }
+  if (x == 17) { return "17"; }
+  if (x == 18) { return "18"; }
+  if (x == 19) { return "19"; }
   return "";
 }
 
 main : -> int {
   int i;
+  string num;
   regexp numeric;
   regexp by5;
   dfa by3;
@@ -63,19 +83,20 @@ main : -> int {
   } else {
     print(0);
   }
-  <~
-  for i = 0; i <= 100; i = i + 1 {
-    if (by3 accepts i) {
+
+  for i = 1; i <= 19; i = i + 1 {
+    num = toString(i);
+    if (by3 accepts num) {
       printf("fizz");
     } else {
-      if (by5 matches i) {
+      if (by5 matches num) {
         printf("buzz");
       } else {
-        printi(i);
+        print(i);
       }
     }
     printf("\n");
   }
-  ~>
+
   return 0;
 }
