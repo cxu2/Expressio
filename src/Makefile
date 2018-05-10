@@ -1,3 +1,9 @@
+# Ian Treyball      <ict2102@columbia.edu>
+# Lalka Rieger      <ler2161@columbia.edu>
+# Chengtian Xu      <cx2168@columbia.edu>
+# David Han         <dth2126@columbia.edu>
+
+
 # Make sure ocamlbuild can find opam-managed packages: first run
 #
 # eval `opam config env`

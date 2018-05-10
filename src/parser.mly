@@ -1,3 +1,11 @@
+ /*
+ Ian Treyball      <ict2102@columbia.edu>
+ Lalka Rieger      <ler2161@columbia.edu>
+ Chengtian Xu      <cx2168@columbia.edu>
+ David Han         <dth2126@columbia.edu>
+ */
+
+
 /* Ocamlyacc parser for MicroC */
 
 %{

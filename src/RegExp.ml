@@ -1,3 +1,5 @@
+ (* Ian Treyball      <ict2102@columbia.edu> *)
+
 (* open Prelude *)
 module RegExp = struct
   type 'a regexp =
@@ -81,22 +83,7 @@ module RegExp = struct
     | And (a, b)  -> (nullable a) && (nullable b)
     | Comp a      -> not (nullable a)
   let constant (r : 'a regexp) : 'a regexp = if nullable r then One else Zero
-  (* Check if the the regular expression, r, produces a finite language.
-     This is accomplished by finding the normal form of r
-     (which removes extra Kleene star operations) and then checking if
-     that normal form still has a Kleene star. *)
-  let finite (r : 'a regexp) : bool =
-    let rec finite' = function
-        Zero        -> true
-      | One         -> true
-      | Lit  _      -> true
-      | Plus (a, b) -> (finite' a) && (finite' b)
-      | Mult (a, b) -> (finite' a) && (finite' b)
-      | Star _      -> false
-      | And  (a, b) -> (finite' a) || (finite' b)
-      | Comp a      -> not (finite' a)
-    in finite' (normalize r)
-  let infinite (r : 'a regexp) : bool = not (finite r)
+  
   (* Brzozowski derivative with respect to s ∈ Σ *)
   let rec derivative (r : 'a regexp) (s : 'a) : 'a regexp = match r with
       Zero        -> Zero

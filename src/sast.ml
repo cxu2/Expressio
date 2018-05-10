@@ -1,3 +1,6 @@
+(*  Ian Treyball      <ict2102@columbia.edu>
+ David Han         <dth2126@columbia.edu> *)
+
 (* Semantically-checked Abstract Syntax Tree and functions for printing it *)
 
 open Ast

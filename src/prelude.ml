@@ -1,3 +1,6 @@
+(* Ian Treyball      <ict2102@columbia.edu>
+Chengtian Xu      <cx2168@columbia.edu> *)
+
 module Prelude = struct
   (* sum types *)
   type ('a, 'b) either = Left of 'a | Right of 'b
