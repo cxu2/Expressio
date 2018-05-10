@@ -78,11 +78,6 @@ rule token = parse
 | "start"       { START }
 | "final"       { FINAL }
 | "transitions" { TRANF }
-| "list:int"		{ INTLIST }
-| "list:char"		{ CHARLIST }
-| "list:bool"		{ BOOLLIST }
-| "list:string"		{ STRINGLIST }
-| "list:tranf"		{ TRANFLIST }
 
 | digits as ds                       { INTLIT(int_of_string ds) }
 | '"'([^'"']* as strlit)'"'          { STRLIT(strlit) }
