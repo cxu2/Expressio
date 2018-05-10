@@ -33,6 +33,7 @@ div5 = RE.closure
         ) RE.* (RE.literal Zero RE.+ RE.literal Five)
 ~>
 toString : (x : int) -> string {
+  if (x == 0)  { return "0"; }
   if (x == 1)  { return "1"; }
   if (x == 2)  { return "2"; }
   if (x == 3)  { return "3"; }
@@ -52,6 +53,87 @@ toString : (x : int) -> string {
   if (x == 17) { return "17"; }
   if (x == 18) { return "18"; }
   if (x == 19) { return "19"; }
+  if (x == 20) { return "20"; }
+  if (x == 21) { return "21"; }
+  if (x == 22) { return "22"; }
+  if (x == 23) { return "23"; }
+  if (x == 24) { return "24"; }
+  if (x == 25) { return "25"; }
+  if (x == 26) { return "26"; }
+  if (x == 27) { return "27"; }
+  if (x == 28) { return "28"; }
+  if (x == 29) { return "29"; }
+  if (x == 30) { return "30"; }
+  if (x == 31) { return "31"; }
+  if (x == 32) { return "32"; }
+  if (x == 33) { return "33"; }
+  if (x == 34) { return "34"; }
+  if (x == 35) { return "35"; }
+  if (x == 36) { return "36"; }
+  if (x == 37) { return "37"; }
+  if (x == 38) { return "38"; }
+  if (x == 39) { return "39"; }
+  if (x == 40) { return "40"; }
+  if (x == 41) { return "41"; }
+  if (x == 42) { return "42"; }
+  if (x == 43) { return "43"; }
+  if (x == 44) { return "44"; }
+  if (x == 45) { return "45"; }
+  if (x == 46) { return "46"; }
+  if (x == 47) { return "47"; }
+  if (x == 48) { return "48"; }
+  if (x == 49) { return "49"; }
+  if (x == 50) { return "50"; }
+  if (x == 51) { return "51"; }
+  if (x == 52) { return "52"; }
+  if (x == 53) { return "53"; }
+  if (x == 54) { return "54"; }
+  if (x == 55) { return "55"; }
+  if (x == 56) { return "56"; }
+  if (x == 57) { return "57"; }
+  if (x == 58) { return "58"; }
+  if (x == 59) { return "59"; }
+  if (x == 60) { return "60"; }
+  if (x == 61) { return "61"; }
+  if (x == 62) { return "62"; }
+  if (x == 63) { return "63"; }
+  if (x == 64) { return "64"; }
+  if (x == 65) { return "65"; }
+  if (x == 66) { return "66"; }
+  if (x == 67) { return "67"; }
+  if (x == 68) { return "68"; }
+  if (x == 69) { return "69"; }
+  if (x == 70) { return "70"; }
+  if (x == 71) { return "71"; }
+  if (x == 72) { return "72"; }
+  if (x == 73) { return "73"; }
+  if (x == 74) { return "74"; }
+  if (x == 75) { return "75"; }
+  if (x == 76) { return "76"; }
+  if (x == 77) { return "77"; }
+  if (x == 78) { return "78"; }
+  if (x == 79) { return "79"; }
+  if (x == 80) { return "80"; }
+  if (x == 81) { return "81"; }
+  if (x == 82) { return "82"; }
+  if (x == 83) { return "83"; }
+  if (x == 84) { return "84"; }
+  if (x == 85) { return "85"; }
+  if (x == 86) { return "86"; }
+  if (x == 87) { return "87"; }
+  if (x == 88) { return "88"; }
+  if (x == 89) { return "89"; }
+  if (x == 90) { return "90"; }
+  if (x == 91) { return "91"; }
+  if (x == 92) { return "92"; }
+  if (x == 93) { return "93"; }
+  if (x == 94) { return "94"; }
+  if (x == 95) { return "95"; }
+  if (x == 96) { return "96"; }
+  if (x == 97) { return "97"; }
+  if (x == 98) { return "98"; }
+  if (x == 99) { return "99"; }
+  if (x == 100) { return "100"; }
   return "";
 }
 
@@ -75,19 +157,21 @@ main : -> int {
   numeric = (lit '0' | lit '1' | lit '2' | lit '3' | lit '4' | lit '5' | lit '6' | lit '7' | lit '8' | lit '9') **;
   by5 = numeric ^ (lit '0' | lit '5');
 
-  for i = 1; i <= 19; i = i + 1 {
+  for i = 1; i <= 100; i = i + 1 {
     num = toString(i);
-    if (by3 accepts num) {
-      printf("fizz");
+    if (by3 accepts num && (by5 matches num)) {
+      printf("FizzBuzz");
     } else {
-      if (by5 matches num) {
-        printf("buzz");
+      if (by3 accepts num) {
+        printf("Fizz");
       } else {
-        print(i);
+        if (by5 matches num) {
+          printf("Buzz");
+        } else {
+          printf(num);
+        }
       }
     }
-    printf("\n");
   }
-
   return 0;
 }
